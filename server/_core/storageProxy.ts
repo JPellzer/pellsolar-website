@@ -12,27 +12,47 @@ export function registerStorageProxy(app: Express) {
     }
 
     // Guard against path traversal
-    if (key.includes("..")) {
+    if (key.includes("..") || key.startsWith("/")) {
       res.status(400).send("Invalid storage key");
       return;
     }
 
     // Try to serve from local bundled files first
-    const localPath = path.join(__dirname, "../../dist/public/manus-storage", key);
-    if (fs.existsSync(localPath)) {
-      res.set("Cache-Control", "public, max-age=31536000, immutable");
-      res.sendFile(localPath);
-      return;
-    }
+    const localPath = path.resolve(process.cwd(), "dist", "public", "manus-storage", key);
 
-    // Fall back to R2 if local file doesn't exist
     try {
-      const signedUrl = await storageGetSignedUrl(key, 3600);
-      res.set("Cache-Control", "no-store");
-      res.redirect(307, signedUrl);
+      if (fs.existsSync(localPath)) {
+        res.set("Cache-Control", "public, max-age=31536000, immutable");
+        res.sendFile(localPath, (err) => {
+          if (err) {
+            console.error("[StorageProxy] sendFile error:", err);
+            if (!res.headersSent) {
+              res.status(404).send("File not found");
+            }
+          }
+        });
+        return;
+      }
+
+      // Fall back to R2 if local file doesn't exist AND R2 is configured
+      if (process.env.R2_ACCESS_KEY_ID && process.env.R2_SECRET_ACCESS_KEY) {
+        try {
+          const signedUrl = await storageGetSignedUrl(key, 3600);
+          res.set("Cache-Control", "no-store");
+          res.redirect(307, signedUrl);
+        } catch (err) {
+          console.error("[StorageProxy] R2 fetch failed:", err);
+          res.status(404).send("File not found");
+        }
+      } else {
+        // No local file and R2 not configured
+        res.status(404).send("File not found");
+      }
     } catch (err) {
-      console.error("[StorageProxy] R2 fetch failed and no local file:", err);
-      res.status(404).send("File not found");
+      console.error("[StorageProxy] Unhandled error:", err);
+      if (!res.headersSent) {
+        res.status(500).send("Internal server error");
+      }
     }
   });
 }
