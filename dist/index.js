@@ -2809,7 +2809,7 @@ async function startServer() {
       res.locals.cspNonce = nonce;
       res.setHeader(
         "Content-Security-Policy",
-        "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://googleads.g.doubleclick.net https://connect.facebook.net; object-src 'none'; base-uri 'self'"
+        "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://googleads.g.doubleclick.net https://connect.facebook.net https://maps.googleapis.com https://maps.gstatic.com; object-src 'none'; base-uri 'self'"
       );
       next();
     });
