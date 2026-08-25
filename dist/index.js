@@ -2636,78 +2636,45 @@ async function ensureSchema() {
   try {
     const client = await pool.connect();
     try {
-      await client.query(`
-        DO $$ BEGIN
-          CREATE TYPE website_role AS ENUM ('user', 'admin');
-        EXCEPTION
-          WHEN duplicate_object THEN null;
-        END $$;
+      const schemaCheck = await client.query(`
+        SELECT column_name
+        FROM information_schema.columns
+        WHERE table_name = 'website_leads' AND column_name = 'firstName'
       `);
+      if (schemaCheck.rows.length > 0) {
+        console.log("[Schema] website_ tables already exist with correct casing \u2014 skipping");
+        return;
+      }
+      console.log("[Schema] Dropping existing website_ objects (if any) before recreating with correct casing");
+      await client.query(`DROP TABLE IF EXISTS "website_users" CASCADE`);
+      await client.query(`DROP TABLE IF EXISTS "website_leads" CASCADE`);
+      await client.query(`DROP TABLE IF EXISTS "website_project_photos" CASCADE`);
+      await client.query(`DROP TABLE IF EXISTS "website_unsubscribes" CASCADE`);
+      await client.query(`DROP TABLE IF EXISTS "website_chat_settings" CASCADE`);
+      await client.query(`DROP TABLE IF EXISTS "website_chat_sessions" CASCADE`);
+      await client.query(`DROP TABLE IF EXISTS "website_chat_messages" CASCADE`);
+      await client.query(`DROP TYPE IF EXISTS "website_role" CASCADE`);
+      await client.query(`DROP TYPE IF EXISTS "website_ownershipType" CASCADE`);
+      await client.query(`DROP TYPE IF EXISTS "website_propertyType" CASCADE`);
+      await client.query(`DROP TYPE IF EXISTS "website_solarMotivation" CASCADE`);
+      await client.query(`DROP TYPE IF EXISTS "website_paymentPreference" CASCADE`);
+      await client.query(`DROP TYPE IF EXISTS "website_interestType" CASCADE`);
+      await client.query(`DROP TYPE IF EXISTS "website_leadStatus" CASCADE`);
+      await client.query(`DROP TYPE IF EXISTS "website_category" CASCADE`);
+      await client.query(`DROP TYPE IF EXISTS "website_chatSessionStatus" CASCADE`);
+      await client.query(`DROP TYPE IF EXISTS "website_chatSender" CASCADE`);
+      await client.query(`CREATE TYPE "website_role" AS ENUM ('user', 'admin')`);
+      await client.query(`CREATE TYPE "website_ownershipType" AS ENUM ('homeowner', 'renter')`);
+      await client.query(`CREATE TYPE "website_propertyType" AS ENUM ('family_home', 'apartment', 'commercial')`);
+      await client.query(`CREATE TYPE "website_solarMotivation" AS ENUM ('price_stability', 'reduce_bills', 'all_electric', 'other')`);
+      await client.query(`CREATE TYPE "website_paymentPreference" AS ENUM ('leasing', 'financing', 'cash')`);
+      await client.query(`CREATE TYPE "website_interestType" AS ENUM ('solar', 'battery', 'solar_battery', 'ev_charger', 'other')`);
+      await client.query(`CREATE TYPE "website_leadStatus" AS ENUM ('New', 'Contacted', 'Quoted', 'Closed', 'Lost')`);
+      await client.query(`CREATE TYPE "website_category" AS ENUM ('solar', 'battery', 'ev-charging', 'roofing', 'other')`);
+      await client.query(`CREATE TYPE "website_chatSessionStatus" AS ENUM ('active', 'closed', 'missed')`);
+      await client.query(`CREATE TYPE "website_chatSender" AS ENUM ('visitor', 'admin')`);
       await client.query(`
-        DO $$ BEGIN
-          CREATE TYPE "website_ownershipType" AS ENUM ('homeowner', 'renter');
-        EXCEPTION
-          WHEN duplicate_object THEN null;
-        END $$;
-      `);
-      await client.query(`
-        DO $$ BEGIN
-          CREATE TYPE "website_propertyType" AS ENUM ('family_home', 'apartment', 'commercial');
-        EXCEPTION
-          WHEN duplicate_object THEN null;
-        END $$;
-      `);
-      await client.query(`
-        DO $$ BEGIN
-          CREATE TYPE "website_solarMotivation" AS ENUM ('price_stability', 'reduce_bills', 'all_electric', 'other');
-        EXCEPTION
-          WHEN duplicate_object THEN null;
-        END $$;
-      `);
-      await client.query(`
-        DO $$ BEGIN
-          CREATE TYPE "website_paymentPreference" AS ENUM ('leasing', 'financing', 'cash');
-        EXCEPTION
-          WHEN duplicate_object THEN null;
-        END $$;
-      `);
-      await client.query(`
-        DO $$ BEGIN
-          CREATE TYPE "website_interestType" AS ENUM ('solar', 'battery', 'solar_battery', 'ev_charger', 'other');
-        EXCEPTION
-          WHEN duplicate_object THEN null;
-        END $$;
-      `);
-      await client.query(`
-        DO $$ BEGIN
-          CREATE TYPE "website_leadStatus" AS ENUM ('New', 'Contacted', 'Quoted', 'Closed', 'Lost');
-        EXCEPTION
-          WHEN duplicate_object THEN null;
-        END $$;
-      `);
-      await client.query(`
-        DO $$ BEGIN
-          CREATE TYPE website_category AS ENUM ('solar', 'battery', 'ev-charging', 'roofing', 'other');
-        EXCEPTION
-          WHEN duplicate_object THEN null;
-        END $$;
-      `);
-      await client.query(`
-        DO $$ BEGIN
-          CREATE TYPE "website_chatSessionStatus" AS ENUM ('active', 'closed', 'missed');
-        EXCEPTION
-          WHEN duplicate_object THEN null;
-        END $$;
-      `);
-      await client.query(`
-        DO $$ BEGIN
-          CREATE TYPE "website_chatSender" AS ENUM ('visitor', 'admin');
-        EXCEPTION
-          WHEN duplicate_object THEN null;
-        END $$;
-      `);
-      await client.query(`
-        CREATE TABLE IF NOT EXISTS website_users (
+        CREATE TABLE "website_users" (
           id SERIAL PRIMARY KEY,
           "openId" VARCHAR(64) NOT NULL UNIQUE,
           name TEXT,
@@ -2720,7 +2687,7 @@ async function ensureSchema() {
         );
       `);
       await client.query(`
-        CREATE TABLE IF NOT EXISTS website_leads (
+        CREATE TABLE "website_leads" (
           id SERIAL PRIMARY KEY,
           "firstName" VARCHAR(128) NOT NULL,
           "lastName" VARCHAR(128) NOT NULL,
@@ -2747,7 +2714,7 @@ async function ensureSchema() {
         );
       `);
       await client.query(`
-        CREATE TABLE IF NOT EXISTS website_project_photos (
+        CREATE TABLE "website_project_photos" (
           id SERIAL PRIMARY KEY,
           title VARCHAR(256) NOT NULL,
           description TEXT,
@@ -2761,7 +2728,7 @@ async function ensureSchema() {
         );
       `);
       await client.query(`
-        CREATE TABLE IF NOT EXISTS website_unsubscribes (
+        CREATE TABLE "website_unsubscribes" (
           id SERIAL PRIMARY KEY,
           email VARCHAR(320) NOT NULL,
           token VARCHAR(128) NOT NULL UNIQUE,
@@ -2771,7 +2738,7 @@ async function ensureSchema() {
         );
       `);
       await client.query(`
-        CREATE TABLE IF NOT EXISTS website_chat_settings (
+        CREATE TABLE "website_chat_settings" (
           id SERIAL PRIMARY KEY,
           "isOnline" INTEGER DEFAULT 0 NOT NULL,
           "offlineMessage" TEXT DEFAULT 'We''re currently offline. Leave your name and email and we''ll get back to you shortly!',
@@ -2779,7 +2746,7 @@ async function ensureSchema() {
         );
       `);
       await client.query(`
-        CREATE TABLE IF NOT EXISTS website_chat_sessions (
+        CREATE TABLE "website_chat_sessions" (
           id SERIAL PRIMARY KEY,
           "sessionToken" VARCHAR(128) NOT NULL UNIQUE,
           "visitorName" VARCHAR(128),
@@ -2792,7 +2759,7 @@ async function ensureSchema() {
         );
       `);
       await client.query(`
-        CREATE TABLE IF NOT EXISTS website_chat_messages (
+        CREATE TABLE "website_chat_messages" (
           id SERIAL PRIMARY KEY,
           "sessionId" INTEGER NOT NULL,
           sender "website_chatSender" NOT NULL,
@@ -2800,7 +2767,7 @@ async function ensureSchema() {
           "createdAt" TIMESTAMP DEFAULT NOW() NOT NULL
         );
       `);
-      console.log("[Schema] website_ tables ensured");
+      console.log("[Schema] website_ tables created successfully");
     } finally {
       client.release();
     }
