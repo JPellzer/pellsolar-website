@@ -2333,6 +2333,7 @@ var HTML_HEAD = `<!DOCTYPE html>
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="/favicon.png" type="image/png" />
   <title>%TITLE% | Pell Solar</title>
   <meta name="description" content="%DESCRIPTION%" />
   <link rel="canonical" href="https://pellsolar.com%CANONICAL_PATH%" />

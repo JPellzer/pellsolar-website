@@ -1322,7 +1322,7 @@ function loadGoogleMaps() {
       return;
     }
     const script = document.createElement("script");
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${MAPS_API_KEY}&v=weekly&libraries=places,marker`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${MAPS_API_KEY}&v=weekly&libraries=places`;
     script.async = true;
     script.setAttribute("data-google-maps", "true");
     script.onload = () => resolve();
