@@ -6,6 +6,7 @@ import { Upload, X, FileText, Phone, Image } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AddressAutocomplete from "@/components/AddressAutocomplete";
+import { ZipMapPreview } from "@/components/ZipMapPreview";
 import { isInServiceArea, getServiceAreaLabel } from "@/lib/serviceArea";
 import { captureAttribution, deriveLeadSource, hasAttribution } from "@shared/attribution";
 
@@ -319,12 +320,6 @@ export default function QuotePage() {
     },
   });
 
-  // Geocode zip code for map display
-  const geocodeQuery = trpc.geo.geocodeZip.useQuery(
-    { zip: form.zipCode },
-    { enabled: form.zipCode.length === 5, staleTime: 60_000 }
-  );
-
   const update = (patch: Partial<FormData>) => setForm(f => ({ ...f, ...patch }));
 
   const selectAndAdvance = (patch: Partial<FormData>) => {
@@ -632,23 +627,10 @@ export default function QuotePage() {
 
                       {/* Map preview — shown when 5 digits entered */}
                       {form.zipCode.length === 5 && (
-                        <div style={{ marginTop: "10px", borderRadius: "12px", overflow: "hidden", border: "2px solid #e0e0e0", height: "140px", background: "#f0f4f8", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                          {geocodeQuery.isLoading ? (
-                            <p style={{ color: "#888", fontSize: "13px", margin: 0 }}>📍 Loading map...</p>
-                          ) : geocodeQuery.data?.found ? (
-                            <iframe
-                              title="zip-map"
-                              width="100%"
-                              height="140"
-                              frameBorder="0"
-                              style={{ border: 0, display: "block" }}
-                              src={`https://maps.google.com/maps?q=${geocodeQuery.data.lat},${geocodeQuery.data.lng}&z=12&output=embed`}
-                              allowFullScreen
-                            />
-                          ) : (
-                            <p style={{ color: "#888", fontSize: "13px", margin: 0 }}>📍 {form.zipCode}</p>
-                          )}
-                        </div>
+                        <ZipMapPreview
+                          zip={form.zipCode}
+                          style={{ marginTop: "10px", borderRadius: "12px", overflow: "hidden", border: "2px solid #e0e0e0", height: "140px" }}
+                        />
                       )}
 
                       {/* Out-of-area message */}

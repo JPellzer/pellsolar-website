@@ -1312,7 +1312,7 @@ function Home() {
   ] });
 }
 const MAPS_API_KEY = "AIzaSyA2FyZfKQvilDk3e0yV3W47mvAQ3AW5aDI";
-function loadMapsScript() {
+function loadGoogleMaps() {
   if (window.google?.maps?.places) return Promise.resolve();
   if (window._mapsScriptLoading) return window._mapsScriptLoading;
   window._mapsScriptLoading = new Promise((resolve, reject) => {
@@ -1322,7 +1322,7 @@ function loadMapsScript() {
       return;
     }
     const script = document.createElement("script");
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${MAPS_API_KEY}&v=weekly&libraries=places`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${MAPS_API_KEY}&v=weekly&libraries=places,marker`;
     script.async = true;
     script.setAttribute("data-google-maps", "true");
     script.onload = () => resolve();
@@ -1345,7 +1345,7 @@ function AddressAutocomplete({
   const [ready, setReady] = useState(false);
   useEffect(() => {
     let cancelled = false;
-    loadMapsScript().then(() => {
+    loadGoogleMaps().then(() => {
       if (!cancelled) setReady(true);
     }).catch(console.error);
     return () => {
@@ -1391,6 +1391,79 @@ function AddressAutocomplete({
       autoComplete: "off"
     }
   );
+}
+function ZipMapPreview({ zip, className, style }) {
+  const mapContainer = useRef(null);
+  const mapRef = useRef(null);
+  const markerRef = useRef(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  useEffect(() => {
+    if (!zip || zip.length !== 5) {
+      setLoading(true);
+      return;
+    }
+    let cancelled = false;
+    async function initMap() {
+      try {
+        await loadGoogleMaps();
+        if (cancelled) return;
+        if (!mapRef.current && mapContainer.current) {
+          mapRef.current = new window.google.maps.Map(mapContainer.current, {
+            zoom: 12,
+            center: { lat: 0, lng: 0 },
+            disableDefaultUI: true,
+            // Minimal UI for preview
+            zoomControl: true,
+            mapTypeControl: false,
+            streetViewControl: false,
+            fullscreenControl: false
+          });
+        }
+        if (!mapRef.current) return;
+        const geocoder = new window.google.maps.Geocoder();
+        const result = await geocoder.geocode({ address: `${zip}, USA` });
+        if (cancelled) return;
+        if (result.results && result.results.length > 0) {
+          const location = result.results[0].geometry.location;
+          mapRef.current.setCenter(location);
+          if (markerRef.current) {
+            markerRef.current.map = null;
+          }
+          markerRef.current = new window.google.maps.marker.AdvancedMarkerElement({
+            map: mapRef.current,
+            position: location,
+            title: zip
+          });
+          setLoading(false);
+          setError(false);
+        } else {
+          setError(true);
+          setLoading(false);
+        }
+      } catch (err) {
+        console.error("Map initialization error:", err);
+        if (!cancelled) {
+          setError(true);
+          setLoading(false);
+        }
+      }
+    }
+    initMap();
+    return () => {
+      cancelled = true;
+    };
+  }, [zip]);
+  if (loading) {
+    return /* @__PURE__ */ jsx("div", { className, style: { ...style, display: "flex", alignItems: "center", justifyContent: "center", background: "#f0f4f8" }, children: /* @__PURE__ */ jsx("p", { style: { color: "#888", fontSize: "13px", margin: 0 }, children: "📍 Loading map..." }) });
+  }
+  if (error) {
+    return /* @__PURE__ */ jsx("div", { className, style: { ...style, display: "flex", alignItems: "center", justifyContent: "center", background: "#f0f4f8" }, children: /* @__PURE__ */ jsxs("p", { style: { color: "#888", fontSize: "13px", margin: 0 }, children: [
+      "📍 ",
+      zip
+    ] }) });
+  }
+  return /* @__PURE__ */ jsx("div", { ref: mapContainer, className, style });
 }
 const INLAND_EMPIRE_ZIPS = /* @__PURE__ */ new Set([
   // San Bernardino County
@@ -2656,10 +2729,6 @@ function QuotePage() {
       }
     }
   });
-  const geocodeQuery = trpc.geo.geocodeZip.useQuery(
-    { zip: form.zipCode },
-    { enabled: form.zipCode.length === 5, staleTime: 6e4 }
-  );
   const update = (patch) => setForm((f) => ({ ...f, ...patch }));
   const selectAndAdvance = (patch) => {
     update(patch);
@@ -2943,21 +3012,13 @@ function QuotePage() {
                       onBlur: (e) => e.target.style.borderColor = zipStatus === "invalid" ? "#ef4444" : zipStatus === "valid" ? "#22c55e" : "#e0e0e0"
                     }
                   ),
-                  form.zipCode.length === 5 && /* @__PURE__ */ jsx("div", { style: { marginTop: "10px", borderRadius: "12px", overflow: "hidden", border: "2px solid #e0e0e0", height: "140px", background: "#f0f4f8", display: "flex", alignItems: "center", justifyContent: "center" }, children: geocodeQuery.isLoading ? /* @__PURE__ */ jsx("p", { style: { color: "#888", fontSize: "13px", margin: 0 }, children: "📍 Loading map..." }) : geocodeQuery.data?.found ? /* @__PURE__ */ jsx(
-                    "iframe",
+                  form.zipCode.length === 5 && /* @__PURE__ */ jsx(
+                    ZipMapPreview,
                     {
-                      title: "zip-map",
-                      width: "100%",
-                      height: "140",
-                      frameBorder: "0",
-                      style: { border: 0, display: "block" },
-                      src: `https://maps.google.com/maps?q=${geocodeQuery.data.lat},${geocodeQuery.data.lng}&z=12&output=embed`,
-                      allowFullScreen: true
+                      zip: form.zipCode,
+                      style: { marginTop: "10px", borderRadius: "12px", overflow: "hidden", border: "2px solid #e0e0e0", height: "140px" }
                     }
-                  ) : /* @__PURE__ */ jsxs("p", { style: { color: "#888", fontSize: "13px", margin: 0 }, children: [
-                    "📍 ",
-                    form.zipCode
-                  ] }) }),
+                  ),
                   zipStatus === "invalid" && /* @__PURE__ */ jsxs("div", { style: {
                     marginTop: "10px",
                     background: "#fef2f2",
