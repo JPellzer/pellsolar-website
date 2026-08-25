@@ -673,6 +673,8 @@ function registerUnsubscribeRoute(app) {
 }
 
 // server/_core/storageProxy.ts
+import path from "path";
+import fs from "fs";
 function registerStorageProxy(app) {
   app.get("/manus-storage/*", async (req, res) => {
     const key = req.params[0];
@@ -680,13 +682,23 @@ function registerStorageProxy(app) {
       res.status(400).send("Missing storage key");
       return;
     }
+    if (key.includes("..")) {
+      res.status(400).send("Invalid storage key");
+      return;
+    }
+    const localPath = path.join(__dirname, "../../dist/public/manus-storage", key);
+    if (fs.existsSync(localPath)) {
+      res.set("Cache-Control", "public, max-age=31536000, immutable");
+      res.sendFile(localPath);
+      return;
+    }
     try {
       const signedUrl = await storageGetSignedUrl(key, 3600);
       res.set("Cache-Control", "no-store");
       res.redirect(307, signedUrl);
     } catch (err) {
-      console.error("[StorageProxy] failed:", err);
-      res.status(502).send("Storage proxy error");
+      console.error("[StorageProxy] R2 fetch failed and no local file:", err);
+      res.status(404).send("File not found");
     }
   });
 }
@@ -1903,32 +1915,32 @@ async function createContext(opts) {
 
 // server/_core/vite.ts
 import express from "express";
-import fs from "fs";
+import fs2 from "fs";
 import { nanoid } from "nanoid";
-import path2 from "path";
+import path3 from "path";
 import { createServer as createViteServer } from "vite";
 
 // vite.config.ts
 import { jsxLocPlugin } from "@builder.io/vite-plugin-jsx-loc";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
-import path from "node:path";
+import path2 from "node:path";
 import { defineConfig } from "vite";
 var plugins = [react(), tailwindcss(), jsxLocPlugin()];
 var vite_config_default = defineConfig({
   plugins,
   resolve: {
     alias: {
-      "@": path.resolve(import.meta.dirname, "client", "src"),
-      "@shared": path.resolve(import.meta.dirname, "shared"),
-      "@assets": path.resolve(import.meta.dirname, "attached_assets")
+      "@": path2.resolve(import.meta.dirname, "client", "src"),
+      "@shared": path2.resolve(import.meta.dirname, "shared"),
+      "@assets": path2.resolve(import.meta.dirname, "attached_assets")
     }
   },
-  envDir: path.resolve(import.meta.dirname),
-  root: path.resolve(import.meta.dirname, "client"),
-  publicDir: path.resolve(import.meta.dirname, "client", "public"),
+  envDir: path2.resolve(import.meta.dirname),
+  root: path2.resolve(import.meta.dirname, "client"),
+  publicDir: path2.resolve(import.meta.dirname, "client", "public"),
   build: {
-    outDir: path.resolve(import.meta.dirname, "dist/public"),
+    outDir: path2.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true
   },
   server: {
@@ -2057,13 +2069,13 @@ async function setupVite(app, server) {
   app.use("*", async (req, res, next) => {
     const url = req.originalUrl;
     try {
-      const clientTemplate = path2.resolve(
+      const clientTemplate = path3.resolve(
         import.meta.dirname,
         "../..",
         "client",
         "index.html"
       );
-      let template = await fs.promises.readFile(clientTemplate, "utf-8");
+      let template = await fs2.promises.readFile(clientTemplate, "utf-8");
       template = template.replace(
         `src="/src/entry-client.tsx"`,
         `src="/src/entry-client.tsx?v=${nanoid()}"`
@@ -2079,8 +2091,8 @@ async function setupVite(app, server) {
   });
 }
 function serveStatic(app) {
-  const distPath = process.env.NODE_ENV === "development" ? path2.resolve(import.meta.dirname, "../..", "dist", "public") : path2.resolve(import.meta.dirname, "public");
-  if (!fs.existsSync(distPath)) {
+  const distPath = process.env.NODE_ENV === "development" ? path3.resolve(import.meta.dirname, "../..", "dist", "public") : path3.resolve(import.meta.dirname, "public");
+  if (!fs2.existsSync(distPath)) {
     console.error(
       `Could not find the build directory: ${distPath}, make sure to build the client first`
     );
@@ -2095,16 +2107,16 @@ function serveStatic(app) {
   });
   app.use(express.static(distPath, { index: false, redirect: false }));
   app.use("*", async (req, res) => {
-    const templatePath = path2.resolve(distPath, "index.html");
+    const templatePath = path3.resolve(distPath, "index.html");
     try {
-      const template = await fs.promises.readFile(templatePath, "utf-8");
-      const serverEntryPath = path2.resolve(import.meta.dirname, "server-ssr", "entry-server.js");
+      const template = await fs2.promises.readFile(templatePath, "utf-8");
+      const serverEntryPath = path3.resolve(import.meta.dirname, "server-ssr", "entry-server.js");
       const { render } = await import(serverEntryPath);
       const { html, dehydratedState, head } = await render(req.originalUrl);
       res.status(head.notFound ? 404 : 200).set({ "Content-Type": "text/html", "Cache-Control": "no-cache" }).end(composeHtml(template, html, head, dehydratedState, res.locals.cspNonce ?? ""));
     } catch (error) {
       console.error("[SSR] render failed; serving client shell", error);
-      const template = await fs.promises.readFile(templatePath, "utf-8");
+      const template = await fs2.promises.readFile(templatePath, "utf-8");
       const fallback = { title: SITE_NAME, description: "Pell Solar solar and battery installation." };
       res.status(200).set({ "Content-Type": "text/html", "Cache-Control": "no-cache" }).end(
         template.replaceAll("%CSP_NONCE%", res.locals.cspNonce ?? "").replace("<!--app-head-->", () => buildHeadTags(fallback, res.locals.cspNonce ?? ""))

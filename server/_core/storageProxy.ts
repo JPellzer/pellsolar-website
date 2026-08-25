@@ -1,4 +1,6 @@
 import type { Express } from "express";
+import path from "path";
+import fs from "fs";
 import { storageGetSignedUrl } from "../storage";
 
 export function registerStorageProxy(app: Express) {
@@ -9,15 +11,28 @@ export function registerStorageProxy(app: Express) {
       return;
     }
 
-    try {
-      // Generate a 1-hour signed URL for R2
-      const signedUrl = await storageGetSignedUrl(key, 3600);
+    // Guard against path traversal
+    if (key.includes("..")) {
+      res.status(400).send("Invalid storage key");
+      return;
+    }
 
+    // Try to serve from local bundled files first
+    const localPath = path.join(__dirname, "../../dist/public/manus-storage", key);
+    if (fs.existsSync(localPath)) {
+      res.set("Cache-Control", "public, max-age=31536000, immutable");
+      res.sendFile(localPath);
+      return;
+    }
+
+    // Fall back to R2 if local file doesn't exist
+    try {
+      const signedUrl = await storageGetSignedUrl(key, 3600);
       res.set("Cache-Control", "no-store");
       res.redirect(307, signedUrl);
     } catch (err) {
-      console.error("[StorageProxy] failed:", err);
-      res.status(502).send("Storage proxy error");
+      console.error("[StorageProxy] R2 fetch failed and no local file:", err);
+      res.status(404).send("File not found");
     }
   });
 }
