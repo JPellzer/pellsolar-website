@@ -1,0 +1,55 @@
+{
+  "version": "7",
+  "dialect": "mysql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1776982252601,
+      "tag": "0000_classy_invaders",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1776982458636,
+      "tag": "0001_flowery_sleeper",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1777826689052,
+      "tag": "0002_aspiring_zemo",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1779122284834,
+      "tag": "0003_worried_pride",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1779920018094,
+      "tag": "0004_far_wong",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1783005876454,
+      "tag": "0005_overjoyed_pepper_potts",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1786536849977,
+      "tag": "0006_strange_the_renegades",
+      "breakpoints": true
+    }
+  ]
+}

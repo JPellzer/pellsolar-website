@@ -1,0 +1,1778 @@
+{
+  "auditedAt": "2026-08-18T19:06:20.684Z",
+  "origin": "http://127.0.0.1:4101",
+  "totals": {
+    "pages": 90,
+    "assets": 43,
+    "failedPages": 0,
+    "failedAssets": 9
+  },
+  "failedPages": [],
+  "failedAssets": [
+    {
+      "assetUrl": "http://127.0.0.1:4101/r",
+      "status": 404,
+      "contentType": "text/html; charset=utf-8",
+      "pages": [
+        "http://127.0.0.1:4101/",
+        "http://127.0.0.1:4101/get-quote",
+        "http://127.0.0.1:4101/about",
+        "http://127.0.0.1:4101/reviews",
+        "http://127.0.0.1:4101/schedule",
+        "http://127.0.0.1:4101/tesla-powerwall",
+        "http://127.0.0.1:4101/solar-panel-systems",
+        "http://127.0.0.1:4101/battery-backup",
+        "http://127.0.0.1:4101/financing",
+        "http://127.0.0.1:4101/solar-repair",
+        "http://127.0.0.1:4101/service-warranty",
+        "http://127.0.0.1:4101/ev-charging",
+        "http://127.0.0.1:4101/nem-3",
+        "http://127.0.0.1:4101/solar-lease",
+        "http://127.0.0.1:4101/california",
+        "http://127.0.0.1:4101/idaho",
+        "http://127.0.0.1:4101/our-work",
+        "http://127.0.0.1:4101/blog",
+        "http://127.0.0.1:4101/terms"
+      ],
+      "error": null
+    },
+    {
+      "assetUrl": "http://127.0.0.1:4101/s,window.location.href",
+      "status": 404,
+      "contentType": "text/html; charset=utf-8",
+      "pages": [
+        "http://127.0.0.1:4101/",
+        "http://127.0.0.1:4101/get-quote",
+        "http://127.0.0.1:4101/about",
+        "http://127.0.0.1:4101/reviews",
+        "http://127.0.0.1:4101/schedule",
+        "http://127.0.0.1:4101/tesla-powerwall",
+        "http://127.0.0.1:4101/solar-panel-systems",
+        "http://127.0.0.1:4101/battery-backup",
+        "http://127.0.0.1:4101/financing",
+        "http://127.0.0.1:4101/solar-repair",
+        "http://127.0.0.1:4101/service-warranty",
+        "http://127.0.0.1:4101/ev-charging",
+        "http://127.0.0.1:4101/nem-3",
+        "http://127.0.0.1:4101/solar-lease",
+        "http://127.0.0.1:4101/california",
+        "http://127.0.0.1:4101/idaho",
+        "http://127.0.0.1:4101/our-work",
+        "http://127.0.0.1:4101/blog",
+        "http://127.0.0.1:4101/terms"
+      ],
+      "error": null
+    },
+    {
+      "assetUrl": "http://127.0.0.1:4101/&#x27;/manus-storage/solar-home-main-v2_0ad97127.jpg&#x27;",
+      "status": 404,
+      "contentType": "text/html; charset=utf-8",
+      "pages": [
+        "http://127.0.0.1:4101/solar-lease"
+      ],
+      "error": null
+    },
+    {
+      "assetUrl": "http://127.0.0.1:4101/solar/r",
+      "status": 404,
+      "contentType": "text/html; charset=utf-8",
+      "pages": [
+        "http://127.0.0.1:4101/solar/anaheim-ca",
+        "http://127.0.0.1:4101/solar/bakersfield-ca",
+        "http://127.0.0.1:4101/solar/baldwin-park-ca",
+        "http://127.0.0.1:4101/solar/brea-ca",
+        "http://127.0.0.1:4101/solar/burbank-ca",
+        "http://127.0.0.1:4101/solar/chino-ca",
+        "http://127.0.0.1:4101/solar/chino-hills-ca",
+        "http://127.0.0.1:4101/solar/corona-ca",
+        "http://127.0.0.1:4101/solar/el-monte-ca",
+        "http://127.0.0.1:4101/solar/fontana-ca",
+        "http://127.0.0.1:4101/solar/fresno-ca",
+        "http://127.0.0.1:4101/solar/fullerton-ca",
+        "http://127.0.0.1:4101/solar/garden-grove-ca",
+        "http://127.0.0.1:4101/solar/glendora-ca",
+        "http://127.0.0.1:4101/solar/inland-empire-ca",
+        "http://127.0.0.1:4101/solar/irvine-ca",
+        "http://127.0.0.1:4101/solar/la-habra-ca",
+        "http://127.0.0.1:4101/solar/lakewood-ca",
+        "http://127.0.0.1:4101/solar/lancaster-ca",
+        "http://127.0.0.1:4101/solar/long-beach-ca",
+        "http://127.0.0.1:4101/solar/los-angeles-ca",
+        "http://127.0.0.1:4101/solar/murrieta-ca",
+        "http://127.0.0.1:4101/solar/ontario-ca",
+        "http://127.0.0.1:4101/solar/orange-ca",
+        "http://127.0.0.1:4101/solar/palmdale-ca",
+        "http://127.0.0.1:4101/solar/pomona-ca",
+        "http://127.0.0.1:4101/solar/rancho-cucamonga-ca",
+        "http://127.0.0.1:4101/solar/riverside-ca",
+        "http://127.0.0.1:4101/solar/san-bernardino-ca",
+        "http://127.0.0.1:4101/solar/santa-ana-ca",
+        "http://127.0.0.1:4101/solar/temecula-ca",
+        "http://127.0.0.1:4101/solar/thousand-oaks-ca",
+        "http://127.0.0.1:4101/solar/torrance-ca",
+        "http://127.0.0.1:4101/solar/ventura-ca",
+        "http://127.0.0.1:4101/solar/upland-ca",
+        "http://127.0.0.1:4101/solar/montclair-ca",
+        "http://127.0.0.1:4101/solar/claremont-ca",
+        "http://127.0.0.1:4101/solar/rialto-ca",
+        "http://127.0.0.1:4101/solar/colton-ca",
+        "http://127.0.0.1:4101/solar/jurupa-valley-ca",
+        "http://127.0.0.1:4101/solar/moreno-valley-ca",
+        "http://127.0.0.1:4101/solar/san-dimas-ca",
+        "http://127.0.0.1:4101/solar/la-verne-ca",
+        "http://127.0.0.1:4101/solar/covina-ca",
+        "http://127.0.0.1:4101/solar/west-covina-ca",
+        "http://127.0.0.1:4101/solar/eastvale-ca",
+        "http://127.0.0.1:4101/solar/norco-ca",
+        "http://127.0.0.1:4101/solar/redlands-ca",
+        "http://127.0.0.1:4101/solar/highland-ca",
+        "http://127.0.0.1:4101/solar/loma-linda-ca",
+        "http://127.0.0.1:4101/solar/bloomington-ca",
+        "http://127.0.0.1:4101/solar/grand-terrace-ca",
+        "http://127.0.0.1:4101/solar/hacienda-heights-ca",
+        "http://127.0.0.1:4101/solar/walnut-ca",
+        "http://127.0.0.1:4101/solar/diamond-bar-ca",
+        "http://127.0.0.1:4101/solar/azusa-ca"
+      ],
+      "error": null
+    },
+    {
+      "assetUrl": "http://127.0.0.1:4101/solar/s,window.location.href",
+      "status": 404,
+      "contentType": "text/html; charset=utf-8",
+      "pages": [
+        "http://127.0.0.1:4101/solar/anaheim-ca",
+        "http://127.0.0.1:4101/solar/bakersfield-ca",
+        "http://127.0.0.1:4101/solar/baldwin-park-ca",
+        "http://127.0.0.1:4101/solar/brea-ca",
+        "http://127.0.0.1:4101/solar/burbank-ca",
+        "http://127.0.0.1:4101/solar/chino-ca",
+        "http://127.0.0.1:4101/solar/chino-hills-ca",
+        "http://127.0.0.1:4101/solar/corona-ca",
+        "http://127.0.0.1:4101/solar/el-monte-ca",
+        "http://127.0.0.1:4101/solar/fontana-ca",
+        "http://127.0.0.1:4101/solar/fresno-ca",
+        "http://127.0.0.1:4101/solar/fullerton-ca",
+        "http://127.0.0.1:4101/solar/garden-grove-ca",
+        "http://127.0.0.1:4101/solar/glendora-ca",
+        "http://127.0.0.1:4101/solar/inland-empire-ca",
+        "http://127.0.0.1:4101/solar/irvine-ca",
+        "http://127.0.0.1:4101/solar/la-habra-ca",
+        "http://127.0.0.1:4101/solar/lakewood-ca",
+        "http://127.0.0.1:4101/solar/lancaster-ca",
+        "http://127.0.0.1:4101/solar/long-beach-ca",
+        "http://127.0.0.1:4101/solar/los-angeles-ca",
+        "http://127.0.0.1:4101/solar/murrieta-ca",
+        "http://127.0.0.1:4101/solar/ontario-ca",
+        "http://127.0.0.1:4101/solar/orange-ca",
+        "http://127.0.0.1:4101/solar/palmdale-ca",
+        "http://127.0.0.1:4101/solar/pomona-ca",
+        "http://127.0.0.1:4101/solar/rancho-cucamonga-ca",
+        "http://127.0.0.1:4101/solar/riverside-ca",
+        "http://127.0.0.1:4101/solar/san-bernardino-ca",
+        "http://127.0.0.1:4101/solar/santa-ana-ca",
+        "http://127.0.0.1:4101/solar/temecula-ca",
+        "http://127.0.0.1:4101/solar/thousand-oaks-ca",
+        "http://127.0.0.1:4101/solar/torrance-ca",
+        "http://127.0.0.1:4101/solar/ventura-ca",
+        "http://127.0.0.1:4101/solar/upland-ca",
+        "http://127.0.0.1:4101/solar/montclair-ca",
+        "http://127.0.0.1:4101/solar/claremont-ca",
+        "http://127.0.0.1:4101/solar/rialto-ca",
+        "http://127.0.0.1:4101/solar/colton-ca",
+        "http://127.0.0.1:4101/solar/jurupa-valley-ca",
+        "http://127.0.0.1:4101/solar/moreno-valley-ca",
+        "http://127.0.0.1:4101/solar/san-dimas-ca",
+        "http://127.0.0.1:4101/solar/la-verne-ca",
+        "http://127.0.0.1:4101/solar/covina-ca",
+        "http://127.0.0.1:4101/solar/west-covina-ca",
+        "http://127.0.0.1:4101/solar/eastvale-ca",
+        "http://127.0.0.1:4101/solar/norco-ca",
+        "http://127.0.0.1:4101/solar/redlands-ca",
+        "http://127.0.0.1:4101/solar/highland-ca",
+        "http://127.0.0.1:4101/solar/loma-linda-ca",
+        "http://127.0.0.1:4101/solar/bloomington-ca",
+        "http://127.0.0.1:4101/solar/grand-terrace-ca",
+        "http://127.0.0.1:4101/solar/hacienda-heights-ca",
+        "http://127.0.0.1:4101/solar/walnut-ca",
+        "http://127.0.0.1:4101/solar/diamond-bar-ca",
+        "http://127.0.0.1:4101/solar/azusa-ca"
+      ],
+      "error": null
+    },
+    {
+      "assetUrl": "http://127.0.0.1:4101/blog/s,window.location.href",
+      "status": 404,
+      "contentType": "text/html; charset=utf-8",
+      "pages": [
+        "http://127.0.0.1:4101/blog/how-solar-panels-work",
+        "http://127.0.0.1:4101/blog/nem-3-explained",
+        "http://127.0.0.1:4101/blog/tesla-powerwall-vs-other-batteries",
+        "http://127.0.0.1:4101/blog/solar-tax-credit-guide",
+        "http://127.0.0.1:4101/blog/solar-cost-california",
+        "http://127.0.0.1:4101/blog/best-solar-panels-california",
+        "http://127.0.0.1:4101/blog/solar-lease-vs-buy",
+        "http://127.0.0.1:4101/blog/how-to-read-sce-bill",
+        "http://127.0.0.1:4101/blog/ev-charger-installation-guide",
+        "http://127.0.0.1:4101/blog/solar-panel-maintenance",
+        "http://127.0.0.1:4101/blog/going-solar-inland-empire",
+        "http://127.0.0.1:4101/blog/virtual-power-plant-explained",
+        "http://127.0.0.1:4101/blog/solar-repair-common-problems",
+        "http://127.0.0.1:4101/blog/why-choose-local-solar-company"
+      ],
+      "error": null
+    },
+    {
+      "assetUrl": "http://127.0.0.1:4101/blog/r",
+      "status": 404,
+      "contentType": "text/html; charset=utf-8",
+      "pages": [
+        "http://127.0.0.1:4101/blog/how-solar-panels-work",
+        "http://127.0.0.1:4101/blog/nem-3-explained",
+        "http://127.0.0.1:4101/blog/tesla-powerwall-vs-other-batteries",
+        "http://127.0.0.1:4101/blog/solar-tax-credit-guide",
+        "http://127.0.0.1:4101/blog/solar-cost-california",
+        "http://127.0.0.1:4101/blog/best-solar-panels-california",
+        "http://127.0.0.1:4101/blog/solar-lease-vs-buy",
+        "http://127.0.0.1:4101/blog/how-to-read-sce-bill",
+        "http://127.0.0.1:4101/blog/ev-charger-installation-guide",
+        "http://127.0.0.1:4101/blog/solar-panel-maintenance",
+        "http://127.0.0.1:4101/blog/going-solar-inland-empire",
+        "http://127.0.0.1:4101/blog/virtual-power-plant-explained",
+        "http://127.0.0.1:4101/blog/solar-repair-common-problems",
+        "http://127.0.0.1:4101/blog/why-choose-local-solar-company"
+      ],
+      "error": null
+    },
+    {
+      "assetUrl": "https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d180000!2d-116.4!3d43.6!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x54aef172e747a1f9%3A0x9f5a9d0b0b0b0b0b!2sBoise%2C%20ID!5e0!3m2!1sen!2sus!4v1700000000000!5m2!1sen!2sus",
+      "status": 404,
+      "contentType": "text/html",
+      "pages": [
+        "http://127.0.0.1:4101/idaho"
+      ],
+      "error": null
+    },
+    {
+      "assetUrl": "https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d1660000!2d-117.6!3d34.0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x80c32b31268e6ad5%3A0x2c8e4e5c5a5a5a5a!2sInland%20Empire%2C%20CA!5e0!3m2!1sen!2sus!4v1700000000000!5m2!1sen!2sus",
+      "status": 404,
+      "contentType": "text/html",
+      "pages": [
+        "http://127.0.0.1:4101/california"
+      ],
+      "error": null
+    }
+  ],
+  "pages": [
+    {
+      "pageUrl": "http://127.0.0.1:4101/",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "http://127.0.0.1:4101/manus-storage/powerwall3-solar-meter_c7511143.png",
+        "http://127.0.0.1:4101/manus-storage/ev-charger_9b89efa1.jpg",
+        "https://www.youtube.com/embed/lhsDln_0Lzc",
+        "http://127.0.0.1:4101/manus-storage/powerwall-wall-mount_05bfd5f1.jpg",
+        "http://127.0.0.1:4101/manus-storage/how-it-works-1-panels_9b6c6456.jpg",
+        "http://127.0.0.1:4101/manus-storage/how-it-works-2-battery_fcab8965.jpg",
+        "http://127.0.0.1:4101/manus-storage/how-it-works-3-peak_8b018b6c.jpg",
+        "http://127.0.0.1:4101/manus-storage/how-it-works-4-backup_586e5b35.jpg",
+        "http://127.0.0.1:4101/manus-storage/pell-solar-referral-qr_b0d91c44.png",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/r",
+        "http://127.0.0.1:4101/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/get-quote",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/r",
+        "http://127.0.0.1:4101/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/about",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/r",
+        "http://127.0.0.1:4101/s,window.location.href"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/reviews",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/r",
+        "http://127.0.0.1:4101/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/schedule",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/r",
+        "http://127.0.0.1:4101/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/tesla-powerwall",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/powerwall3-solar-meter_c7511143.png",
+        "https://www.youtube.com/embed/0mKoEBCRpJk",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/r",
+        "http://127.0.0.1:4101/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/battery-backup_9b911c85.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar-panel-systems",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/qcells-panel-real_2bd09da8.png",
+        "http://127.0.0.1:4101/manus-storage/jinko-panel-real_d42d5d02.png",
+        "http://127.0.0.1:4101/manus-storage/hyundai-panel-real_46a998c9.png",
+        "https://d2xsxph8kpxj0f.cloudfront.net/310519663592920644/UzNUyTd222pkxN2KfqQwdX/ironridge-racking-kJdWNXBaNfHJQf4nBP3vi5.webp",
+        "https://d2xsxph8kpxj0f.cloudfront.net/310519663592920644/UzNUyTd222pkxN2KfqQwdX/solar-monitoring-phone-i3L2znA73NFQKeLEeB5uBT.webp",
+        "http://127.0.0.1:4101/manus-storage/powerwall3-solar-meter_c7511143.png",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/r",
+        "http://127.0.0.1:4101/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/battery-backup",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/dual-powerwall3_c88ab182.png",
+        "https://www.youtube.com/embed/yzb6ols_ffE",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/r",
+        "http://127.0.0.1:4101/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/battery-backup-hero_65613e04.webp"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/financing",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/r",
+        "http://127.0.0.1:4101/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar-repair",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/r",
+        "http://127.0.0.1:4101/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/service-warranty",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/r",
+        "http://127.0.0.1:4101/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/ev-charging",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/ev-faster-charging_b8528895.jpg",
+        "https://d2xsxph8kpxj0f.cloudfront.net/310519663592920644/UzNUyTd222pkxN2KfqQwdX/ev-charge-sleep-eh6DiDw5o3E4cJEV6Wp7cH.webp",
+        "http://127.0.0.1:4101/manus-storage/ev-solar-pairing_ae3c4f3e.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/r",
+        "http://127.0.0.1:4101/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/ev-charger-garage-hero_66105331.jpg",
+        "http://127.0.0.1:4101/manus-storage/ev-charge-sleep_f7448f5b.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/nem-3",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/r",
+        "http://127.0.0.1:4101/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar-lease",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/r",
+        "http://127.0.0.1:4101/s,window.location.href",
+        "http://127.0.0.1:4101/&#x27;/manus-storage/solar-home-main-v2_0ad97127.jpg&#x27;"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/california",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d1660000!2d-117.6!3d34.0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x80c32b31268e6ad5%3A0x2c8e4e5c5a5a5a5a!2sInland%20Empire%2C%20CA!5e0!3m2!1sen!2sus!4v1700000000000!5m2!1sen!2sus",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/r",
+        "http://127.0.0.1:4101/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/idaho",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d180000!2d-116.4!3d43.6!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x54aef172e747a1f9%3A0x9f5a9d0b0b0b0b0b!2sBoise%2C%20ID!5e0!3m2!1sen!2sus!4v1700000000000!5m2!1sen!2sus",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/r",
+        "http://127.0.0.1:4101/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/idaho-home_f4a8226d.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar/anaheim-ca",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/solar/r",
+        "http://127.0.0.1:4101/solar/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar/bakersfield-ca",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/solar/r",
+        "http://127.0.0.1:4101/solar/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar/baldwin-park-ca",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/solar/r",
+        "http://127.0.0.1:4101/solar/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar/brea-ca",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/solar/r",
+        "http://127.0.0.1:4101/solar/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar/burbank-ca",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/solar/r",
+        "http://127.0.0.1:4101/solar/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar/chino-ca",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/solar/r",
+        "http://127.0.0.1:4101/solar/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar/chino-hills-ca",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/solar/r",
+        "http://127.0.0.1:4101/solar/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar/corona-ca",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/solar/r",
+        "http://127.0.0.1:4101/solar/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar/el-monte-ca",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/solar/r",
+        "http://127.0.0.1:4101/solar/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar/fontana-ca",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/solar/r",
+        "http://127.0.0.1:4101/solar/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar/fresno-ca",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/solar/r",
+        "http://127.0.0.1:4101/solar/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar/fullerton-ca",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/solar/r",
+        "http://127.0.0.1:4101/solar/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar/garden-grove-ca",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/solar/r",
+        "http://127.0.0.1:4101/solar/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar/glendora-ca",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/solar/r",
+        "http://127.0.0.1:4101/solar/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar/inland-empire-ca",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/solar/r",
+        "http://127.0.0.1:4101/solar/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar/irvine-ca",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/solar/r",
+        "http://127.0.0.1:4101/solar/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar/la-habra-ca",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/solar/r",
+        "http://127.0.0.1:4101/solar/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar/lakewood-ca",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/solar/r",
+        "http://127.0.0.1:4101/solar/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar/lancaster-ca",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/solar/r",
+        "http://127.0.0.1:4101/solar/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar/long-beach-ca",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/solar/r",
+        "http://127.0.0.1:4101/solar/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar/los-angeles-ca",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/solar/r",
+        "http://127.0.0.1:4101/solar/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar/murrieta-ca",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/solar/r",
+        "http://127.0.0.1:4101/solar/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar/ontario-ca",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/solar/r",
+        "http://127.0.0.1:4101/solar/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar/orange-ca",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/solar/r",
+        "http://127.0.0.1:4101/solar/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar/palmdale-ca",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/solar/r",
+        "http://127.0.0.1:4101/solar/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar/pomona-ca",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/solar/r",
+        "http://127.0.0.1:4101/solar/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar/rancho-cucamonga-ca",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/solar/r",
+        "http://127.0.0.1:4101/solar/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar/riverside-ca",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/solar/r",
+        "http://127.0.0.1:4101/solar/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar/san-bernardino-ca",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/solar/r",
+        "http://127.0.0.1:4101/solar/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar/santa-ana-ca",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/solar/r",
+        "http://127.0.0.1:4101/solar/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar/temecula-ca",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/solar/r",
+        "http://127.0.0.1:4101/solar/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar/thousand-oaks-ca",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/solar/r",
+        "http://127.0.0.1:4101/solar/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar/torrance-ca",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/solar/r",
+        "http://127.0.0.1:4101/solar/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar/ventura-ca",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/solar/r",
+        "http://127.0.0.1:4101/solar/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar/upland-ca",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/solar/r",
+        "http://127.0.0.1:4101/solar/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar/montclair-ca",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/solar/r",
+        "http://127.0.0.1:4101/solar/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar/claremont-ca",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/solar/r",
+        "http://127.0.0.1:4101/solar/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar/rialto-ca",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/solar/r",
+        "http://127.0.0.1:4101/solar/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar/colton-ca",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/solar/r",
+        "http://127.0.0.1:4101/solar/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar/jurupa-valley-ca",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/solar/r",
+        "http://127.0.0.1:4101/solar/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar/moreno-valley-ca",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/solar/r",
+        "http://127.0.0.1:4101/solar/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar/san-dimas-ca",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/solar/r",
+        "http://127.0.0.1:4101/solar/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar/la-verne-ca",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/solar/r",
+        "http://127.0.0.1:4101/solar/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar/covina-ca",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/solar/r",
+        "http://127.0.0.1:4101/solar/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar/west-covina-ca",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/solar/r",
+        "http://127.0.0.1:4101/solar/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar/eastvale-ca",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/solar/r",
+        "http://127.0.0.1:4101/solar/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar/norco-ca",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/solar/r",
+        "http://127.0.0.1:4101/solar/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar/redlands-ca",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/solar/r",
+        "http://127.0.0.1:4101/solar/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar/highland-ca",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/solar/r",
+        "http://127.0.0.1:4101/solar/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar/loma-linda-ca",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/solar/r",
+        "http://127.0.0.1:4101/solar/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar/bloomington-ca",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/solar/r",
+        "http://127.0.0.1:4101/solar/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar/grand-terrace-ca",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/solar/r",
+        "http://127.0.0.1:4101/solar/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar/hacienda-heights-ca",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/solar/r",
+        "http://127.0.0.1:4101/solar/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar/walnut-ca",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/solar/r",
+        "http://127.0.0.1:4101/solar/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar/diamond-bar-ca",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/solar/r",
+        "http://127.0.0.1:4101/solar/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/solar/azusa-ca",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "http://127.0.0.1:4101/manus-storage/california-home_f656624c.jpg",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/solar/r",
+        "http://127.0.0.1:4101/solar/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/our-work",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/r",
+        "http://127.0.0.1:4101/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/installers-on-roof_392a0eff.png"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/blog",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/r",
+        "http://127.0.0.1:4101/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/blog/how-solar-panels-work",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/blog/r",
+        "http://127.0.0.1:4101/blog/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/blog/nem-3-explained",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/blog/r",
+        "http://127.0.0.1:4101/blog/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/blog/tesla-powerwall-vs-other-batteries",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/blog/r",
+        "http://127.0.0.1:4101/blog/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/blog/solar-tax-credit-guide",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/blog/r",
+        "http://127.0.0.1:4101/blog/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/blog/solar-cost-california",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/blog/r",
+        "http://127.0.0.1:4101/blog/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/blog/best-solar-panels-california",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/blog/r",
+        "http://127.0.0.1:4101/blog/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/blog/solar-lease-vs-buy",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/blog/r",
+        "http://127.0.0.1:4101/blog/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/blog/how-to-read-sce-bill",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/blog/r",
+        "http://127.0.0.1:4101/blog/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/blog/ev-charger-installation-guide",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/blog/r",
+        "http://127.0.0.1:4101/blog/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/privacy-policy",
+      "status": 200,
+      "assets": [],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/blog/solar-panel-maintenance",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/blog/r",
+        "http://127.0.0.1:4101/blog/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/blog/going-solar-inland-empire",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/blog/r",
+        "http://127.0.0.1:4101/blog/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/blog/virtual-power-plant-explained",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/blog/r",
+        "http://127.0.0.1:4101/blog/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/blog/solar-repair-common-problems",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/blog/r",
+        "http://127.0.0.1:4101/blog/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/blog/why-choose-local-solar-company",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/blog/r",
+        "http://127.0.0.1:4101/blog/s,window.location.href",
+        "http://127.0.0.1:4101/manus-storage/solar-home-main-v2_0ad97127.jpg"
+      ],
+      "error": null
+    },
+    {
+      "pageUrl": "http://127.0.0.1:4101/terms",
+      "status": 200,
+      "assets": [
+        "https://www.googletagmanager.com/gtag/js?id=G-GDLGN2498Y",
+        "http://127.0.0.1:4101/assets/index-Dt76D6i5.js",
+        "https://www.googletagmanager.com/ns.html?id=GTM-K973H9X",
+        "https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1",
+        "http://127.0.0.1:4101/manus-storage/pell-logo-yellow_77e86543.png",
+        "https://manus-analytics.com/umami",
+        "http://127.0.0.1:4101/r",
+        "http://127.0.0.1:4101/s,window.location.href"
+      ],
+      "error": null
+    }
+  ]
+}

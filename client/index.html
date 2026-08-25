@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, interactive-widget=resizes-content" />
+    <!--app-head-->
+    <!-- Meta Pixel Code -->
+    <script nonce="%CSP_NONCE%">
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', '1425971062887858');
+    fbq('track', 'PageView');
+    </script>
+    <!-- End Meta Pixel Code (noscript moved to body) -->
+    <!-- Verified Google tag: GT-PHGH35SZ routes to Ads AW-17865947343 and GA4 G-GDLGN2498Y -->
+    <script nonce="%CSP_NONCE%" async src="https://www.googletagmanager.com/gtag/js?id=GT-PHGH35SZ"></script>
+    <script nonce="%CSP_NONCE%">
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'AW-17865947343');
+      gtag('config', 'G-GDLGN2498Y');
+    </script>
+    <!-- End verified Google tag -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- In-app browser escape: intercept iOS Messages mini-browser on admin pages -->
+  <script nonce="%CSP_NONCE%">
+  (function() {
+    var path = window.location.pathname;
+    if (path.indexOf('/admin') !== 0) return;
+
+    var ua = navigator.userAgent || '';
+    var isIOS = /iP(hone|od|ad)/.test(ua);
+    if (!isIOS) return;
+
+    var isChromeIOS = /CriOS/.test(ua);
+    var isFirefoxIOS = /FxiOS/.test(ua);
+
+    // Real Chrome or Firefox on iOS — let through
+    if (isChromeIOS || isFirefoxIOS) return;
+
+    // Real Safari: has both 'Safari/' in UA and window.safari object
+    // In-app browsers (Messages, Mail) have 'Safari/' in UA but NO window.safari
+    var hasSafariObj = (typeof window.safari !== 'undefined');
+    if (hasSafariObj) return; // real Safari — let through
+
+    // iOS in-app browser detected — redirect to the open-in-browser page
+    var dest = encodeURIComponent(window.location.href);
+    window.location.replace('/open-in-browser?url=' + dest);
+  })();
+  </script>
+  </head>
+
+  <body>
+    <!-- Meta Pixel noscript fallback -->
+    <noscript><img height="1" width="1" style="display:none"
+    src="https://www.facebook.com/tr?id=1425971062887858&ev=PageView&noscript=1"
+    /></noscript>
+    <!-- End Meta Pixel noscript -->
+    <div id="root"><!--app-html--></div>
+    <script nonce="%CSP_NONCE%" type="module" src="/src/entry-client.tsx"></script>
+    <script nonce="%CSP_NONCE%"
+      defer
+      src="%VITE_ANALYTICS_ENDPOINT%/umami"
+      data-website-id="%VITE_ANALYTICS_WEBSITE_ID%"></script>
+  </body>
+
+</html>

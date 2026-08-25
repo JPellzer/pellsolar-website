@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- Core pages -->
+  <url><loc>https://pellsolar.com/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
+  <url><loc>https://pellsolar.com/get-quote</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://pellsolar.com/about</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://pellsolar.com/reviews</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://pellsolar.com/schedule</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <!-- Service pages -->
+  <url><loc>https://pellsolar.com/solar-panel-systems</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://pellsolar.com/tesla-powerwall</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://pellsolar.com/battery-backup</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://pellsolar.com/ev-charging</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://pellsolar.com/financing</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://pellsolar.com/solar-lease</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://pellsolar.com/solar-repair</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://pellsolar.com/service-warranty</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://pellsolar.com/nem-3</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <!-- State pages -->
+  <url><loc>https://pellsolar.com/california</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://pellsolar.com/idaho</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <!-- City pages -->
+  <url><loc>https://pellsolar.com/solar/anaheim-ca</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://pellsolar.com/solar/bakersfield-ca</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://pellsolar.com/solar/baldwin-park-ca</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://pellsolar.com/solar/brea-ca</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://pellsolar.com/solar/burbank-ca</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://pellsolar.com/solar/chino-ca</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://pellsolar.com/solar/chino-hills-ca</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://pellsolar.com/solar/corona-ca</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://pellsolar.com/solar/el-monte-ca</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://pellsolar.com/solar/fontana-ca</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://pellsolar.com/solar/fresno-ca</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://pellsolar.com/solar/fullerton-ca</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://pellsolar.com/solar/garden-grove-ca</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://pellsolar.com/solar/glendora-ca</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://pellsolar.com/solar/inland-empire-ca</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://pellsolar.com/solar/irvine-ca</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://pellsolar.com/solar/la-habra-ca</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://pellsolar.com/solar/lakewood-ca</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://pellsolar.com/solar/lancaster-ca</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://pellsolar.com/solar/long-beach-ca</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://pellsolar.com/solar/los-angeles-ca</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://pellsolar.com/solar/murrieta-ca</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://pellsolar.com/solar/ontario-ca</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://pellsolar.com/solar/orange-ca</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://pellsolar.com/solar/palmdale-ca</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://pellsolar.com/solar/pomona-ca</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://pellsolar.com/solar/rancho-cucamonga-ca</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://pellsolar.com/solar/riverside-ca</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://pellsolar.com/solar/san-bernardino-ca</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://pellsolar.com/solar/santa-ana-ca</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://pellsolar.com/solar/temecula-ca</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://pellsolar.com/solar/thousand-oaks-ca</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://pellsolar.com/solar/torrance-ca</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://pellsolar.com/solar/ventura-ca</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://pellsolar.com/solar/upland-ca</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://pellsolar.com/solar/montclair-ca</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://pellsolar.com/solar/claremont-ca</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://pellsolar.com/solar/rialto-ca</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://pellsolar.com/solar/colton-ca</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://pellsolar.com/solar/jurupa-valley-ca</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://pellsolar.com/solar/moreno-valley-ca</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://pellsolar.com/solar/san-dimas-ca</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://pellsolar.com/solar/la-verne-ca</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://pellsolar.com/solar/covina-ca</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://pellsolar.com/solar/west-covina-ca</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://pellsolar.com/solar/eastvale-ca</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://pellsolar.com/solar/norco-ca</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://pellsolar.com/solar/redlands-ca</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://pellsolar.com/solar/highland-ca</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://pellsolar.com/solar/loma-linda-ca</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://pellsolar.com/solar/bloomington-ca</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://pellsolar.com/solar/grand-terrace-ca</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://pellsolar.com/solar/hacienda-heights-ca</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://pellsolar.com/solar/walnut-ca</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://pellsolar.com/solar/diamond-bar-ca</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://pellsolar.com/solar/azusa-ca</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <!-- Company -->
+  <url><loc>https://pellsolar.com/our-work</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <!-- Blog -->
+  <url><loc>https://pellsolar.com/blog</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://pellsolar.com/blog/how-solar-panels-work</loc><changefreq>yearly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://pellsolar.com/blog/nem-3-explained</loc><changefreq>yearly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://pellsolar.com/blog/tesla-powerwall-vs-other-batteries</loc><changefreq>yearly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://pellsolar.com/blog/solar-cost-california</loc><changefreq>yearly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://pellsolar.com/blog/solar-tax-credit-guide</loc><changefreq>yearly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://pellsolar.com/blog/best-solar-panels-california</loc><changefreq>yearly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://pellsolar.com/blog/solar-lease-vs-buy</loc><changefreq>yearly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://pellsolar.com/blog/how-to-read-sce-bill</loc><changefreq>yearly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://pellsolar.com/blog/ev-charger-installation-guide</loc><changefreq>yearly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://pellsolar.com/blog/solar-panel-maintenance</loc><changefreq>yearly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://pellsolar.com/blog/going-solar-inland-empire</loc><changefreq>yearly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://pellsolar.com/blog/virtual-power-plant-explained</loc><changefreq>yearly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://pellsolar.com/blog/solar-repair-common-problems</loc><changefreq>yearly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://pellsolar.com/blog/why-choose-local-solar-company</loc><changefreq>yearly</changefreq><priority>0.6</priority></url>
+  <!-- Legal -->
+  <url><loc>https://pellsolar.com/privacy-policy</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
+  <url><loc>https://pellsolar.com/terms</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
+</urlset>
