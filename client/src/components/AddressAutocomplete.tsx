@@ -2,7 +2,7 @@
 
 /**
  * AddressAutocomplete — reusable address input with Google Maps Places autocomplete.
- * Uses the same Manus Maps proxy as Map.tsx (no API key needed from the user).
+ * Loads Google Maps JS API directly (no proxy).
  *
  * Usage:
  *   <AddressAutocomplete
@@ -20,11 +20,10 @@
 
 import { useEffect, useRef, useState } from "react";
 
-const API_KEY = import.meta.env.VITE_FRONTEND_FORGE_API_KEY;
-const FORGE_BASE_URL =
-  import.meta.env.VITE_FRONTEND_FORGE_API_URL ||
-  "https://forge.butterfly-effect.dev";
-const MAPS_PROXY_URL = `${FORGE_BASE_URL}/v1/maps/proxy`;
+// Google Maps browser key (public client-side key from Pell Solar CRM)
+const MAPS_API_KEY =
+  import.meta.env.VITE_GOOGLE_MAPS_BROWSER_KEY ||
+  "AIzaSyA2FyZfKQvilDk3e0yV3W47mvAQ3AW5aDI";
 
 declare global {
   interface Window {
@@ -39,16 +38,15 @@ function loadMapsScript(): Promise<void> {
   if (window._mapsScriptLoading) return window._mapsScriptLoading;
 
   window._mapsScriptLoading = new Promise((resolve, reject) => {
-    const existing = document.querySelector("script[data-maps-proxy]");
+    const existing = document.querySelector("script[data-google-maps]");
     if (existing) {
       existing.addEventListener("load", () => resolve());
       return;
     }
     const script = document.createElement("script");
-    script.src = `${MAPS_PROXY_URL}/maps/api/js?key=${API_KEY}&v=weekly&libraries=marker,places,geocoding,geometry`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${MAPS_API_KEY}&v=weekly&libraries=places`;
     script.async = true;
-    script.crossOrigin = "anonymous";
-    script.setAttribute("data-maps-proxy", "true");
+    script.setAttribute("data-google-maps", "true");
     script.onload = () => resolve();
     script.onerror = () => reject(new Error("Failed to load Google Maps"));
     document.head.appendChild(script);

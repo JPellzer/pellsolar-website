@@ -1,1 +1,0 @@
-ALTER TABLE `leads` MODIFY COLUMN `source` varchar(64) NOT NULL DEFAULT 'homepage';

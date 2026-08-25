@@ -13,6 +13,7 @@ import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import redirectsRouter from "../redirects";
 import staticPagesRouter from "../staticPages";
+import { ensureSchema } from "./ensureSchema";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -34,6 +35,9 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 }
 
 async function startServer() {
+  // Bootstrap schema before starting server
+  await ensureSchema();
+
   const app = express();
   const server = createServer(app);
   if (process.env.NODE_ENV === "production") {

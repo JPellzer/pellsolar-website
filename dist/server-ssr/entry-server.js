@@ -1311,23 +1311,20 @@ function Home() {
     /* @__PURE__ */ jsx(Footer, {})
   ] });
 }
-const API_KEY = void 0;
-const FORGE_BASE_URL = "https://forge.butterfly-effect.dev";
-const MAPS_PROXY_URL = `${FORGE_BASE_URL}/v1/maps/proxy`;
+const MAPS_API_KEY = "AIzaSyA2FyZfKQvilDk3e0yV3W47mvAQ3AW5aDI";
 function loadMapsScript() {
   if (window.google?.maps?.places) return Promise.resolve();
   if (window._mapsScriptLoading) return window._mapsScriptLoading;
   window._mapsScriptLoading = new Promise((resolve, reject) => {
-    const existing = document.querySelector("script[data-maps-proxy]");
+    const existing = document.querySelector("script[data-google-maps]");
     if (existing) {
       existing.addEventListener("load", () => resolve());
       return;
     }
     const script = document.createElement("script");
-    script.src = `${MAPS_PROXY_URL}/maps/api/js?key=${API_KEY}&v=weekly&libraries=marker,places,geocoding,geometry`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${MAPS_API_KEY}&v=weekly&libraries=places`;
     script.async = true;
-    script.crossOrigin = "anonymous";
-    script.setAttribute("data-maps-proxy", "true");
+    script.setAttribute("data-google-maps", "true");
     script.onload = () => resolve();
     script.onerror = () => reject(new Error("Failed to load Google Maps"));
     document.head.appendChild(script);
@@ -4538,7 +4535,7 @@ function useAuth(options) {
   }, [logoutMutation, utils]);
   const state = useMemo(() => {
     localStorage.setItem(
-      "manus-runtime-user-info",
+      "pell-user-info",
       JSON.stringify(meQuery.data)
     );
     return {
