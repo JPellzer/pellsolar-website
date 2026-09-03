@@ -1880,8 +1880,8 @@ Provide a helpful, accurate diagnostic response. Use the exact brand-specific ap
   }),
   // ─── Project Photos procedures ──────────────────────────────────────────
   photos: router({
-    list: publicProcedure.input(z3.object({ category: z3.enum(["solar", "battery", "ev-charging", "roofing", "other"]).optional() })).query(async ({ input }) => {
-      return getProjectPhotos(input.category);
+    list: publicProcedure.input(z3.object({ category: z3.enum(["solar", "battery", "ev-charging", "roofing", "other"]).optional() }).optional()).query(async ({ input }) => {
+      return getProjectPhotos(input?.category);
     }),
     upload: adminProcedure3.input(z3.object({
       title: z3.string().min(1),
