@@ -139,7 +139,13 @@ describe("leads.create (public)", () => {
     const getSignedUrl = vi.mocked(storageGetSignedUrl);
     crmWebhook.mockClear();
     getSignedUrl.mockClear();
-    const caller = appRouter.createCaller(makePublicCtx());
+    const ctx = makePublicCtx();
+    ctx.req.headers = {
+      "x-forwarded-for": "198.51.100.42, 10.0.0.1",
+      "user-agent": "PellSolarSecurityTest/1.0",
+      referer: "https://www.google.com/",
+    };
+    const caller = appRouter.createCaller(ctx);
 
     const result = await caller.leads.create({
       firstName: "Taylor",
@@ -162,6 +168,9 @@ describe("leads.create (public)", () => {
       billFileName: "test-utility-bill.pdf",
       source: "quote-page",
       utmData: { utm_source: "google", utm_campaign: "solar-search", gclid: "TEST123" },
+      companyWebsite: "",
+      formSeconds: 14,
+      pageUrl: "https://pellsolar.com/get-quote?gclid=TEST123",
     });
 
     expect(result).toMatchObject({ success: true, id: 42, dealId: 99 });
@@ -186,6 +195,13 @@ describe("leads.create (public)", () => {
       monthly_bill: 285,
       interest: "solar_battery",
       utm_data: { utm_source: "google", utm_campaign: "solar-search", gclid: "TEST123" },
+      visitor_ip: "198.51.100.42",
+      user_agent: "PellSolarSecurityTest/1.0",
+      referrer: "https://www.google.com/",
+      page_url: "https://pellsolar.com/get-quote?gclid=TEST123",
+      form_seconds: 14,
+      honeypot: "",
+      turnstile_ok: null,
       notes: undefined,
     });
     expect(getSignedUrl).toHaveBeenCalledWith("bills/test-utility-bill.pdf", 604800);
@@ -210,6 +226,25 @@ describe("leads.create (public)", () => {
       source: "quote-page",
       utm_data: undefined,
     }));
+  });
+
+  it("rejects a filled company_website honeypot before forwarding a lead to the CRM", async () => {
+    const crmWebhook = vi.mocked(postToCrm);
+    crmWebhook.mockClear();
+    const caller = appRouter.createCaller(makePublicCtx());
+
+    await expect(caller.leads.create({
+      firstName: "Bot",
+      lastName: "Submission",
+      email: "bot@example.test",
+      phone: "7145559999",
+      ownershipType: "homeowner",
+      interestType: "solar",
+      source: "quote-page",
+      companyWebsite: "https://automated.example/",
+    })).rejects.toMatchObject({ code: "BAD_REQUEST" });
+
+    expect(crmWebhook).not.toHaveBeenCalled();
   });
 });
 

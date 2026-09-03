@@ -760,9 +760,9 @@
 - [x] Add regression checks and verify all repaired pages in a production build
 
 ## Live Visual Asset Repair — August 21, 2026
-- [ ] Audit pellsolar.com and representative public routes for missing images, icons, logos, and broken media
-- [ ] Repair each confirmed live visual-asset failure using permanent asset URLs without changing lead or CRM flows
-- [ ] Add or update visual-asset regression coverage and verify the repaired routes in a production build
+- [x] Audit pellsolar.com and representative public routes for missing images, icons, logos, and broken media
+- [x] Repair each confirmed live visual-asset failure using permanent asset URLs without changing lead or CRM flows
+- [x] Add or update visual-asset regression coverage and verify the repaired routes in a production build
 
 ## Urgent NEM 3.0 Powerwall Image Repair
 - [x] Identify and replace the failed Powerwall image in the NEM 3.0 content section
@@ -803,4 +803,18 @@
 - [x] Verify the deployed site uses only the consolidated `GT-PHGH35SZ` loader and the new phone-call conversion action
 
 ## Source Code Export — August 25, 2026
-- [ ] Create a downloadable archive of the current Pell Solar website source code for Josh
+- [x] Create a downloadable archive of the current Pell Solar website source code for Josh
+- [x] Upload the source-code archive to Josh's Google Drive as "Pellsolar Code Website"
+
+## Quote Form & CRM Security Hardening — August 25, 2026
+- [x] Add a visually hidden company_website honeypot and form completion timer to the existing quote form
+- [x] Forward visitor IP, user agent, referrer, page URL, timing, honeypot, and Turnstile status with quote leads
+- [x] Add optional Cloudflare Turnstile server verification that fails safely only when configured
+- [x] Add server-only WEBSITE_LEAD_SECRET authentication to CRM webhook and customer-check requests
+- [x] Suppress the booking button on the thank-you page when the CRM marks a lead as suspect
+- [x] Add regression tests and verify the hardened quote flow without changing its questions, design, or booking behavior
+
+## Live Video Embed Repair — August 29, 2026
+- [x] Inventory all public video embeds and player references across Pell Solar pages
+- [x] Identify and repair each confirmed broken video embed or player configuration
+- [x] Add regression coverage and verify repaired video sections in the production build

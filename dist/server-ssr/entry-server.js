@@ -1392,79 +1392,6 @@ function AddressAutocomplete({
     }
   );
 }
-function ZipMapPreview({ zip, className, style }) {
-  const mapContainer = useRef(null);
-  const mapRef = useRef(null);
-  const markerRef = useRef(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-  useEffect(() => {
-    if (!zip || zip.length !== 5) {
-      setLoading(true);
-      return;
-    }
-    let cancelled = false;
-    async function initMap() {
-      try {
-        await loadGoogleMaps();
-        if (cancelled) return;
-        if (!mapRef.current && mapContainer.current) {
-          mapRef.current = new window.google.maps.Map(mapContainer.current, {
-            zoom: 12,
-            center: { lat: 0, lng: 0 },
-            disableDefaultUI: true,
-            // Minimal UI for preview
-            zoomControl: true,
-            mapTypeControl: false,
-            streetViewControl: false,
-            fullscreenControl: false
-          });
-        }
-        if (!mapRef.current) return;
-        const geocoder = new window.google.maps.Geocoder();
-        const result = await geocoder.geocode({ address: `${zip}, USA` });
-        if (cancelled) return;
-        if (result.results && result.results.length > 0) {
-          const location = result.results[0].geometry.location;
-          mapRef.current.setCenter(location);
-          if (markerRef.current) {
-            markerRef.current.map = null;
-          }
-          markerRef.current = new window.google.maps.marker.AdvancedMarkerElement({
-            map: mapRef.current,
-            position: location,
-            title: zip
-          });
-          setLoading(false);
-          setError(false);
-        } else {
-          setError(true);
-          setLoading(false);
-        }
-      } catch (err) {
-        console.error("Map initialization error:", err);
-        if (!cancelled) {
-          setError(true);
-          setLoading(false);
-        }
-      }
-    }
-    initMap();
-    return () => {
-      cancelled = true;
-    };
-  }, [zip]);
-  if (loading) {
-    return /* @__PURE__ */ jsx("div", { className, style: { ...style, display: "flex", alignItems: "center", justifyContent: "center", background: "#f0f4f8" }, children: /* @__PURE__ */ jsx("p", { style: { color: "#888", fontSize: "13px", margin: 0 }, children: "📍 Loading map..." }) });
-  }
-  if (error) {
-    return /* @__PURE__ */ jsx("div", { className, style: { ...style, display: "flex", alignItems: "center", justifyContent: "center", background: "#f0f4f8" }, children: /* @__PURE__ */ jsxs("p", { style: { color: "#888", fontSize: "13px", margin: 0 }, children: [
-      "📍 ",
-      zip
-    ] }) });
-  }
-  return /* @__PURE__ */ jsx("div", { ref: mapContainer, className, style });
-}
 const INLAND_EMPIRE_ZIPS = /* @__PURE__ */ new Set([
   // San Bernardino County
   "91701",
@@ -2461,6 +2388,47 @@ function deriveLeadSource(defaultSource, attribution) {
 }
 const HERO_IMG$d = "/manus-storage/solar-home-main-v2_0ad97127.jpg";
 const LOGO_URL = "/manus-storage/pell-logo-yellow_77e86543.png";
+function InvisibleTurnstile({ siteKey, onToken }) {
+  const containerRef = useRef(null);
+  const widgetIdRef = useRef(null);
+  useEffect(() => {
+    if (!siteKey || !containerRef.current) return;
+    let cancelled = false;
+    const renderWidget = () => {
+      if (cancelled || !containerRef.current || !window.turnstile || widgetIdRef.current) return;
+      widgetIdRef.current = window.turnstile.render(containerRef.current, {
+        sitekey: siteKey,
+        size: "invisible",
+        action: "quote_lead",
+        callback: (token) => onToken(token),
+        "expired-callback": () => onToken(""),
+        "error-callback": () => onToken("")
+      });
+    };
+    const scriptId = "cloudflare-turnstile-script";
+    let script = document.getElementById(scriptId);
+    if (window.turnstile) {
+      renderWidget();
+    } else {
+      if (!script) {
+        script = document.createElement("script");
+        script.id = scriptId;
+        script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+        script.async = true;
+        script.defer = true;
+        document.head.appendChild(script);
+      }
+      script.addEventListener("load", renderWidget, { once: true });
+    }
+    return () => {
+      cancelled = true;
+      if (script) script.removeEventListener("load", renderWidget);
+      if (widgetIdRef.current && window.turnstile) window.turnstile.remove(widgetIdRef.current);
+      widgetIdRef.current = null;
+    };
+  }, [siteKey, onToken]);
+  return /* @__PURE__ */ jsx("div", { ref: containerRef, "aria-hidden": "true" });
+}
 function OptionBtn({
   selected,
   onClick,
@@ -2685,6 +2653,10 @@ function QuotePage() {
   const [showRenterPopup, setShowRenterPopup] = useState(false);
   const [zipStatus, setZipStatus] = useState("idle");
   const formCardRef = useRef(null);
+  const formStartedAtRef = useRef(Date.now());
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const turnstileConfig = trpc.security.turnstileConfig.useQuery(void 0, { staleTime: Infinity });
+  const onTurnstileToken = useCallback((token) => setTurnstileToken(token), []);
   const [form, setForm] = useState({
     ownership: prefillOwnership,
     propertyType: prefillPropertyType,
@@ -2706,7 +2678,8 @@ function QuotePage() {
     billFileKey: "",
     billFileUrl: "",
     billFileName: "",
-    smsConsent: false
+    smsConsent: false,
+    companyWebsite: ""
   });
   const createLead = trpc.leads.create.useMutation({
     onSuccess: (data, variables) => {
@@ -2714,6 +2687,7 @@ function QuotePage() {
       if (data.isDuplicate) searchParams2.set("returning", "1");
       if (data.dealId) searchParams2.set("deal_id", String(data.dealId));
       if (data.id) searchParams2.set("lead_id", String(data.id));
+      if (data.suspect) searchParams2.set("suspect", "1");
       const params = searchParams2.toString() ? `?${searchParams2.toString()}` : "";
       navigate(`/thank-you${params}`);
       setStep(10);
@@ -2724,11 +2698,17 @@ function QuotePage() {
         toast.error("You've already submitted recently. We'll be in touch soon!");
       } else if (msg.includes("duplicate") || msg.includes("already")) {
         toast.error("Looks like you're already in our system! We'll be in touch soon.");
+      } else if (msg === "Something went wrong, please try again.") {
+        toast.error("Something went wrong, please try again.");
       } else {
         toast.error("Something went wrong. Please try again or call us at (714) 455-3401.");
       }
     }
   });
+  const geocodeQuery = trpc.geo.geocodeZip.useQuery(
+    { zip: form.zipCode },
+    { enabled: form.zipCode.length === 5, staleTime: 6e4 }
+  );
   const update = (patch) => setForm((f) => ({ ...f, ...patch }));
   const selectAndAdvance = (patch) => {
     update(patch);
@@ -2808,8 +2788,12 @@ function QuotePage() {
       billFileUrl: billUrl || void 0,
       billFileName: billName || void 0,
       utmData: hasAttribution(attribution) ? attribution : void 0,
-      _hp: ""
-      // honeypot — always empty for real users
+      _hp: "",
+      // legacy honeypot retained for compatible server callers
+      companyWebsite: form.companyWebsite,
+      formSeconds: Math.max(0, Math.floor((Date.now() - formStartedAtRef.current) / 1e3)),
+      pageUrl: window.location.href,
+      turnstileToken: turnstileToken || void 0
     });
   };
   const canSubmit = !!(form.firstName && form.lastName && form.email && form.phone);
@@ -3012,13 +2996,21 @@ function QuotePage() {
                       onBlur: (e) => e.target.style.borderColor = zipStatus === "invalid" ? "#ef4444" : zipStatus === "valid" ? "#22c55e" : "#e0e0e0"
                     }
                   ),
-                  form.zipCode.length === 5 && /* @__PURE__ */ jsx(
-                    ZipMapPreview,
+                  form.zipCode.length === 5 && /* @__PURE__ */ jsx("div", { style: { marginTop: "10px", borderRadius: "12px", overflow: "hidden", border: "2px solid #e0e0e0", height: "140px", background: "#f0f4f8", display: "flex", alignItems: "center", justifyContent: "center" }, children: geocodeQuery.isLoading ? /* @__PURE__ */ jsx("p", { style: { color: "#888", fontSize: "13px", margin: 0 }, children: "📍 Loading map..." }) : geocodeQuery.data?.found ? /* @__PURE__ */ jsx(
+                    "iframe",
                     {
-                      zip: form.zipCode,
-                      style: { marginTop: "10px", borderRadius: "12px", overflow: "hidden", border: "2px solid #e0e0e0", height: "140px" }
+                      title: "zip-map",
+                      width: "100%",
+                      height: "140",
+                      frameBorder: "0",
+                      style: { border: 0, display: "block" },
+                      src: `https://maps.google.com/maps?q=${geocodeQuery.data.lat},${geocodeQuery.data.lng}&z=12&output=embed`,
+                      allowFullScreen: true
                     }
-                  ),
+                  ) : /* @__PURE__ */ jsxs("p", { style: { color: "#888", fontSize: "13px", margin: 0 }, children: [
+                    "📍 ",
+                    form.zipCode
+                  ] }) }),
                   zipStatus === "invalid" && /* @__PURE__ */ jsxs("div", { style: {
                     marginTop: "10px",
                     background: "#fef2f2",
@@ -3233,6 +3225,20 @@ function QuotePage() {
               step === 9 && /* @__PURE__ */ jsxs("div", { children: [
                 /* @__PURE__ */ jsx(StepHeading, { children: "Fill out this form and our team will reach out about your solar savings" }),
                 /* @__PURE__ */ jsxs("div", { style: { maxWidth: "480px", margin: "0 auto" }, children: [
+                  /* @__PURE__ */ jsx(
+                    "input",
+                    {
+                      type: "text",
+                      name: "company_website",
+                      value: form.companyWebsite,
+                      onChange: (e) => update({ companyWebsite: e.target.value }),
+                      tabIndex: -1,
+                      autoComplete: "off",
+                      "aria-hidden": "true",
+                      style: { position: "absolute", left: "-9999px", opacity: 0, height: 0 }
+                    }
+                  ),
+                  /* @__PURE__ */ jsx(InvisibleTurnstile, { siteKey: turnstileConfig.data?.siteKey, onToken: onTurnstileToken }),
                   /* @__PURE__ */ jsxs("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "12px" }, children: [
                     /* @__PURE__ */ jsxs("div", { children: [
                       /* @__PURE__ */ jsx("label", { style: { display: "block", fontSize: "12px", fontWeight: 700, color: "#444", marginBottom: "5px", textTransform: "uppercase", letterSpacing: "0.5px" }, children: "First Name *" }),
@@ -4596,7 +4602,7 @@ function useAuth(options) {
   }, [logoutMutation, utils]);
   const state = useMemo(() => {
     localStorage.setItem(
-      "pell-user-info",
+      "manus-runtime-user-info",
       JSON.stringify(meQuery.data)
     );
     return {
@@ -7119,7 +7125,7 @@ function TeslaPowerwall() {
           {
             width: "100%",
             height: "315",
-            src: "https://www.youtube.com/embed/0mKoEBCRpJk",
+            src: "https://www.youtube.com/embed/yzb6ols_ffE",
             title: "Tesla Powerwall 3 | Whole-Home Backup Battery (Pell Solar)",
             frameBorder: "0",
             allow: "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture",
@@ -11193,6 +11199,7 @@ function ThankYou() {
   const isReturning = params.get("returning") === "1";
   const dealId = params.get("deal_id");
   const leadId = params.get("lead_id");
+  const isSuspect = params.get("suspect") === "1";
   useEffect(() => {
     window.scrollTo(0, 0);
     if (!leadId) return;
@@ -11213,10 +11220,10 @@ function ThankYou() {
   }, [leadId]);
   return /* @__PURE__ */ jsx("div", { className: "min-h-screen bg-white flex flex-col", children: /* @__PURE__ */ jsx("div", { className: "flex-1 flex items-center justify-center py-20 px-4", children: /* @__PURE__ */ jsxs("div", { className: "max-w-2xl mx-auto text-center", children: [
     /* @__PURE__ */ jsx("div", { className: "flex justify-center mb-6", children: /* @__PURE__ */ jsx("div", { className: "w-20 h-20 rounded-full bg-green-100 flex items-center justify-center", children: /* @__PURE__ */ jsx(CheckCircle, { className: "w-12 h-12 text-green-500" }) }) }),
-    /* @__PURE__ */ jsx("h1", { className: "text-4xl md:text-5xl font-extrabold text-[#0a1628] mb-4", children: isReturning ? "We Already Have You!" : "Thank You!" }),
-    /* @__PURE__ */ jsx("p", { className: "text-xl text-gray-600 mb-2", children: isReturning ? "It looks like we already have your information on file." : "We received your request and will be in touch shortly." }),
-    /* @__PURE__ */ jsx("p", { className: "text-gray-500 mb-10", children: isReturning ? "Our team will be reaching out to you soon. If you need immediate assistance, give us a call!" : "A Pell Solar energy advisor will contact you within 1 business day to discuss your options." }),
-    dealId && /* @__PURE__ */ jsxs("div", { className: "bg-[#0B1D51] rounded-2xl p-8 mb-10 text-left", children: [
+    /* @__PURE__ */ jsx("h1", { className: "text-4xl md:text-5xl font-extrabold text-[#0a1628] mb-4", children: isSuspect ? "Thanks!" : isReturning ? "We Already Have You!" : "Thank You!" }),
+    /* @__PURE__ */ jsx("p", { className: "text-xl text-gray-600 mb-2", children: isSuspect ? "We'll be in touch shortly." : isReturning ? "It looks like we already have your information on file." : "We received your request and will be in touch shortly." }),
+    !isSuspect && /* @__PURE__ */ jsx("p", { className: "text-gray-500 mb-10", children: isReturning ? "Our team will be reaching out to you soon. If you need immediate assistance, give us a call!" : "A Pell Solar energy advisor will contact you within 1 business day to discuss your options." }),
+    dealId && !isSuspect && /* @__PURE__ */ jsxs("div", { className: "bg-[#0B1D51] rounded-2xl p-8 mb-10 text-left", children: [
       /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-3 mb-3", children: [
         /* @__PURE__ */ jsx("div", { className: "w-10 h-10 rounded-full bg-[#00b4d8] flex items-center justify-center flex-shrink-0", children: /* @__PURE__ */ jsx(Calendar, { className: "w-5 h-5 text-white" }) }),
         /* @__PURE__ */ jsx("h2", { className: "text-xl font-bold text-white", children: "Want to schedule your consultation now?" })
@@ -11234,7 +11241,7 @@ function ThankYou() {
         }
       )
     ] }),
-    !dealId && /* @__PURE__ */ jsxs("div", { className: "bg-[#f0f7ff] rounded-2xl p-8 mb-10 text-left", children: [
+    !dealId && !isSuspect && /* @__PURE__ */ jsxs("div", { className: "bg-[#f0f7ff] rounded-2xl p-8 mb-10 text-left", children: [
       /* @__PURE__ */ jsx("h2", { className: "text-lg font-bold text-[#0a1628] mb-4", children: "What happens next?" }),
       /* @__PURE__ */ jsxs("div", { className: "space-y-4", children: [
         /* @__PURE__ */ jsxs("div", { className: "flex items-start gap-3", children: [
@@ -11251,7 +11258,7 @@ function ThankYou() {
         ] })
       ] })
     ] }),
-    dealId && /* @__PURE__ */ jsxs("div", { className: "bg-[#f0f7ff] rounded-2xl p-6 mb-10 text-left", children: [
+    dealId && !isSuspect && /* @__PURE__ */ jsxs("div", { className: "bg-[#f0f7ff] rounded-2xl p-6 mb-10 text-left", children: [
       /* @__PURE__ */ jsx("h2", { className: "text-base font-bold text-[#0a1628] mb-3", children: "What happens after you book?" }),
       /* @__PURE__ */ jsxs("div", { className: "space-y-3", children: [
         /* @__PURE__ */ jsxs("div", { className: "flex items-start gap-3", children: [
@@ -11268,7 +11275,7 @@ function ThankYou() {
         ] })
       ] })
     ] }),
-    /* @__PURE__ */ jsxs("div", { className: "flex flex-col sm:flex-row gap-4 justify-center mb-10", children: [
+    !isSuspect && /* @__PURE__ */ jsxs("div", { className: "flex flex-col sm:flex-row gap-4 justify-center mb-10", children: [
       /* @__PURE__ */ jsxs(
         "a",
         {
@@ -11303,7 +11310,7 @@ function ThankYou() {
         }
       )
     ] }),
-    /* @__PURE__ */ jsx(Link, { href: "/", children: /* @__PURE__ */ jsxs("span", { className: "inline-flex items-center gap-2 text-[#00b4d8] font-semibold hover:underline cursor-pointer", children: [
+    !isSuspect && /* @__PURE__ */ jsx(Link, { href: "/", children: /* @__PURE__ */ jsxs("span", { className: "inline-flex items-center gap-2 text-[#00b4d8] font-semibold hover:underline cursor-pointer", children: [
       "Back to Home ",
       /* @__PURE__ */ jsx(ArrowRight, { className: "w-4 h-4" })
     ] }) })

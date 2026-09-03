@@ -23,4 +23,11 @@ describe("confirmed lead conversion tracking", () => {
     expect(thankYou).toContain("window.sessionStorage.getItem(conversionKey)");
     expect(thankYou).toContain("AW-17865947343/TI2CCLSThPQbEM_xksdC");
   });
+
+  it("suppresses appointment booking when the CRM marks the lead as suspect", () => {
+    expect(quotePage).toContain('searchParams.set("suspect", "1")');
+    expect(thankYou).toContain('const isSuspect = params.get("suspect") === "1"');
+    expect(thankYou).toContain("{dealId && !isSuspect && (");
+    expect(thankYou).toContain("{!isSuspect && <div className=\"flex flex-col sm:flex-row gap-4 justify-center mb-10\">");
+  });
 });

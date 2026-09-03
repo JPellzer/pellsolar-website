@@ -32,8 +32,11 @@ import { postToCrm } from "./crmWebhook";
 import { chatRouter } from "./routers/chat";
 import { invokeLLM } from "./_core/llm";
 import { runSpamChecks } from "./spamProtection";
+import { getClientIp } from "./spamProtection";
 import { deriveLeadSource } from "@shared/attribution";
 import crypto from "crypto";
+import { verifyTurnstile } from "./turnstile";
+import { checkCustomerInCrm } from "./crmCustomerCheck";
 
 // ─── In-memory rate limit map for unsubscribe endpoint ──────────────────────
 const unsubRateLimit = new Map<string, number[]>();
@@ -60,6 +63,12 @@ const UtmDataSchema = z.object({
 const LeadStatusSchema = z.enum(["New", "Contacted", "Quoted", "Closed", "Lost"]);
 const LeadSourceSchema = z.string().trim().min(1).max(64);
 const CRM_BILL_LINK_EXPIRY_SECONDS = 7 * 24 * 60 * 60;
+
+function getRequestHeader(req: import("express").Request, name: string): string | undefined {
+  const value = req.headers[name.toLowerCase()];
+  if (!value) return undefined;
+  return Array.isArray(value) ? value[0] : value;
+}
 
 function isExternalBillUrl(url?: string): url is string {
   return Boolean(url?.startsWith("https://") && !url.includes("/manus-storage/"));
@@ -105,8 +114,13 @@ const CreateLeadSchema = z.object({
   billFileName: z.string().optional(),
   source: LeadSourceSchema.default("homepage"),
   utmData: UtmDataSchema,
-  // Honeypot — must be empty; bots fill this in
+  // Legacy honeypot retained for compatible form callers.
   _hp: z.string().optional(),
+  // Rendered as an off-screen field; a value indicates automation.
+  companyWebsite: z.string().max(200).default(""),
+  formSeconds: z.number().int().min(0).max(86_400).default(0),
+  pageUrl: z.string().url().max(2_048).optional(),
+  turnstileToken: z.string().max(2_048).optional(),
 });
 
 // ─── Routers ─────────────────────────────────────────────────────────────────
@@ -126,6 +140,13 @@ export const appRouter = router({
     google: publicProcedure.query(() => getLiveGoogleReviewSummary()),
   }),
 
+  security: router({
+    // The site key is intentionally public; do not expose the Turnstile secret.
+    turnstileConfig: publicProcedure.query(() => ({
+      siteKey: ENV.turnstileSiteKey && ENV.turnstileSecretKey ? ENV.turnstileSiteKey : undefined,
+    })),
+  }),
+
   // ─── Lead procedures ───────────────────────────────────────────────────────
   leads: router({
     // Public: submit a new lead
@@ -134,10 +155,15 @@ export const appRouter = router({
       .mutation(async ({ input, ctx }) => {
         // ── Bot / spam protection ──────────────────────────────────────────
         runSpamChecks(ctx.req, {
-          honeypot: input._hp,
+          honeypot: input.companyWebsite || input._hp,
           address: input.address,
           phone: input.phone,
         });
+        const visitorIp = getClientIp(ctx.req);
+        const turnstileOk = await verifyTurnstile(input.turnstileToken, visitorIp);
+        if (turnstileOk === false) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Something went wrong, please try again." });
+        }
         const source = deriveLeadSource(input.source, input.utmData);
         // ─────────────────────────────────────────────────────────────────
         const { id, isDuplicate } = await createLead({
@@ -215,6 +241,7 @@ export const appRouter = router({
         }
         // Forward to Solar Pro CRM and capture deal_id
         let crmDealId: number | undefined;
+        let crmSuspect = false;
         try {
           // Parse monthly_bill as a number (strip non-digits, take first number found)
           const monthlyBillNum = input.monthlyBillRange
@@ -244,14 +271,22 @@ export const appRouter = router({
             monthly_bill: monthlyBillNum,
             interest: input.interestType || undefined,
             utm_data: input.utmData,
+            visitor_ip: visitorIp,
+            user_agent: getRequestHeader(ctx.req, "user-agent"),
+            referrer: getRequestHeader(ctx.req, "referer"),
+            page_url: input.pageUrl,
+            form_seconds: input.formSeconds,
+            honeypot: input.companyWebsite,
+            turnstile_ok: turnstileOk,
             // notes carries free-text when interest is 'other'
             notes: input.interestType === "other" && input.interestOtherText ? input.interestOtherText : undefined,
           });
           if (crmRes.deal_id) crmDealId = crmRes.deal_id;
+          crmSuspect = crmRes.suspect === true;
         } catch (e) {
           console.warn("[CRM] postToCrm failed in leads.create:", e);
         }
-        return { success: true, id, isDuplicate, dealId: crmDealId };
+        return { success: true, id, isDuplicate, dealId: crmDealId, suspect: crmSuspect || undefined };
       }),
 
     // Public: get a signed upload URL for bill files
@@ -469,14 +504,7 @@ Provide a helpful, accurate diagnostic response. Use the exact brand-specific ap
         // Step 1: Pre-check if customer exists in CRM
         let customerExists = false;
         try {
-          const checkParams = new URLSearchParams();
-          if (input.phone) checkParams.set("phone", input.phone.replace(/\D/g, ""));
-          if (input.email) checkParams.set("email", input.email);
-          const checkRes = await fetch(`https://pellsolar-crm-prod.onrender.com/api/check-customer?${checkParams.toString()}`);
-          if (checkRes.ok) {
-            const checkData = await checkRes.json();
-            customerExists = !!checkData.exists;
-          }
+          customerExists = await checkCustomerInCrm(input.phone, input.email);
         } catch (e) {
           console.warn("[CRM] Pre-check failed, proceeding with webhook:", e);
         }

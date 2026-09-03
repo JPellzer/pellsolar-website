@@ -34,4 +34,12 @@ export const ENV = {
 
   // Anthropic AI
   anthropicApiKey: process.env.ANTHROPIC_API_KEY ?? "",
+
+  // Website/CRM integration
+  websiteLeadSecret: process.env.WEBSITE_LEAD_SECRET ?? "",
+  crmCustomerCheckUrl: process.env.CRM_CUSTOMER_CHECK_URL ?? "https://pellsolar-crm-prod.onrender.com/api/check-customer",
+
+  // Cloudflare Turnstile (optional - turnstile code stays inactive without these)
+  turnstileSiteKey: process.env.TURNSTILE_SITE_KEY ?? "",
+  turnstileSecretKey: process.env.TURNSTILE_SECRET_KEY ?? "",
 };

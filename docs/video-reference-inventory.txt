@@ -1,0 +1,14 @@
+client/src/components/Footer.tsx:105:              <a href="https://www.youtube.com/@PellSolar" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 no-underline group">
+client/src/components/SocialIcons.tsx:85:      <a href="https://www.youtube.com/@pellsolar" target="_blank" rel="noopener noreferrer" className="flex flex-col items-center gap-1 no-underline">
+client/src/components/SocialIcons.tsx:88:        <div className="text-white text-xs">Watch Our Videos</div>
+client/src/pages/BatteryBackup.tsx:44:                <iframe
+client/src/pages/BatteryBackup.tsx:45:                  src={`https://www.youtube.com/embed/${YOUTUBE_VIDEO_ID}`}
+client/src/pages/California.tsx:158:            <iframe
+client/src/pages/Home.tsx:252:                <iframe
+client/src/pages/Home.tsx:253:                  src="https://www.youtube.com/embed/lhsDln_0Lzc"
+client/src/pages/Idaho.tsx:128:            <iframe
+client/src/pages/QuotePage.tsx:710:                            <iframe
+client/src/pages/QuotePage.tsx:1069:                  <a href="https://www.youtube.com/@PellSolar" target="_blank" rel="noopener noreferrer" style={{ color: "rgba(255,255,255,0.85)", fontSize: "11px", textDecoration: "underline", marginTop: "3px", display: "inline-block", fontWeight: 600 }}>
+client/src/pages/QuotePage.tsx:1070:                    Watch This Video to Learn How →
+client/src/pages/TeslaPowerwall.tsx:105:                <iframe
+client/src/pages/TeslaPowerwall.tsx:108:                  src="https://www.youtube.com/embed/0mKoEBCRpJk"

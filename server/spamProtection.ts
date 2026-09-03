@@ -17,13 +17,16 @@ const ipSubmissions = new Map<string, number[]>();
 const RATE_WINDOW_MS = 60 * 60 * 1000; // 1 hour
 const RATE_MAX = 20; // max submissions per window (raised for testing — lower back to 3 when done)
 
-function getClientIp(req: Request): string {
-  // Respect Cloudflare / proxy headers if present
+export function getClientIp(req: Request): string {
+  // Prefer the original client address supplied by the reverse proxy, then
+  // Cloudflare's direct visitor header, then the socket address as a fallback.
   const forwarded = req.headers["x-forwarded-for"];
   if (forwarded) {
     const ips = Array.isArray(forwarded) ? forwarded[0] : forwarded;
     return ips.split(",")[0].trim();
   }
+  const cloudflareIp = req.headers["cf-connecting-ip"];
+  if (cloudflareIp) return Array.isArray(cloudflareIp) ? cloudflareIp[0] : cloudflareIp;
   return req.socket?.remoteAddress ?? "unknown";
 }
 

@@ -6,7 +6,6 @@ import { Upload, X, FileText, Phone, Image } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AddressAutocomplete from "@/components/AddressAutocomplete";
-import { ZipMapPreview } from "@/components/ZipMapPreview";
 import { isInServiceArea, getServiceAreaLabel } from "@/lib/serviceArea";
 import { captureAttribution, deriveLeadSource, hasAttribution } from "@shared/attribution";
 
@@ -38,6 +37,65 @@ interface FormData {
   billFileUrl: string;
   billFileName: string;
   smsConsent: boolean;
+  companyWebsite: string;
+}
+
+type TurnstileApi = {
+  render: (container: HTMLElement, options: Record<string, unknown>) => string;
+  remove: (widgetId: string) => void;
+};
+
+declare global {
+  interface Window {
+    turnstile?: TurnstileApi;
+  }
+}
+
+function InvisibleTurnstile({ siteKey, onToken }: { siteKey?: string; onToken: (token: string) => void }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const widgetIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!siteKey || !containerRef.current) return;
+    let cancelled = false;
+
+    const renderWidget = () => {
+      if (cancelled || !containerRef.current || !window.turnstile || widgetIdRef.current) return;
+      widgetIdRef.current = window.turnstile.render(containerRef.current, {
+        sitekey: siteKey,
+        size: "invisible",
+        action: "quote_lead",
+        callback: (token: string) => onToken(token),
+        "expired-callback": () => onToken(""),
+        "error-callback": () => onToken(""),
+      });
+    };
+
+    const scriptId = "cloudflare-turnstile-script";
+    let script = document.getElementById(scriptId) as HTMLScriptElement | null;
+    if (window.turnstile) {
+      renderWidget();
+    } else {
+      if (!script) {
+        script = document.createElement("script");
+        script.id = scriptId;
+        script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+        script.async = true;
+        script.defer = true;
+        document.head.appendChild(script);
+      }
+      script.addEventListener("load", renderWidget, { once: true });
+    }
+
+    return () => {
+      cancelled = true;
+      if (script) script.removeEventListener("load", renderWidget);
+      if (widgetIdRef.current && window.turnstile) window.turnstile.remove(widgetIdRef.current);
+      widgetIdRef.current = null;
+    };
+  }, [siteKey, onToken]);
+
+  return <div ref={containerRef} aria-hidden="true" />;
 }
 
 /* ── Colorful Option Button (matches homepage widget style) ───────────────── */
@@ -285,6 +343,10 @@ export default function QuotePage() {
   const [showRenterPopup, setShowRenterPopup] = useState(false);
   const [zipStatus, setZipStatus] = useState<"idle" | "valid" | "invalid">("idle");
   const formCardRef = useRef<HTMLDivElement>(null);
+  const formStartedAtRef = useRef(Date.now());
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const turnstileConfig = trpc.security.turnstileConfig.useQuery(undefined, { staleTime: Infinity });
+  const onTurnstileToken = useCallback((token: string) => setTurnstileToken(token), []);
 
   const [form, setForm] = useState<FormData>({
     ownership: prefillOwnership, propertyType: prefillPropertyType,
@@ -296,6 +358,7 @@ export default function QuotePage() {
     firstName: "", lastName: "", email: "", phone: "", address: "", city: "", state: "",
     billFile: null, billFileKey: "", billFileUrl: "", billFileName: "",
     smsConsent: false,
+    companyWebsite: "",
   });
 
   const createLead = trpc.leads.create.useMutation({
@@ -304,6 +367,7 @@ export default function QuotePage() {
       if (data.isDuplicate) searchParams.set("returning", "1");
       if (data.dealId) searchParams.set("deal_id", String(data.dealId));
       if (data.id) searchParams.set("lead_id", String(data.id));
+      if (data.suspect) searchParams.set("suspect", "1");
       const params = searchParams.toString() ? `?${searchParams.toString()}` : "";
       navigate(`/thank-you${params}`);
       setStep(10);
@@ -314,11 +378,19 @@ export default function QuotePage() {
         toast.error("You've already submitted recently. We'll be in touch soon!");
       } else if (msg.includes("duplicate") || msg.includes("already")) {
         toast.error("Looks like you're already in our system! We'll be in touch soon.");
+      } else if (msg === "Something went wrong, please try again.") {
+        toast.error("Something went wrong, please try again.");
       } else {
         toast.error("Something went wrong. Please try again or call us at (714) 455-3401.");
       }
     },
   });
+
+  // Geocode zip code for map display
+  const geocodeQuery = trpc.geo.geocodeZip.useQuery(
+    { zip: form.zipCode },
+    { enabled: form.zipCode.length === 5, staleTime: 60_000 }
+  );
 
   const update = (patch: Partial<FormData>) => setForm(f => ({ ...f, ...patch }));
 
@@ -388,7 +460,11 @@ export default function QuotePage() {
       source,
       billFileKey: billKey || undefined, billFileUrl: billUrl || undefined, billFileName: billName || undefined,
       utmData: hasAttribution(attribution) ? attribution : undefined,
-      _hp: "", // honeypot — always empty for real users
+      _hp: "", // legacy honeypot retained for compatible server callers
+      companyWebsite: form.companyWebsite,
+      formSeconds: Math.max(0, Math.floor((Date.now() - formStartedAtRef.current) / 1000)),
+      pageUrl: window.location.href,
+      turnstileToken: turnstileToken || undefined,
     });
   };
 
@@ -627,10 +703,23 @@ export default function QuotePage() {
 
                       {/* Map preview — shown when 5 digits entered */}
                       {form.zipCode.length === 5 && (
-                        <ZipMapPreview
-                          zip={form.zipCode}
-                          style={{ marginTop: "10px", borderRadius: "12px", overflow: "hidden", border: "2px solid #e0e0e0", height: "140px" }}
-                        />
+                        <div style={{ marginTop: "10px", borderRadius: "12px", overflow: "hidden", border: "2px solid #e0e0e0", height: "140px", background: "#f0f4f8", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          {geocodeQuery.isLoading ? (
+                            <p style={{ color: "#888", fontSize: "13px", margin: 0 }}>📍 Loading map...</p>
+                          ) : geocodeQuery.data?.found ? (
+                            <iframe
+                              title="zip-map"
+                              width="100%"
+                              height="140"
+                              frameBorder="0"
+                              style={{ border: 0, display: "block" }}
+                              src={`https://maps.google.com/maps?q=${geocodeQuery.data.lat},${geocodeQuery.data.lng}&z=12&output=embed`}
+                              allowFullScreen
+                            />
+                          ) : (
+                            <p style={{ color: "#888", fontSize: "13px", margin: 0 }}>📍 {form.zipCode}</p>
+                          )}
+                        </div>
                       )}
 
                       {/* Out-of-area message */}
@@ -866,6 +955,17 @@ export default function QuotePage() {
                   <div>
                     <StepHeading>Fill out this form and our team will reach out about your solar savings</StepHeading>
                     <div style={{ maxWidth: "480px", margin: "0 auto" }}>
+                      <input
+                        type="text"
+                        name="company_website"
+                        value={form.companyWebsite}
+                        onChange={e => update({ companyWebsite: e.target.value })}
+                        tabIndex={-1}
+                        autoComplete="off"
+                        aria-hidden="true"
+                        style={{ position: "absolute", left: "-9999px", opacity: 0, height: 0 }}
+                      />
+                      <InvisibleTurnstile siteKey={turnstileConfig.data?.siteKey} onToken={onTurnstileToken} />
                       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "12px" }}>
                         <div>
                           <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "#444", marginBottom: "5px", textTransform: "uppercase", letterSpacing: "0.5px" }}>First Name *</label>

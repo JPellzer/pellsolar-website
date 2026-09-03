@@ -149,7 +149,13 @@ var ENV = {
   // Google Maps API
   googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY ?? "",
   // Anthropic AI
-  anthropicApiKey: process.env.ANTHROPIC_API_KEY ?? ""
+  anthropicApiKey: process.env.ANTHROPIC_API_KEY ?? "",
+  // Website/CRM integration
+  websiteLeadSecret: process.env.WEBSITE_LEAD_SECRET ?? "",
+  crmCustomerCheckUrl: process.env.CRM_CUSTOMER_CHECK_URL ?? "https://pellsolar-crm-prod.onrender.com/api/check-customer",
+  // Cloudflare Turnstile (optional - turnstile code stays inactive without these)
+  turnstileSiteKey: process.env.TURNSTILE_SITE_KEY ?? "",
+  turnstileSecretKey: process.env.TURNSTILE_SECRET_KEY ?? ""
 };
 
 // server/db.ts
@@ -977,6 +983,11 @@ async function getLiveGoogleReviewSummary() {
   }
 }
 
+// server/crmAuth.ts
+function getCrmAuthHeaders() {
+  return ENV.websiteLeadSecret ? { "X-Pell-Secret": ENV.websiteLeadSecret } : {};
+}
+
 // server/crmWebhook.ts
 var CRM_WEBHOOK_URL = "https://pellsolar-crm-prod.onrender.com/api/webhooks/website-lead";
 async function postToCrm(payload) {
@@ -994,11 +1005,15 @@ async function postToCrm(payload) {
       source: payload.source,
       monthly_bill: payload.monthly_bill,
       interest: payload.interest,
-      bill_file_url: payload.bill_file_url ? "[present]" : void 0
+      bill_file_url: payload.bill_file_url ? "[present]" : void 0,
+      visitor_ip: payload.visitor_ip,
+      form_seconds: payload.form_seconds,
+      honeypot: payload.honeypot ? "[present]" : "",
+      turnstile_ok: payload.turnstile_ok
     }, null, 2));
     const res = await fetch(CRM_WEBHOOK_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...getCrmAuthHeaders() },
       body: JSON.stringify(payload)
     });
     if (res.status === 429) {
@@ -1237,6 +1252,8 @@ function getClientIp(req) {
     const ips = Array.isArray(forwarded) ? forwarded[0] : forwarded;
     return ips.split(",")[0].trim();
   }
+  const cloudflareIp = req.headers["cf-connecting-ip"];
+  if (cloudflareIp) return Array.isArray(cloudflareIp) ? cloudflareIp[0] : cloudflareIp;
   return req.socket?.remoteAddress ?? "unknown";
 }
 function checkRateLimit(req) {
@@ -1317,6 +1334,46 @@ function deriveLeadSource(defaultSource, attribution) {
 
 // server/routers.ts
 import crypto4 from "crypto";
+
+// server/turnstile.ts
+var TURNSTILE_VERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
+async function verifyTurnstile(token, remoteIp) {
+  if (!ENV.turnstileSiteKey || !ENV.turnstileSecretKey) return null;
+  if (!token || token.length > 2048) return false;
+  try {
+    const formData = new URLSearchParams({
+      secret: ENV.turnstileSecretKey,
+      response: token,
+      remoteip: remoteIp
+    });
+    const response = await fetch(TURNSTILE_VERIFY_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: formData
+    });
+    const data = await response.json().catch(() => ({ success: false }));
+    return response.ok && data.success === true;
+  } catch (error) {
+    console.warn("[Turnstile] Verification request failed:", error);
+    return false;
+  }
+}
+
+// server/crmCustomerCheck.ts
+var CRM_CUSTOMER_CHECK_URL = "https://pellsolar-crm-prod.onrender.com/api/check-customer";
+async function checkCustomerInCrm(phone, email) {
+  const checkParams = new URLSearchParams();
+  if (phone) checkParams.set("phone", phone.replace(/\D/g, ""));
+  if (email) checkParams.set("email", email);
+  const checkRes = await fetch(`${CRM_CUSTOMER_CHECK_URL}?${checkParams.toString()}`, {
+    headers: getCrmAuthHeaders()
+  });
+  if (!checkRes.ok) return false;
+  const checkData = await checkRes.json();
+  return Boolean(checkData.exists);
+}
+
+// server/routers.ts
 var unsubRateLimit = /* @__PURE__ */ new Map();
 var adminProcedure3 = protectedProcedure.use(({ ctx, next }) => {
   if (ctx.user.role !== "admin") {
@@ -1335,6 +1392,11 @@ var UtmDataSchema = z3.object({
 var LeadStatusSchema = z3.enum(["New", "Contacted", "Quoted", "Closed", "Lost"]);
 var LeadSourceSchema = z3.string().trim().min(1).max(64);
 var CRM_BILL_LINK_EXPIRY_SECONDS = 7 * 24 * 60 * 60;
+function getRequestHeader(req, name) {
+  const value = req.headers[name.toLowerCase()];
+  if (!value) return void 0;
+  return Array.isArray(value) ? value[0] : value;
+}
 function isExternalBillUrl(url) {
   return Boolean(url?.startsWith("https://") && !url.includes("/manus-storage/"));
 }
@@ -1371,8 +1433,13 @@ var CreateLeadSchema = z3.object({
   billFileName: z3.string().optional(),
   source: LeadSourceSchema.default("homepage"),
   utmData: UtmDataSchema,
-  // Honeypot — must be empty; bots fill this in
-  _hp: z3.string().optional()
+  // Legacy honeypot retained for compatible form callers.
+  _hp: z3.string().optional(),
+  // Rendered as an off-screen field; a value indicates automation.
+  companyWebsite: z3.string().max(200).default(""),
+  formSeconds: z3.number().int().min(0).max(86400).default(0),
+  pageUrl: z3.string().url().max(2048).optional(),
+  turnstileToken: z3.string().max(2048).optional()
 });
 var appRouter = router({
   system: systemRouter,
@@ -1387,15 +1454,26 @@ var appRouter = router({
   reviewSummary: router({
     google: publicProcedure.query(() => getLiveGoogleReviewSummary())
   }),
+  security: router({
+    // The site key is intentionally public; do not expose the Turnstile secret.
+    turnstileConfig: publicProcedure.query(() => ({
+      siteKey: ENV.turnstileSiteKey && ENV.turnstileSecretKey ? ENV.turnstileSiteKey : void 0
+    }))
+  }),
   // ─── Lead procedures ───────────────────────────────────────────────────────
   leads: router({
     // Public: submit a new lead
     create: publicProcedure.input(CreateLeadSchema).mutation(async ({ input, ctx }) => {
       runSpamChecks(ctx.req, {
-        honeypot: input._hp,
+        honeypot: input.companyWebsite || input._hp,
         address: input.address,
         phone: input.phone
       });
+      const visitorIp = getClientIp(ctx.req);
+      const turnstileOk = await verifyTurnstile(input.turnstileToken, visitorIp);
+      if (turnstileOk === false) {
+        throw new TRPCError5({ code: "BAD_REQUEST", message: "Something went wrong, please try again." });
+      }
       const source = deriveLeadSource(input.source, input.utmData);
       const { id, isDuplicate } = await createLead({
         firstName: input.firstName,
@@ -1462,6 +1540,7 @@ var appRouter = router({
         }
       }
       let crmDealId;
+      let crmSuspect = false;
       try {
         const monthlyBillNum = input.monthlyBillRange ? parseInt(input.monthlyBillRange.replace(/[^0-9]/g, ""), 10) || void 0 : void 0;
         const crmRes = await postToCrm({
@@ -1487,14 +1566,22 @@ var appRouter = router({
           monthly_bill: monthlyBillNum,
           interest: input.interestType || void 0,
           utm_data: input.utmData,
+          visitor_ip: visitorIp,
+          user_agent: getRequestHeader(ctx.req, "user-agent"),
+          referrer: getRequestHeader(ctx.req, "referer"),
+          page_url: input.pageUrl,
+          form_seconds: input.formSeconds,
+          honeypot: input.companyWebsite,
+          turnstile_ok: turnstileOk,
           // notes carries free-text when interest is 'other'
           notes: input.interestType === "other" && input.interestOtherText ? input.interestOtherText : void 0
         });
         if (crmRes.deal_id) crmDealId = crmRes.deal_id;
+        crmSuspect = crmRes.suspect === true;
       } catch (e) {
         console.warn("[CRM] postToCrm failed in leads.create:", e);
       }
-      return { success: true, id, isDuplicate, dealId: crmDealId };
+      return { success: true, id, isDuplicate, dealId: crmDealId, suspect: crmSuspect || void 0 };
     }),
     // Public: get a signed upload URL for bill files
     getBillUploadUrl: publicProcedure.input(z3.object({ fileName: z3.string(), contentType: z3.string() })).mutation(async ({ input }) => {
@@ -1670,14 +1757,7 @@ Provide a helpful, accurate diagnostic response. Use the exact brand-specific ap
       };
       let customerExists = false;
       try {
-        const checkParams = new URLSearchParams();
-        if (input.phone) checkParams.set("phone", input.phone.replace(/\D/g, ""));
-        if (input.email) checkParams.set("email", input.email);
-        const checkRes = await fetch(`https://pellsolar-crm-prod.onrender.com/api/check-customer?${checkParams.toString()}`);
-        if (checkRes.ok) {
-          const checkData = await checkRes.json();
-          customerExists = !!checkData.exists;
-        }
+        customerExists = await checkCustomerInCrm(input.phone, input.email);
       } catch (e) {
         console.warn("[CRM] Pre-check failed, proceeding with webhook:", e);
       }
@@ -2333,7 +2413,6 @@ var HTML_HEAD = `<!DOCTYPE html>
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="icon" href="/favicon.png" type="image/png" />
   <title>%TITLE% | Pell Solar</title>
   <meta name="description" content="%DESCRIPTION%" />
   <link rel="canonical" href="https://pellsolar.com%CANONICAL_PATH%" />
@@ -2810,7 +2889,7 @@ async function startServer() {
       res.locals.cspNonce = nonce;
       res.setHeader(
         "Content-Security-Policy",
-        "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://googleads.g.doubleclick.net https://connect.facebook.net https://maps.googleapis.com https://maps.gstatic.com; object-src 'none'; base-uri 'self'"
+        "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://googleads.g.doubleclick.net https://connect.facebook.net https://challenges.cloudflare.com https://maps.googleapis.com https://maps.gstatic.com; frame-src 'self' https://challenges.cloudflare.com https://www.youtube.com https://www.youtube-nocookie.com https://www.google.com; object-src 'none'; base-uri 'self'"
       );
       next();
     });

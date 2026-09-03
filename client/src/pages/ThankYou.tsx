@@ -15,6 +15,7 @@ export default function ThankYou() {
   const isReturning = params.get("returning") === "1";
   const dealId = params.get("deal_id");
   const leadId = params.get("lead_id");
+  const isSuspect = params.get("suspect") === "1";
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -58,21 +59,23 @@ export default function ThankYou() {
           </div>
           {/* Heading */}
           <h1 className="text-4xl md:text-5xl font-extrabold text-[#0a1628] mb-4">
-            {isReturning ? "We Already Have You!" : "Thank You!"}
+            {isSuspect ? "Thanks!" : isReturning ? "We Already Have You!" : "Thank You!"}
           </h1>
           <p className="text-xl text-gray-600 mb-2">
-            {isReturning
+            {isSuspect
+              ? "We'll be in touch shortly."
+              : isReturning
               ? "It looks like we already have your information on file."
               : "We received your request and will be in touch shortly."}
           </p>
-          <p className="text-gray-500 mb-10">
+          {!isSuspect && <p className="text-gray-500 mb-10">
             {isReturning
               ? "Our team will be reaching out to you soon. If you need immediate assistance, give us a call!"
               : "A Pell Solar energy advisor will contact you within 1 business day to discuss your options."}
-          </p>
+          </p>}
 
-          {/* Schedule Consultation CTA — for any lead with a deal_id (new or returning) */}
-          {dealId && (
+          {/* Schedule Consultation CTA — suppressed for CRM-marked suspect leads */}
+          {dealId && !isSuspect && (
             <div className="bg-[#0B1D51] rounded-2xl p-8 mb-10 text-left">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 rounded-full bg-[#00b4d8] flex items-center justify-center flex-shrink-0">
@@ -93,8 +96,8 @@ export default function ThankYou() {
             </div>
           )}
 
-          {/* What Happens Next — only for new leads without a booking CTA */}
-          {!dealId && (
+          {/* What Happens Next — only for non-suspect leads without a booking CTA */}
+          {!dealId && !isSuspect && (
             <div className="bg-[#f0f7ff] rounded-2xl p-8 mb-10 text-left">
               <h2 className="text-lg font-bold text-[#0a1628] mb-4">What happens next?</h2>
               <div className="space-y-4">
@@ -114,8 +117,8 @@ export default function ThankYou() {
             </div>
           )}
 
-          {/* What Happens Next — for new leads WITH booking CTA (smaller version below) */}
-          {dealId && (
+          {/* What Happens Next — for non-suspect leads with booking CTA */}
+          {dealId && !isSuspect && (
             <div className="bg-[#f0f7ff] rounded-2xl p-6 mb-10 text-left">
               <h2 className="text-base font-bold text-[#0a1628] mb-3">What happens after you book?</h2>
               <div className="space-y-3">
@@ -136,7 +139,7 @@ export default function ThankYou() {
           )}
 
           {/* Contact Info */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-10">
+          {!isSuspect && <div className="flex flex-col sm:flex-row gap-4 justify-center mb-10">
             <a
               href="tel:+18666468499"
               className="flex items-center gap-2 justify-center bg-[#0a1628] text-white px-6 py-3 rounded-full font-semibold hover:bg-[#1a2a4a] transition-colors"
@@ -158,13 +161,13 @@ export default function ThankYou() {
               <Mail className="w-4 h-4" />
               info@pellsolar.com
             </a>
-          </div>
+          </div>}
           {/* Back to Home */}
-          <Link href="/">
+          {!isSuspect && <Link href="/">
             <span className="inline-flex items-center gap-2 text-[#00b4d8] font-semibold hover:underline cursor-pointer">
               Back to Home <ArrowRight className="w-4 h-4" />
             </span>
-          </Link>
+          </Link>}
         </div>
       </div>
     </div>

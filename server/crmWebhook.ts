@@ -4,6 +4,8 @@
  * Running server-side avoids CORS restrictions on the CRM endpoint.
  */
 
+import { getCrmAuthHeaders } from "./crmAuth";
+
 const CRM_WEBHOOK_URL = "https://pellsolar-crm-prod.onrender.com/api/webhooks/website-lead";
 
 export interface CrmLeadPayload {
@@ -38,6 +40,15 @@ export interface CrmLeadPayload {
   // Catch-all for anything that doesn't fit a dedicated field
   notes?: string;
 
+  // Visit security metadata
+  visitor_ip?: string;
+  user_agent?: string;
+  referrer?: string;
+  page_url?: string;
+  form_seconds?: number;
+  honeypot?: string;
+  turnstile_ok?: boolean | null;
+
   utm_data?: {
     utm_source?: string;
     utm_medium?: string;
@@ -53,6 +64,7 @@ export interface CrmLeadResult {
   customer_id?: number;
   deal_id?: number;
   duplicate_customer?: boolean;
+  suspect?: boolean;
   error?: string;
 }
 
@@ -73,10 +85,14 @@ export async function postToCrm(payload: CrmLeadPayload): Promise<CrmLeadResult>
       monthly_bill: payload.monthly_bill,
       interest: payload.interest,
       bill_file_url: payload.bill_file_url ? "[present]" : undefined,
+      visitor_ip: payload.visitor_ip,
+      form_seconds: payload.form_seconds,
+      honeypot: payload.honeypot ? "[present]" : "",
+      turnstile_ok: payload.turnstile_ok,
     }, null, 2));
     const res = await fetch(CRM_WEBHOOK_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...getCrmAuthHeaders() },
       body: JSON.stringify(payload),
     });
 

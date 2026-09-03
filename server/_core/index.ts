@@ -49,7 +49,7 @@ async function startServer() {
       // third-party dispatcher host rather than preventing React hydration sitewide.
       res.setHeader(
         "Content-Security-Policy",
-        "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://googleads.g.doubleclick.net https://connect.facebook.net https://maps.googleapis.com https://maps.gstatic.com; object-src 'none'; base-uri 'self'"
+        "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://googleads.g.doubleclick.net https://connect.facebook.net https://challenges.cloudflare.com https://maps.googleapis.com https://maps.gstatic.com; frame-src 'self' https://challenges.cloudflare.com https://www.youtube.com https://www.youtube-nocookie.com https://www.google.com; object-src 'none'; base-uri 'self'"
       );
       next();
     });

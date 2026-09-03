@@ -53,4 +53,19 @@ describe("shared visual asset reliability", () => {
     expect(powerwall).toContain("powerwall-garage-detail_61b5ec4b.webp");
     expect(powerwall).toContain("powerwall-garage-dual_f641f620.webp");
   });
+
+  it("uses Pell Solar’s verified public Powerwall video and permits public video and map frames", () => {
+    const powerwall = readFileSync(
+      path.resolve(process.cwd(), "client/src/pages/TeslaPowerwall.tsx"),
+      "utf8"
+    );
+    const server = readFileSync(
+      path.resolve(process.cwd(), "server/_core/index.ts"),
+      "utf8"
+    );
+
+    expect(powerwall).toContain("https://www.youtube.com/embed/yzb6ols_ffE");
+    expect(powerwall).not.toContain("https://www.youtube.com/embed/0mKoEBCRpJk");
+    expect(server).toContain("frame-src 'self' https://challenges.cloudflare.com https://www.youtube.com https://www.youtube-nocookie.com https://www.google.com");
+  });
 });
