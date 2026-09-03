@@ -2757,7 +2757,10 @@ async function ensureSchema() {
   if (!process.env.DATABASE_URL) {
     return;
   }
-  const pool = new Pool2({ connectionString: process.env.DATABASE_URL });
+  const pool = new Pool2({
+    connectionString: process.env.DATABASE_URL,
+    ssl: process.env.DATABASE_URL.includes("localhost") || process.env.DATABASE_URL.includes("127.0.0.1") ? void 0 : { rejectUnauthorized: false }
+  });
   try {
     const client = await pool.connect();
     try {

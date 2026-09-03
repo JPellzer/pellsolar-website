@@ -10,7 +10,12 @@ export async function ensureSchema(): Promise<void> {
     return; // Skip silently if no DATABASE_URL configured
   }
 
-  const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+  const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: process.env.DATABASE_URL.includes("localhost") || process.env.DATABASE_URL.includes("127.0.0.1")
+      ? undefined
+      : { rejectUnauthorized: false }
+  });
 
   try {
     const client = await pool.connect();
