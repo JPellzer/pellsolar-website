@@ -684,6 +684,29 @@ function registerUnsubscribeRoute(app) {
 // server/_core/storageProxy.ts
 import path from "path";
 import fs from "fs";
+import { S3Client as S3Client2, HeadObjectCommand } from "@aws-sdk/client-s3";
+var _s3Client2 = null;
+function getR2Client2() {
+  if (!_s3Client2) {
+    const accountId = ENV.r2AccountId;
+    const accessKeyId = ENV.r2AccessKeyId;
+    const secretAccessKey = ENV.r2SecretAccessKey;
+    if (!accountId || !accessKeyId || !secretAccessKey) {
+      throw new Error(
+        "R2 config missing: set R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY"
+      );
+    }
+    _s3Client2 = new S3Client2({
+      region: "auto",
+      endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+      credentials: {
+        accessKeyId,
+        secretAccessKey
+      }
+    });
+  }
+  return _s3Client2;
+}
 function registerStorageProxy(app) {
   app.get("/manus-storage/*", async (req, res) => {
     const key = req.params[0];
@@ -711,7 +734,26 @@ function registerStorageProxy(app) {
       }
       if (process.env.R2_ACCESS_KEY_ID && process.env.R2_SECRET_ACCESS_KEY) {
         try {
-          const signedUrl = await storageGetSignedUrl(key, 3600);
+          const client = getR2Client2();
+          const bucket = ENV.r2Bucket || "pellsolar-website";
+          let finalKey = key;
+          try {
+            await client.send(
+              new HeadObjectCommand({
+                Bucket: bucket,
+                Key: key
+              })
+            );
+            finalKey = key;
+          } catch (headErr) {
+            const errName = headErr && typeof headErr === "object" && "name" in headErr ? headErr.name : "";
+            if (errName === "NotFound" || errName === "NoSuchKey") {
+              finalKey = `manus-storage/${key}`;
+            } else {
+              throw headErr;
+            }
+          }
+          const signedUrl = await storageGetSignedUrl(finalKey, 3600);
           res.set("Cache-Control", "no-store");
           res.redirect(307, signedUrl);
         } catch (err) {
