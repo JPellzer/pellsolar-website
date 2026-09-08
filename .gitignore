@@ -5,6 +5,7 @@
 # Build outputs
 build/
 *.dist
+dist/
 
 # Environment variables
 .env
