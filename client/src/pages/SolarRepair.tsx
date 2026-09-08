@@ -60,7 +60,11 @@ export default function SolarRepair() {
     onError: () => toast.error("Could not generate diagnostic. Please describe your issue and submit the form."),
   });
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const submitCall = trpc.service.submitCall.useMutation({
+    onSuccess: () => setStep("done"),
+    onError: () => toast.error("Something went wrong. Please try again or call us directly."),
+  });
+  const isSubmitting = submitCall.isPending;
 
   // Scroll to form when hash is present
   useEffect(() => {
@@ -87,7 +91,7 @@ export default function SolarRepair() {
     diagnose.mutate({ systemType, inverterBrand, batteryBrand, systemAge, selectedIssues: selectedIssues.map(id => ISSUE_OPTIONS.find(o => o.id === id)?.label ?? id), duration, description });
   };
 
-  const handleSubmitContact = async (e: React.FormEvent) => {
+  const handleSubmitContact = (e: React.FormEvent) => {
     e.preventDefault();
     if (!contact.firstName.trim() || !contact.lastName.trim()) {
       toast.error("Please enter your first and last name.");
@@ -97,77 +101,29 @@ export default function SolarRepair() {
       toast.error("Please enter a phone number or email address.");
       return;
     }
-    setIsSubmitting(true);
-    try {
-      // Step 1 — Phone lookup to check for existing customer
-      let customerExists = false;
-      let customerId: string | undefined;
-      const phone = contact.phone.trim();
-      if (phone) {
-        try {
-          const lookupRes = await fetch(
-            `https://pellsolar-crm-prod.onrender.com/api/ai-phone/lookup-caller?phone=${encodeURIComponent(phone)}`
-          );
-          if (lookupRes.ok) {
-            const lookupData = await lookupRes.json();
-            if (lookupData.existing_customer === true) {
-              customerExists = true;
-              customerId = String(lookupData.customer_id);
-            }
-          }
-        } catch {
-          // Lookup failure is non-fatal — proceed without customer match
-        }
-      }
-      // Step 2 — Build payload
-      const issueText = selectedIssues.map(id => ISSUE_OPTIONS.find(o => o.id === id)?.label ?? id).join("; ");
-      const fullDescription = description
-        ? `${issueText}. Duration: ${duration}. Details: ${description}`
-        : `${issueText}. Duration: ${duration}.`;
-      // Client-side honeypot check (belt-and-suspenders before the server check)
-      if (contact.honeypot && contact.honeypot.trim().length > 0) {
-        // Silently succeed — bot doesn't know it was blocked
-        setStep("done");
-        return;
-      }
-      const payload: Record<string, unknown> = {
-        name: `${contact.firstName.trim()} ${contact.lastName.trim()}`,
-        email: contact.email.trim() || undefined,
-        phone: phone || "N/A",
-        address: contact.address.trim() || undefined,
-        systemType: systemType || undefined,
-        inverterBrand: inverterBrand || undefined,
-        batteryBrand: batteryBrand || undefined,
-        systemAge: systemAge || undefined,
-        selectedIssues: selectedIssues.map(id => ISSUE_OPTIONS.find(o => o.id === id)?.label ?? id),
-        duration: duration || undefined,
-        description: fullDescription,
-        aiDiagnosis: diagnosis || undefined,
-        customerExists,
-        source: "website-service-form",
-        submittedAt: new Date().toISOString(),
-        honeypot: contact.honeypot,
-        form_loaded_at: formLoadedAt,
-      };
-      // Step 3 — POST directly to CRM webhook
-      const res = await fetch(
-        "https://pellsolar-crm-prod.onrender.com/api/webhooks/service-intake",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        }
-      );
-      if (!res.ok) {
-        throw new Error(`CRM webhook returned ${res.status}`);
-      }
+    // Client-side honeypot check (belt-and-suspenders before the server check)
+    if (contact.honeypot && contact.honeypot.trim().length > 0) {
+      // Silently succeed — bot doesn't know it was blocked
       setStep("done");
-    } catch (err) {
-      console.error("[ServiceForm] Submission error:", err);
-      toast.error("Something went wrong. Please try again or call us directly.");
-    } finally {
-      setIsSubmitting(false);
+      return;
     }
+    submitCall.mutate({
+      firstName: contact.firstName.trim(),
+      lastName: contact.lastName.trim(),
+      phone: contact.phone.trim() || undefined,
+      email: contact.email.trim() || undefined,
+      address: contact.address.trim() || undefined,
+      systemType: systemType || undefined,
+      inverterBrand: inverterBrand || undefined,
+      batteryBrand: batteryBrand || undefined,
+      systemAge: systemAge || undefined,
+      selectedIssues: selectedIssues.map(id => ISSUE_OPTIONS.find(o => o.id === id)?.label ?? id),
+      duration: duration || undefined,
+      description: description || undefined,
+      aiDiagnosis: diagnosis || undefined,
+      honeypot: contact.honeypot,
+      form_loaded_at: formLoadedAt,
+    });
   };
 
   const inputCls = "w-full border border-gray-300 rounded-xl px-4 py-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#2BABE2] bg-white";

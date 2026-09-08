@@ -7,6 +7,7 @@ import {
   ArrowLeft, Mail, Phone, MapPin, FileText, Image as ImageIcon,
   Save, Sun, CheckCircle, XCircle, RefreshCw, ExternalLink
 } from "lucide-react";
+import { SOURCE_LABELS } from "./AdminDashboard";
 
 type LeadStatus = "New" | "Contacted" | "Quoted" | "Closed" | "Lost";
 
@@ -16,16 +17,6 @@ const STATUS_COLORS: Record<LeadStatus, string> = {
   Quoted: "status-Quoted",
   Closed: "status-Closed",
   Lost: "status-Lost",
-};
-
-const SOURCE_LABELS: Record<string, string> = {
-  homepage: "Homepage",
-  financing: "Financing Page",
-  about: "About Page",
-  "quote-page": "Quote Page",
-  "upload-bill": "Upload Bill",
-  "google-ads": "Google Ads",
-  other: "Other",
 };
 
 const STATUSES: LeadStatus[] = ["New", "Contacted", "Quoted", "Closed", "Lost"];
@@ -157,7 +148,11 @@ export default function LeadDetail() {
                     </div>
                     <div>
                       <p className="text-xs text-gray-400">Email</p>
-                      <a href={`mailto:${lead.email}`} className="font-medium text-sm hover:underline" style={{ color: "var(--navy)" }}>{lead.email}</a>
+                      {lead.email ? (
+                        <a href={`mailto:${lead.email}`} className="font-medium text-sm hover:underline" style={{ color: "var(--navy)" }}>{lead.email}</a>
+                      ) : (
+                        <p className="font-medium text-sm text-gray-400">Not provided</p>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
@@ -166,7 +161,11 @@ export default function LeadDetail() {
                     </div>
                     <div>
                       <p className="text-xs text-gray-400">Phone</p>
-                      <a href={`tel:${lead.phone}`} className="font-medium text-sm hover:underline" style={{ color: "var(--navy)" }}>{lead.phone}</a>
+                      {lead.phone ? (
+                        <a href={`tel:${lead.phone}`} className="font-medium text-sm hover:underline" style={{ color: "var(--navy)" }}>{lead.phone}</a>
+                      ) : (
+                        <p className="font-medium text-sm text-gray-400">Not provided</p>
+                      )}
                     </div>
                   </div>
                   {lead.address && (
@@ -197,6 +196,7 @@ export default function LeadDetail() {
                     { label: "Monthly Bill Range", value: lead.monthlyBillRange ?? "Not specified" },
                     { label: "Interest", value: lead.interestType.charAt(0).toUpperCase() + lead.interestType.slice(1) },
                     { label: "Lead Source", value: SOURCE_LABELS[lead.source] ?? lead.source },
+                    { label: "CRM Deal", value: lead.crmDealId ? `#${lead.crmDealId}` : lead.crmStatus === "failed" ? "Sync failed" : "Not synced" },
                   ].map(({ label, value }) => (
                     <div key={label} className="p-4 rounded-xl bg-gray-50">
                       <p className="text-xs text-gray-400 mb-1">{label}</p>
@@ -277,12 +277,16 @@ export default function LeadDetail() {
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
                 <h3 className="font-bold text-base mb-4" style={{ color: "var(--navy)" }}>Quick Actions</h3>
                 <div className="space-y-2">
-                  <a href={`mailto:${lead.email}`} className="flex items-center gap-2 w-full px-4 py-2.5 rounded-xl text-sm font-medium border border-gray-200 hover:bg-gray-50 transition-colors" style={{ color: "var(--navy)" }}>
-                    <Mail className="w-4 h-4" style={{ color: "var(--gold-dark)" }} /> Send Email
-                  </a>
-                  <a href={`tel:${lead.phone}`} className="flex items-center gap-2 w-full px-4 py-2.5 rounded-xl text-sm font-medium border border-gray-200 hover:bg-gray-50 transition-colors" style={{ color: "var(--navy)" }}>
-                    <Phone className="w-4 h-4" style={{ color: "var(--gold-dark)" }} /> Call {lead.firstName}
-                  </a>
+                  {lead.email && (
+                    <a href={`mailto:${lead.email}`} className="flex items-center gap-2 w-full px-4 py-2.5 rounded-xl text-sm font-medium border border-gray-200 hover:bg-gray-50 transition-colors" style={{ color: "var(--navy)" }}>
+                      <Mail className="w-4 h-4" style={{ color: "var(--gold-dark)" }} /> Send Email
+                    </a>
+                  )}
+                  {lead.phone && (
+                    <a href={`tel:${lead.phone}`} className="flex items-center gap-2 w-full px-4 py-2.5 rounded-xl text-sm font-medium border border-gray-200 hover:bg-gray-50 transition-colors" style={{ color: "var(--navy)" }}>
+                      <Phone className="w-4 h-4" style={{ color: "var(--gold-dark)" }} /> Call {lead.firstName}
+                    </a>
+                  )}
                 </div>
               </div>
             </div>

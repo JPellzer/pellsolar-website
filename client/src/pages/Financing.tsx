@@ -110,7 +110,7 @@ export default function Financing() {
       state: form.state,
       zip: form.zip,
       type: "new_lead",
-      source: "website-financing",
+      source: "financing",
       notes: form.bill ? `Monthly bill: ${form.bill}` : "",
       utm_data: utmData,
       honeypot: form.honeypot,

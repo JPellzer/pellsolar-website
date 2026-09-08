@@ -32,8 +32,8 @@ export const website_leads = pgTable("website_leads", {
   // Contact info
   firstName: varchar("firstName", { length: 128 }).notNull(),
   lastName: varchar("lastName", { length: 128 }).notNull(),
-  email: varchar("email", { length: 320 }).notNull(),
-  phone: varchar("phone", { length: 32 }).notNull(),
+  email: varchar("email", { length: 320 }),
+  phone: varchar("phone", { length: 32 }),
   address: text("address"),
 
   // Qualification
@@ -56,6 +56,9 @@ export const website_leads = pgTable("website_leads", {
   status: website_leadStatusEnum("status").default("New").notNull(),
   source: varchar("source", { length: 64 }).default("homepage").notNull(),
   notes: text("notes"),
+  crmDealId: integer("crmDealId"),
+  crmCustomerId: integer("crmCustomerId"),
+  crmStatus: varchar("crmStatus", { length: 32 }),
 
   // Timestamps
   createdAt: timestamp("createdAt").defaultNow().notNull(),

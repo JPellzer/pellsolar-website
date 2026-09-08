@@ -12,7 +12,6 @@ import {
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type LeadStatus = "New" | "Contacted" | "Quoted" | "Closed" | "Lost";
-type LeadSource = "homepage" | "financing" | "about" | "quote-page" | "upload-bill" | "google-ads" | "other";
 
 const STATUS_COLORS: Record<LeadStatus, string> = {
   New: "status-New",
@@ -30,13 +29,18 @@ const STATUS_ICONS: Record<LeadStatus, React.ElementType> = {
   Lost: XCircle,
 };
 
-const SOURCE_LABELS: Record<LeadSource, string> = {
-  homepage: "Homepage",
-  financing: "Financing Page",
-  about: "About Page",
-  "quote-page": "Quote Page",
+// Canonical source -> label mapping — keep in sync with LeadDetail.tsx and with
+// the `page` values the CRM webhook contract expects (financing, quote,
+// upload-bill, solar-repair, homepage, google-ads, chat, service).
+export const SOURCE_LABELS: Record<string, string> = {
+  financing: "Financing",
+  quote: "Quote Page",
   "upload-bill": "Upload Bill",
+  "solar-repair": "Solar Repair",
+  homepage: "Homepage",
   "google-ads": "Google Ads",
+  chat: "Live Chat",
+  service: "Service Request",
   other: "Other",
 };
 
@@ -59,11 +63,11 @@ function StatCard({ label, value, icon: Icon, color }: { label: string; value: n
 // ─── CSV Export ───────────────────────────────────────────────────────────────
 
 function exportToCSV(leads: any[]) {
-  const headers = ["ID", "First Name", "Last Name", "Email", "Phone", "Address", "Ownership", "Monthly Bill", "Interest", "Status", "Source", "Notes", "Date"];
+  const headers = ["ID", "First Name", "Last Name", "Email", "Phone", "Address", "Ownership", "Monthly Bill", "Interest", "Status", "Source", "CRM Deal ID", "Notes", "Date"];
   const rows = leads.map((l) => [
     l.id, l.firstName, l.lastName, l.email, l.phone,
     l.address ?? "", l.ownershipType, l.monthlyBillRange ?? "",
-    l.interestType, l.status, l.source, (l.notes ?? "").replace(/\n/g, " "),
+    l.interestType, l.status, l.source, l.crmDealId ?? "", (l.notes ?? "").replace(/\n/g, " "),
     new Date(l.createdAt).toLocaleDateString(),
   ]);
   const csv = [headers, ...rows].map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
@@ -232,7 +236,7 @@ export default function AdminDashboard() {
             <div className="flex flex-wrap gap-3">
               {Object.entries(stats.bySource).map(([source, count]) => (
                 <div key={source} className="flex items-center gap-2 px-4 py-2 rounded-full bg-gray-100 text-sm">
-                  <span className="font-medium" style={{ color: "var(--navy)" }}>{SOURCE_LABELS[source as LeadSource] ?? source}</span>
+                  <span className="font-medium" style={{ color: "var(--navy)" }}>{SOURCE_LABELS[source] ?? source}</span>
                   <span className="px-2 py-0.5 rounded-full text-xs font-bold text-white" style={{ background: "var(--navy)" }}>{count as number}</span>
                 </div>
               ))}
@@ -276,7 +280,7 @@ export default function AdminDashboard() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-100">
-                    {["Name", "Contact", "Bill Range", "Interest", "Source", "Status", "Date", ""].map((h) => (
+                    {["Name", "Contact", "Bill Range", "Interest", "Source", "CRM", "Status", "Date", ""].map((h) => (
                       <th key={h} className="px-5 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">{h}</th>
                     ))}
                   </tr>
@@ -298,14 +302,18 @@ export default function AdminDashboard() {
                           )}
                         </td>
                         <td className="px-5 py-4">
-                          <div className="flex items-center gap-1.5 text-xs text-gray-600 mb-1">
-                            <Mail className="w-3 h-3" />
-                            <a href={`mailto:${lead.email}`} className="hover:underline truncate max-w-[140px]">{lead.email}</a>
-                          </div>
-                          <div className="flex items-center gap-1.5 text-xs text-gray-600">
-                            <Phone className="w-3 h-3" />
-                            <a href={`tel:${lead.phone}`} className="hover:underline">{lead.phone}</a>
-                          </div>
+                          {lead.email && (
+                            <div className="flex items-center gap-1.5 text-xs text-gray-600 mb-1">
+                              <Mail className="w-3 h-3" />
+                              <a href={`mailto:${lead.email}`} className="hover:underline truncate max-w-[140px]">{lead.email}</a>
+                            </div>
+                          )}
+                          {lead.phone && (
+                            <div className="flex items-center gap-1.5 text-xs text-gray-600">
+                              <Phone className="w-3 h-3" />
+                              <a href={`tel:${lead.phone}`} className="hover:underline">{lead.phone}</a>
+                            </div>
+                          )}
                         </td>
                         <td className="px-5 py-4">
                           <span className="text-sm text-gray-700">{lead.monthlyBillRange ?? "—"}</span>
@@ -314,7 +322,16 @@ export default function AdminDashboard() {
                           <span className="text-sm text-gray-700 capitalize">{lead.interestType}</span>
                         </td>
                         <td className="px-5 py-4">
-                          <span className="text-xs text-gray-500">{SOURCE_LABELS[lead.source as LeadSource] ?? lead.source}</span>
+                          <span className="text-xs text-gray-500">{SOURCE_LABELS[lead.source] ?? lead.source}</span>
+                        </td>
+                        <td className="px-5 py-4">
+                          {lead.crmDealId ? (
+                            <span className="text-xs font-semibold px-2 py-1 rounded-full bg-green-50 text-green-700 border border-green-200">CRM: #{lead.crmDealId}</span>
+                          ) : lead.crmStatus === "failed" ? (
+                            <span className="text-xs font-semibold px-2 py-1 rounded-full bg-red-50 text-red-700 border border-red-200">CRM: failed</span>
+                          ) : (
+                            <span className="text-xs text-gray-300">—</span>
+                          )}
                         </td>
                         <td className="px-5 py-4">
                           <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${STATUS_COLORS[lead.status as LeadStatus]}`}>

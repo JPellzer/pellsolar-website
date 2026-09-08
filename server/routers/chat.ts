@@ -1,12 +1,66 @@
 import { z } from "zod";
 import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
 import { TRPCError } from "@trpc/server";
-import { getDb } from "../db";
+import { getDb, createLead, setLeadCrmInfo } from "../db";
 import { chatSessions, chatMessages, chatSettings } from "../../drizzle/schema";
 import { eq, desc, and, gt } from "drizzle-orm";
 import { sendSms } from "../_core/sms";
 import { ENV } from "../_core/env";
+import { getCrmAuthHeaders } from "../crmAuth";
 import crypto from "crypto";
+
+const CRM_CHAT_WEBHOOK_URL = "https://pellsolar-crm-prod.onrender.com/api/webhooks/website-chat";
+
+// Forwards a chat lead (visitor gave a name/email/phone) to the CRM and mirrors it into
+// the website's own leads table so it shows up in the admin dashboard. Best-effort —
+// never blocks or fails the chat session itself.
+async function forwardChatLeadToCrm(input: {
+  visitorName?: string;
+  visitorEmail?: string;
+  visitorPhone?: string;
+  firstMessage: string;
+  sessionToken: string;
+}) {
+  if (!input.visitorEmail && !input.visitorPhone) return;
+
+  let localLeadId: number | undefined;
+  try {
+    const { id } = await createLead({
+      firstName: input.visitorName || "Website Chat Visitor",
+      lastName: "",
+      email: input.visitorEmail || undefined,
+      phone: input.visitorPhone || undefined,
+      ownershipType: "homeowner",
+      interestType: "other",
+      source: "chat",
+      notes: input.firstMessage,
+    });
+    localLeadId = id;
+  } catch (e) {
+    console.warn("[Chat] Failed to store chat lead locally:", e);
+  }
+
+  try {
+    const res = await fetch(CRM_CHAT_WEBHOOK_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...getCrmAuthHeaders() },
+      body: JSON.stringify({
+        visitor_name: input.visitorName,
+        visitor_email: input.visitorEmail,
+        visitor_phone: input.visitorPhone,
+        first_message: input.firstMessage,
+        session_id: input.sessionToken,
+        source: "chat",
+      }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (localLeadId && (data.deal_id || data.customer_id)) {
+      await setLeadCrmInfo(localLeadId, { crmDealId: data.deal_id, crmCustomerId: data.customer_id, crmStatus: "accepted" });
+    }
+  } catch (e) {
+    console.warn("[Chat] Failed to forward chat lead to CRM:", e);
+  }
+}
 
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
   if (ctx.user.role !== "admin") {
@@ -74,6 +128,15 @@ export const chatRouter = router({
       } catch (e) {
         console.error("[Chat] SMS failed:", e);
       }
+
+      // Fire-and-forget — never block the chat session on the CRM forward
+      forwardChatLeadToCrm({
+        visitorName: input.visitorName,
+        visitorEmail: input.visitorEmail,
+        visitorPhone: input.visitorPhone,
+        firstMessage: input.firstMessage,
+        sessionToken,
+      }).catch(() => {});
 
       return { sessionToken, sessionId: session.id };
     }),

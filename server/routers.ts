@@ -6,6 +6,7 @@ import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { TRPCError } from "@trpc/server";
 import {
   createLead,
+  setLeadCrmInfo,
   getLeads,
   getLeadById,
   updateLeadStatus,
@@ -29,6 +30,7 @@ import { makeRequest, type GeocodingResult } from "./_core/map";
 import { getLiveGoogleReviewSummary } from "./googleReviews";
 import type { Lead } from "../drizzle/schema";
 import { postToCrm } from "./crmWebhook";
+import { getCrmAuthHeaders } from "./crmAuth";
 import { chatRouter } from "./routers/chat";
 import { invokeLLM } from "./_core/llm";
 import { runSpamChecks } from "./spamProtection";
@@ -290,6 +292,15 @@ export const appRouter = router({
           });
           if (crmRes.deal_id) crmDealId = crmRes.deal_id;
           crmSuspect = crmRes.suspect === true;
+          if (crmRes.deal_id || crmRes.customer_id) {
+            await setLeadCrmInfo(id, {
+              crmDealId: crmRes.deal_id,
+              crmCustomerId: crmRes.customer_id,
+              crmStatus: crmRes.success ? "accepted" : undefined,
+            });
+          } else if (crmRes.success === false) {
+            await setLeadCrmInfo(id, { crmStatus: "failed" });
+          }
         } catch (e) {
           console.warn("[CRM] postToCrm failed in leads.create:", e);
         }
@@ -382,10 +393,37 @@ export const appRouter = router({
           phone: input.phone,
         });
         // ─────────────────────────────────────────────────────────────────
+
+        // Store locally so this lead shows up in the website's own admin dashboard,
+        // regardless of whether the CRM forward below succeeds.
+        let localLeadId: number | undefined;
+        try {
+          const { id } = await createLead({
+            firstName: input.first_name,
+            lastName: input.last_name,
+            email: input.email || undefined,
+            phone: input.phone || undefined,
+            address: input.address,
+            ownershipType: "homeowner",
+            interestType: "other",
+            source: input.source || "financing",
+            notes: input.notes,
+          });
+          localLeadId = id;
+        } catch (e) {
+          console.warn("[Leads] Failed to store crm.submitLead lead locally:", e);
+        }
+
         const result = await postToCrm(input);
         if (!result.success) {
           // Log but don't fail the user — CRM sync is best-effort
           console.warn("[CRM] Lead sync failed:", result.error);
+        } else if (localLeadId) {
+          await setLeadCrmInfo(localLeadId, {
+            crmDealId: result.deal_id,
+            crmCustomerId: result.customer_id,
+            crmStatus: "accepted",
+          });
         }
 
         // SMS notification to Josh for financing/direct CRM leads
@@ -466,7 +504,7 @@ Provide a helpful, accurate diagnostic response. Use the exact brand-specific ap
       .input(z.object({
         firstName: z.string().min(1),
         lastName: z.string(),
-        phone: z.string().min(7),
+        phone: z.string().optional(),
         email: z.string().optional(),
         address: z.string().optional(),
         systemType: z.string().optional(),
@@ -483,6 +521,9 @@ Provide a helpful, accurate diagnostic response. Use the exact brand-specific ap
         form_loaded_at: z.number().int().min(0).optional(),
       }))
       .mutation(async ({ input, ctx }) => {
+        if (!input.phone?.trim() && !input.email?.trim()) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "A phone number or email address is required." });
+        }
         // ── Bot / spam protection ──────────────────────────────────────────
         runSpamChecks(ctx.req, {
           honeypot: input.honeypot,
@@ -540,13 +581,13 @@ Provide a helpful, accurate diagnostic response. Use the exact brand-specific ap
           const servicePayload = {
             name: `${input.firstName} ${input.lastName || ""}`.trim(),
             email: input.email || "",
-            phone: input.phone.replace(/\D/g, ""),
+            phone: (input.phone || "").replace(/\D/g, ""),
             address: input.address || "",
             serviceType: (input.selectedIssues ?? []).length > 0 ? "repair" : "other",
             problemDescription: input.description || (input.selectedIssues ?? []).join(", ") || "Service request",
             preferredDate: "",
             preferredTime: "",
-            source: "website-service-form",
+            source: "service",
             submittedAt: Date.now(),
             // Extra context fields
             systemType: input.systemType || "",
@@ -564,12 +605,33 @@ Provide a helpful, accurate diagnostic response. Use the exact brand-specific ap
           };
           const res = await fetch("https://pellsolar-crm-prod.onrender.com/api/webhooks/service-intake", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json", ...getCrmAuthHeaders() },
             body: JSON.stringify(servicePayload),
           });
           crmResult = await res.json().catch(() => ({ success: res.ok }));
         } catch (e) {
           console.error("[CRM] Service intake webhook failed:", e);
+        }
+
+        // Store locally so this service request shows up in the website's own admin dashboard
+        try {
+          const { id: localLeadId } = await createLead({
+            firstName: input.firstName,
+            lastName: input.lastName || "",
+            email: input.email || undefined,
+            phone: input.phone || undefined,
+            address: input.address,
+            ownershipType: "homeowner",
+            interestType: "other",
+            source: "service",
+            notes: techBrief,
+          });
+          const crmDealId = crmResult && "deal_id" in crmResult ? crmResult.deal_id : undefined;
+          if (crmDealId) {
+            await setLeadCrmInfo(localLeadId, { crmDealId, crmCustomerId: crmResult.customer_id, crmStatus: "accepted" });
+          }
+        } catch (e) {
+          console.warn("[Leads] Failed to store service.submitCall lead locally:", e);
         }
         // SMS notification to Josh for service call submissions
         if (ENV.twilioNotifyNumber) {

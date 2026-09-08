@@ -442,7 +442,7 @@ export default function QuotePage() {
 
   const handleSubmit = async () => {
     const attribution = captureAttribution(search);
-    const source = deriveLeadSource("quote-page", attribution);
+    const source = deriveLeadSource("quote", attribution);
     let billKey = form.billFileKey, billUrl = form.billFileUrl, billName = form.billFileName;
     if (form.billFile && !billKey) {
       const result = await uploadBill(form.billFile);

@@ -113,6 +113,21 @@ export async function createLead(data: InsertLead): Promise<{ id: number; isDupl
   return { id: result[0].id, isDuplicate: false };
 }
 
+export async function setLeadCrmInfo(id: number, info: { crmDealId?: number; crmCustomerId?: number; crmStatus?: string }) {
+  const db = await getDb();
+  if (!db) return;
+  const updateData: Partial<InsertLead> = {};
+  if (info.crmDealId !== undefined) updateData.crmDealId = info.crmDealId;
+  if (info.crmCustomerId !== undefined) updateData.crmCustomerId = info.crmCustomerId;
+  if (info.crmStatus !== undefined) updateData.crmStatus = info.crmStatus;
+  if (Object.keys(updateData).length === 0) return;
+  try {
+    await db.update(website_leads).set(updateData).where(eq(website_leads.id, id));
+  } catch (error) {
+    console.error("[Database] Failed to set lead CRM info:", error);
+  }
+}
+
 export async function getLeads(filters?: { status?: Lead["status"]; source?: Lead["source"] }) {
   const db = await getDb();
   if (!db) return [];

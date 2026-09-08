@@ -9,6 +9,7 @@ import { storageGetSignedUrl } from "./storage";
 
 vi.mock("./db", () => ({
   createLead: vi.fn().mockResolvedValue({ id: 42, isDuplicate: false }),
+  setLeadCrmInfo: vi.fn().mockResolvedValue(undefined),
   getLeads: vi.fn().mockResolvedValue([]),
   getLeadById: vi.fn().mockResolvedValue({
     id: 1,
