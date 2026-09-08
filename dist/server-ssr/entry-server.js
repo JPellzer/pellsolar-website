@@ -2679,8 +2679,10 @@ function QuotePage() {
     billFileUrl: "",
     billFileName: "",
     smsConsent: false,
-    companyWebsite: ""
+    companyWebsite: "",
+    honeypot: ""
   });
+  const [formLoadedAt] = useState(Date.now());
   const createLead = trpc.leads.create.useMutation({
     onSuccess: (data, variables) => {
       const searchParams2 = new URLSearchParams();
@@ -2755,7 +2757,7 @@ function QuotePage() {
   };
   const handleSubmit = async () => {
     const attribution = captureAttribution(search);
-    const source = deriveLeadSource("quote-page", attribution);
+    const source = deriveLeadSource("quote", attribution);
     let billKey = form.billFileKey, billUrl = form.billFileUrl, billName = form.billFileName;
     if (form.billFile && !billKey) {
       const result = await uploadBill(form.billFile);
@@ -2788,8 +2790,8 @@ function QuotePage() {
       billFileUrl: billUrl || void 0,
       billFileName: billName || void 0,
       utmData: hasAttribution(attribution) ? attribution : void 0,
-      _hp: "",
-      // legacy honeypot retained for compatible server callers
+      honeypot: form.honeypot,
+      form_loaded_at: formLoadedAt,
       companyWebsite: form.companyWebsite,
       formSeconds: Math.max(0, Math.floor((Date.now() - formStartedAtRef.current) / 1e3)),
       pageUrl: window.location.href,
@@ -3196,7 +3198,12 @@ function QuotePage() {
                         type: "text",
                         inputMode: "numeric",
                         value: form.monthlyBill,
-                        onChange: (e) => update({ monthlyBill: e.target.value.replace(/\D/g, "") }),
+                        onChange: (e) => {
+                          const digits = e.target.value.replace(/\D/g, "");
+                          if (digits === "" || parseInt(digits, 10) >= 0 && parseInt(digits, 10) <= 9999) {
+                            update({ monthlyBill: digits });
+                          }
+                        },
                         placeholder: "250",
                         style: {
                           width: "100%",
@@ -3238,6 +3245,22 @@ function QuotePage() {
                       style: { position: "absolute", left: "-9999px", opacity: 0, height: 0 }
                     }
                   ),
+                  /* @__PURE__ */ jsxs("div", { style: { position: "absolute", left: "-9999px", width: "1px", height: "1px", overflow: "hidden" }, children: [
+                    /* @__PURE__ */ jsx("label", { htmlFor: "fax_field", children: "Fax" }),
+                    /* @__PURE__ */ jsx(
+                      "input",
+                      {
+                        type: "text",
+                        id: "fax_field",
+                        name: "honeypot",
+                        value: form.honeypot,
+                        onChange: (e) => update({ honeypot: e.target.value }),
+                        tabIndex: -1,
+                        autoComplete: "off",
+                        "aria-hidden": "true"
+                      }
+                    )
+                  ] }),
                   /* @__PURE__ */ jsx(InvisibleTurnstile, { siteKey: turnstileConfig.data?.siteKey, onToken: onTurnstileToken }),
                   /* @__PURE__ */ jsxs("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "12px" }, children: [
                     /* @__PURE__ */ jsxs("div", { children: [
@@ -4939,13 +4962,15 @@ const STATUS_ICONS = {
   Closed: CheckCircle,
   Lost: XCircle
 };
-const SOURCE_LABELS$1 = {
-  homepage: "Homepage",
-  financing: "Financing Page",
-  about: "About Page",
-  "quote-page": "Quote Page",
+const SOURCE_LABELS = {
+  financing: "Financing",
+  quote: "Quote Page",
   "upload-bill": "Upload Bill",
+  "solar-repair": "Solar Repair",
+  homepage: "Homepage",
   "google-ads": "Google Ads",
+  chat: "Live Chat",
+  service: "Service Request",
   other: "Other"
 };
 function StatCard({ label, value, icon: Icon, color }) {
@@ -4958,7 +4983,7 @@ function StatCard({ label, value, icon: Icon, color }) {
   ] });
 }
 function exportToCSV(leads) {
-  const headers = ["ID", "First Name", "Last Name", "Email", "Phone", "Address", "Ownership", "Monthly Bill", "Interest", "Status", "Source", "Notes", "Date"];
+  const headers = ["ID", "First Name", "Last Name", "Email", "Phone", "Address", "Ownership", "Monthly Bill", "Interest", "Status", "Source", "CRM Deal ID", "Notes", "Date"];
   const rows = leads.map((l) => [
     l.id,
     l.firstName,
@@ -4971,6 +4996,7 @@ function exportToCSV(leads) {
     l.interestType,
     l.status,
     l.source,
+    l.crmDealId ?? "",
     (l.notes ?? "").replace(/\n/g, " "),
     new Date(l.createdAt).toLocaleDateString()
   ]);
@@ -5097,7 +5123,7 @@ function AdminDashboard() {
           /* @__PURE__ */ jsx("h3", { className: "font-semibold", style: { color: "var(--navy)" }, children: "Leads by Source" })
         ] }),
         /* @__PURE__ */ jsx("div", { className: "flex flex-wrap gap-3", children: Object.entries(stats.bySource).map(([source, count]) => /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2 px-4 py-2 rounded-full bg-gray-100 text-sm", children: [
-          /* @__PURE__ */ jsx("span", { className: "font-medium", style: { color: "var(--navy)" }, children: SOURCE_LABELS$1[source] ?? source }),
+          /* @__PURE__ */ jsx("span", { className: "font-medium", style: { color: "var(--navy)" }, children: SOURCE_LABELS[source] ?? source }),
           /* @__PURE__ */ jsx("span", { className: "px-2 py-0.5 rounded-full text-xs font-bold text-white", style: { background: "var(--navy)" }, children: count })
         ] }, source)) })
       ] }),
@@ -5123,7 +5149,7 @@ function AdminDashboard() {
         /* @__PURE__ */ jsx("p", { className: "text-gray-500 font-medium", children: "No leads found" }),
         /* @__PURE__ */ jsx("p", { className: "text-gray-400 text-sm mt-1", children: statusFilter === "All" ? "Submit a quote request to see leads here." : `No leads with status "${statusFilter}".` })
       ] }) : /* @__PURE__ */ jsx("div", { className: "overflow-x-auto", children: /* @__PURE__ */ jsxs("table", { className: "w-full", children: [
-        /* @__PURE__ */ jsx("thead", { children: /* @__PURE__ */ jsx("tr", { className: "border-b border-gray-100", children: ["Name", "Contact", "Bill Range", "Interest", "Source", "Status", "Date", ""].map((h) => /* @__PURE__ */ jsx("th", { className: "px-5 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide", children: h }, h)) }) }),
+        /* @__PURE__ */ jsx("thead", { children: /* @__PURE__ */ jsx("tr", { className: "border-b border-gray-100", children: ["Name", "Contact", "Bill Range", "Interest", "Source", "CRM", "Status", "Date", ""].map((h) => /* @__PURE__ */ jsx("th", { className: "px-5 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide", children: h }, h)) }) }),
         /* @__PURE__ */ jsx("tbody", { className: "divide-y divide-gray-50", children: leads.map((lead) => {
           const StatusIcon = STATUS_ICONS[lead.status] ?? Star;
           return /* @__PURE__ */ jsxs("tr", { className: "hover:bg-gray-50 transition-colors", children: [
@@ -5139,18 +5165,22 @@ function AdminDashboard() {
               ] })
             ] }),
             /* @__PURE__ */ jsxs("td", { className: "px-5 py-4", children: [
-              /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-1.5 text-xs text-gray-600 mb-1", children: [
+              lead.email && /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-1.5 text-xs text-gray-600 mb-1", children: [
                 /* @__PURE__ */ jsx(Mail, { className: "w-3 h-3" }),
                 /* @__PURE__ */ jsx("a", { href: `mailto:${lead.email}`, className: "hover:underline truncate max-w-[140px]", children: lead.email })
               ] }),
-              /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-1.5 text-xs text-gray-600", children: [
+              lead.phone && /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-1.5 text-xs text-gray-600", children: [
                 /* @__PURE__ */ jsx(Phone, { className: "w-3 h-3" }),
                 /* @__PURE__ */ jsx("a", { href: `tel:${lead.phone}`, className: "hover:underline", children: lead.phone })
               ] })
             ] }),
             /* @__PURE__ */ jsx("td", { className: "px-5 py-4", children: /* @__PURE__ */ jsx("span", { className: "text-sm text-gray-700", children: lead.monthlyBillRange ?? "—" }) }),
             /* @__PURE__ */ jsx("td", { className: "px-5 py-4", children: /* @__PURE__ */ jsx("span", { className: "text-sm text-gray-700 capitalize", children: lead.interestType }) }),
-            /* @__PURE__ */ jsx("td", { className: "px-5 py-4", children: /* @__PURE__ */ jsx("span", { className: "text-xs text-gray-500", children: SOURCE_LABELS$1[lead.source] ?? lead.source }) }),
+            /* @__PURE__ */ jsx("td", { className: "px-5 py-4", children: /* @__PURE__ */ jsx("span", { className: "text-xs text-gray-500", children: SOURCE_LABELS[lead.source] ?? lead.source }) }),
+            /* @__PURE__ */ jsx("td", { className: "px-5 py-4", children: lead.crmDealId ? /* @__PURE__ */ jsxs("span", { className: "text-xs font-semibold px-2 py-1 rounded-full bg-green-50 text-green-700 border border-green-200", children: [
+              "CRM: #",
+              lead.crmDealId
+            ] }) : lead.crmStatus === "failed" ? /* @__PURE__ */ jsx("span", { className: "text-xs font-semibold px-2 py-1 rounded-full bg-red-50 text-red-700 border border-red-200", children: "CRM: failed" }) : /* @__PURE__ */ jsx("span", { className: "text-xs text-gray-300", children: "—" }) }),
             /* @__PURE__ */ jsx("td", { className: "px-5 py-4", children: /* @__PURE__ */ jsxs("span", { className: `inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${STATUS_COLORS$1[lead.status]}`, children: [
               /* @__PURE__ */ jsx(StatusIcon, { className: "w-3 h-3" }),
               lead.status
@@ -5175,15 +5205,6 @@ const STATUS_COLORS = {
   Quoted: "status-Quoted",
   Closed: "status-Closed",
   Lost: "status-Lost"
-};
-const SOURCE_LABELS = {
-  homepage: "Homepage",
-  financing: "Financing Page",
-  about: "About Page",
-  "quote-page": "Quote Page",
-  "upload-bill": "Upload Bill",
-  "google-ads": "Google Ads",
-  other: "Other"
 };
 const STATUSES = ["New", "Contacted", "Quoted", "Closed", "Lost"];
 function LeadDetail() {
@@ -5280,14 +5301,14 @@ function LeadDetail() {
                 /* @__PURE__ */ jsx("div", { className: "w-9 h-9 rounded-lg flex items-center justify-center", style: { background: "rgba(245,166,35,0.12)" }, children: /* @__PURE__ */ jsx(Mail, { className: "w-4 h-4", style: { color: "var(--gold-dark)" } }) }),
                 /* @__PURE__ */ jsxs("div", { children: [
                   /* @__PURE__ */ jsx("p", { className: "text-xs text-gray-400", children: "Email" }),
-                  /* @__PURE__ */ jsx("a", { href: `mailto:${lead.email}`, className: "font-medium text-sm hover:underline", style: { color: "var(--navy)" }, children: lead.email })
+                  lead.email ? /* @__PURE__ */ jsx("a", { href: `mailto:${lead.email}`, className: "font-medium text-sm hover:underline", style: { color: "var(--navy)" }, children: lead.email }) : /* @__PURE__ */ jsx("p", { className: "font-medium text-sm text-gray-400", children: "Not provided" })
                 ] })
               ] }),
               /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-3", children: [
                 /* @__PURE__ */ jsx("div", { className: "w-9 h-9 rounded-lg flex items-center justify-center", style: { background: "rgba(245,166,35,0.12)" }, children: /* @__PURE__ */ jsx(Phone, { className: "w-4 h-4", style: { color: "var(--gold-dark)" } }) }),
                 /* @__PURE__ */ jsxs("div", { children: [
                   /* @__PURE__ */ jsx("p", { className: "text-xs text-gray-400", children: "Phone" }),
-                  /* @__PURE__ */ jsx("a", { href: `tel:${lead.phone}`, className: "font-medium text-sm hover:underline", style: { color: "var(--navy)" }, children: lead.phone })
+                  lead.phone ? /* @__PURE__ */ jsx("a", { href: `tel:${lead.phone}`, className: "font-medium text-sm hover:underline", style: { color: "var(--navy)" }, children: lead.phone }) : /* @__PURE__ */ jsx("p", { className: "font-medium text-sm text-gray-400", children: "Not provided" })
                 ] })
               ] }),
               lead.address && /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-3", children: [
@@ -5310,7 +5331,8 @@ function LeadDetail() {
               { label: "Payment Preference", value: lead.paymentPreference ? lead.paymentPreference.charAt(0).toUpperCase() + lead.paymentPreference.slice(1) : "Not specified" },
               { label: "Monthly Bill Range", value: lead.monthlyBillRange ?? "Not specified" },
               { label: "Interest", value: lead.interestType.charAt(0).toUpperCase() + lead.interestType.slice(1) },
-              { label: "Lead Source", value: SOURCE_LABELS[lead.source] ?? lead.source }
+              { label: "Lead Source", value: SOURCE_LABELS[lead.source] ?? lead.source },
+              { label: "CRM Deal", value: lead.crmDealId ? `#${lead.crmDealId}` : lead.crmStatus === "failed" ? "Sync failed" : "Not synced" }
             ].map(({ label, value }) => /* @__PURE__ */ jsxs("div", { className: "p-4 rounded-xl bg-gray-50", children: [
               /* @__PURE__ */ jsx("p", { className: "text-xs text-gray-400 mb-1", children: label }),
               /* @__PURE__ */ jsx("p", { className: "font-semibold text-sm", style: { color: "var(--navy)" }, children: value })
@@ -5386,11 +5408,11 @@ function LeadDetail() {
           /* @__PURE__ */ jsxs("div", { className: "bg-white rounded-2xl p-6 shadow-sm border border-gray-100", children: [
             /* @__PURE__ */ jsx("h3", { className: "font-bold text-base mb-4", style: { color: "var(--navy)" }, children: "Quick Actions" }),
             /* @__PURE__ */ jsxs("div", { className: "space-y-2", children: [
-              /* @__PURE__ */ jsxs("a", { href: `mailto:${lead.email}`, className: "flex items-center gap-2 w-full px-4 py-2.5 rounded-xl text-sm font-medium border border-gray-200 hover:bg-gray-50 transition-colors", style: { color: "var(--navy)" }, children: [
+              lead.email && /* @__PURE__ */ jsxs("a", { href: `mailto:${lead.email}`, className: "flex items-center gap-2 w-full px-4 py-2.5 rounded-xl text-sm font-medium border border-gray-200 hover:bg-gray-50 transition-colors", style: { color: "var(--navy)" }, children: [
                 /* @__PURE__ */ jsx(Mail, { className: "w-4 h-4", style: { color: "var(--gold-dark)" } }),
                 " Send Email"
               ] }),
-              /* @__PURE__ */ jsxs("a", { href: `tel:${lead.phone}`, className: "flex items-center gap-2 w-full px-4 py-2.5 rounded-xl text-sm font-medium border border-gray-200 hover:bg-gray-50 transition-colors", style: { color: "var(--navy)" }, children: [
+              lead.phone && /* @__PURE__ */ jsxs("a", { href: `tel:${lead.phone}`, className: "flex items-center gap-2 w-full px-4 py-2.5 rounded-xl text-sm font-medium border border-gray-200 hover:bg-gray-50 transition-colors", style: { color: "var(--navy)" }, children: [
                 /* @__PURE__ */ jsx(Phone, { className: "w-4 h-4", style: { color: "var(--gold-dark)" } }),
                 " Call ",
                 lead.firstName
@@ -7686,7 +7708,8 @@ function SavingsBarChart() {
   ] });
 }
 function Financing() {
-  const [form, setForm] = useState({ firstName: "", lastName: "", email: "", phone: "", bill: "", address: "", city: "", state: "", zip: "" });
+  const [form, setForm] = useState({ firstName: "", lastName: "", email: "", phone: "", bill: "", address: "", city: "", state: "", zip: "", honeypot: "" });
+  const [formLoadedAt] = useState(Date.now());
   const [submitted, setSubmitted] = useState(false);
   const submitToCrm = trpc.crm.submitLead.useMutation();
   const handleSubmit = (e) => {
@@ -7710,11 +7733,11 @@ function Financing() {
       state: form.state,
       zip: form.zip,
       type: "new_lead",
-      source: "website-financing",
+      source: "financing",
       notes: form.bill ? `Monthly bill: ${form.bill}` : "",
       utm_data: utmData,
-      _hp: ""
-      // honeypot — always empty for real users
+      honeypot: form.honeypot,
+      form_loaded_at: formLoadedAt
     }, {
       onSuccess: () => setSubmitted(true),
       onError: () => {
@@ -7986,6 +8009,22 @@ function Financing() {
               /* @__PURE__ */ jsx("h3", { className: "text-2xl font-bold text-[#0B1D51] mb-2", children: "Thank you!" }),
               /* @__PURE__ */ jsx("p", { className: "text-gray-600", children: "We'll be in touch shortly to discuss your solar options." })
             ] }) : /* @__PURE__ */ jsxs("form", { onSubmit: handleSubmit, className: "bg-white rounded-2xl shadow-xl p-8 space-y-5", children: [
+              /* @__PURE__ */ jsxs("div", { style: { position: "absolute", left: "-9999px", width: "1px", height: "1px", overflow: "hidden" }, children: [
+                /* @__PURE__ */ jsx("label", { htmlFor: "website_field", children: "Website" }),
+                /* @__PURE__ */ jsx(
+                  "input",
+                  {
+                    type: "text",
+                    id: "website_field",
+                    name: "honeypot",
+                    value: form.honeypot,
+                    onChange: (e) => setForm({ ...form, honeypot: e.target.value }),
+                    tabIndex: -1,
+                    autoComplete: "off",
+                    "aria-hidden": "true"
+                  }
+                )
+              ] }),
               /* @__PURE__ */ jsxs("div", { className: "grid sm:grid-cols-2 gap-5", children: [
                 /* @__PURE__ */ jsxs("div", { children: [
                   /* @__PURE__ */ jsx("label", { className: "block text-sm font-semibold text-[#0B1D51] mb-1", children: "First Name *" }),
@@ -8054,10 +8093,16 @@ function Financing() {
                   "input",
                   {
                     type: "text",
+                    inputMode: "numeric",
                     value: form.bill,
-                    onChange: (e) => setForm({ ...form, bill: e.target.value }),
+                    onChange: (e) => {
+                      const digits = e.target.value.replace(/\D/g, "");
+                      if (digits === "" || parseInt(digits, 10) >= 0 && parseInt(digits, 10) <= 9999) {
+                        setForm({ ...form, bill: digits });
+                      }
+                    },
                     className: "w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[#2BABE2]",
-                    placeholder: "e.g. $300/mo — leave blank if you don't have it"
+                    placeholder: "300"
                   }
                 )
               ] }),
@@ -8119,7 +8164,8 @@ function SolarRepair() {
   const [selectedIssues, setSelectedIssues] = useState([]);
   const [duration, setDuration] = useState("");
   const [description, setDescription] = useState("");
-  const [contact, setContact] = useState({ firstName: "", lastName: "", phone: "", email: "", address: "", _hp: "" });
+  const [contact, setContact] = useState({ firstName: "", lastName: "", phone: "", email: "", address: "", honeypot: "" });
+  const [formLoadedAt] = useState(Date.now());
   const [smsConsent, setSmsConsent] = useState(false);
   const diagnose = trpc.service.diagnose.useMutation({
     onSuccess: (data) => {
@@ -8128,7 +8174,11 @@ function SolarRepair() {
     },
     onError: () => toast.error("Could not generate diagnostic. Please describe your issue and submit the form.")
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const submitCall = trpc.service.submitCall.useMutation({
+    onSuccess: () => setStep("done"),
+    onError: () => toast.error("Something went wrong. Please try again or call us directly.")
+  });
+  const isSubmitting = submitCall.isPending;
   useEffect(() => {
     if (window.location.hash === "#service-form" && formRef.current) {
       setTimeout(() => {
@@ -8150,7 +8200,7 @@ function SolarRepair() {
     }
     diagnose.mutate({ systemType, inverterBrand, batteryBrand, systemAge, selectedIssues: selectedIssues.map((id) => ISSUE_OPTIONS.find((o) => o.id === id)?.label ?? id), duration, description });
   };
-  const handleSubmitContact = async (e) => {
+  const handleSubmitContact = (e) => {
     e.preventDefault();
     if (!contact.firstName.trim() || !contact.lastName.trim()) {
       toast.error("Please enter your first and last name.");
@@ -8160,67 +8210,27 @@ function SolarRepair() {
       toast.error("Please enter a phone number or email address.");
       return;
     }
-    setIsSubmitting(true);
-    try {
-      let customerExists = false;
-      let customerId;
-      const phone = contact.phone.trim();
-      if (phone) {
-        try {
-          const lookupRes = await fetch(
-            `https://pellsolar-crm-prod.onrender.com/api/ai-phone/lookup-caller?phone=${encodeURIComponent(phone)}`
-          );
-          if (lookupRes.ok) {
-            const lookupData = await lookupRes.json();
-            if (lookupData.existing_customer === true) {
-              customerExists = true;
-              customerId = String(lookupData.customer_id);
-            }
-          }
-        } catch {
-        }
-      }
-      const issueText = selectedIssues.map((id) => ISSUE_OPTIONS.find((o) => o.id === id)?.label ?? id).join("; ");
-      const fullDescription = description ? `${issueText}. Duration: ${duration}. Details: ${description}` : `${issueText}. Duration: ${duration}.`;
-      if (contact._hp && contact._hp.trim().length > 0) {
-        setStep("done");
-        return;
-      }
-      const payload = {
-        name: `${contact.firstName.trim()} ${contact.lastName.trim()}`,
-        email: contact.email.trim() || void 0,
-        phone: phone || "N/A",
-        address: contact.address.trim() || void 0,
-        systemType: systemType || void 0,
-        inverterBrand: inverterBrand || void 0,
-        batteryBrand: batteryBrand || void 0,
-        systemAge: systemAge || void 0,
-        selectedIssues: selectedIssues.map((id) => ISSUE_OPTIONS.find((o) => o.id === id)?.label ?? id),
-        duration: duration || void 0,
-        description: fullDescription,
-        aiDiagnosis: diagnosis || void 0,
-        customerExists,
-        source: "website-service-form",
-        submittedAt: (/* @__PURE__ */ new Date()).toISOString()
-      };
-      const res = await fetch(
-        "https://pellsolar-crm-prod.onrender.com/api/webhooks/service-intake",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        }
-      );
-      if (!res.ok) {
-        throw new Error(`CRM webhook returned ${res.status}`);
-      }
+    if (contact.honeypot && contact.honeypot.trim().length > 0) {
       setStep("done");
-    } catch (err) {
-      console.error("[ServiceForm] Submission error:", err);
-      toast.error("Something went wrong. Please try again or call us directly.");
-    } finally {
-      setIsSubmitting(false);
+      return;
     }
+    submitCall.mutate({
+      firstName: contact.firstName.trim(),
+      lastName: contact.lastName.trim(),
+      phone: contact.phone.trim() || void 0,
+      email: contact.email.trim() || void 0,
+      address: contact.address.trim() || void 0,
+      systemType: systemType || void 0,
+      inverterBrand: inverterBrand || void 0,
+      batteryBrand: batteryBrand || void 0,
+      systemAge: systemAge || void 0,
+      selectedIssues: selectedIssues.map((id) => ISSUE_OPTIONS.find((o) => o.id === id)?.label ?? id),
+      duration: duration || void 0,
+      description: description || void 0,
+      aiDiagnosis: diagnosis || void 0,
+      honeypot: contact.honeypot,
+      form_loaded_at: formLoadedAt
+    });
   };
   const inputCls = "w-full border border-gray-300 rounded-xl px-4 py-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#2BABE2] bg-white";
   const selectCls = `${inputCls} cursor-pointer`;
@@ -8586,19 +8596,22 @@ function SolarRepair() {
             /* @__PURE__ */ jsx("h3", { className: "text-white font-bold text-lg", style: { fontFamily: "'Montserrat', sans-serif" }, children: "Your Contact Information" })
           ] }),
           /* @__PURE__ */ jsxs("form", { onSubmit: handleSubmitContact, className: "p-8 space-y-5", children: [
-            /* @__PURE__ */ jsx(
-              "input",
-              {
-                type: "text",
-                name: "_hp",
-                value: contact._hp,
-                onChange: (e) => setContact((c) => ({ ...c, _hp: e.target.value })),
-                tabIndex: -1,
-                "aria-hidden": "true",
-                autoComplete: "off",
-                style: { position: "absolute", left: "-9999px", width: "1px", height: "1px", opacity: 0, pointerEvents: "none" }
-              }
-            ),
+            /* @__PURE__ */ jsxs("div", { style: { position: "absolute", left: "-9999px", width: "1px", height: "1px", overflow: "hidden" }, children: [
+              /* @__PURE__ */ jsx("label", { htmlFor: "website_field", children: "Website" }),
+              /* @__PURE__ */ jsx(
+                "input",
+                {
+                  type: "text",
+                  id: "website_field",
+                  name: "honeypot",
+                  value: contact.honeypot,
+                  onChange: (e) => setContact((c) => ({ ...c, honeypot: e.target.value })),
+                  tabIndex: -1,
+                  "aria-hidden": "true",
+                  autoComplete: "off"
+                }
+              )
+            ] }),
             /* @__PURE__ */ jsxs("div", { className: "grid sm:grid-cols-2 gap-4", children: [
               /* @__PURE__ */ jsxs("div", { children: [
                 /* @__PURE__ */ jsxs("label", { className: "block text-sm font-semibold text-gray-700 mb-1", children: [
@@ -10707,7 +10720,8 @@ function UploadBill() {
   const [csvDragOver, setCsvDragOver] = useState(false);
   const [billDragOver, setBillDragOver] = useState(false);
   const [uploadType, setUploadType] = useState("both");
-  const [form, setForm] = useState({ firstName: "", lastName: "", email: "", phone: "", address: "" });
+  const [form, setForm] = useState({ firstName: "", lastName: "", email: "", phone: "", address: "", honeypot: "" });
+  const [formLoadedAt] = useState(Date.now());
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState(null);
@@ -10747,8 +10761,8 @@ function UploadBill() {
         billFileKey: csvKey ?? billKey,
         billFileUrl: csvUrl ?? billUrl,
         billFileName: csvFile?.name ?? billFile?.name,
-        _hp: ""
-        // honeypot — always empty for real users
+        honeypot: form.honeypot,
+        form_loaded_at: formLoadedAt
       });
       setSubmitted(true);
       const thankYouParams = new URLSearchParams();
@@ -10949,6 +10963,22 @@ function UploadBill() {
           /* @__PURE__ */ jsx("a", { href: "/", className: "text-[#2BABE2] font-semibold text-sm hover:underline no-underline", children: "← Back to Home" })
         ] })
       ] }) : /* @__PURE__ */ jsxs("form", { onSubmit: handleSubmit, className: "bg-white rounded-2xl p-8 shadow-sm space-y-6", children: [
+        /* @__PURE__ */ jsxs("div", { style: { position: "absolute", left: "-9999px", width: "1px", height: "1px", overflow: "hidden" }, children: [
+          /* @__PURE__ */ jsx("label", { htmlFor: "website_field", children: "Website" }),
+          /* @__PURE__ */ jsx(
+            "input",
+            {
+              type: "text",
+              id: "website_field",
+              name: "honeypot",
+              value: form.honeypot,
+              onChange: (e) => setForm((f) => ({ ...f, honeypot: e.target.value })),
+              tabIndex: -1,
+              autoComplete: "off",
+              "aria-hidden": "true"
+            }
+          )
+        ] }),
         /* @__PURE__ */ jsxs("div", { className: "grid md:grid-cols-2 gap-4", children: [
           /* @__PURE__ */ jsxs("div", { children: [
             /* @__PURE__ */ jsx("label", { className: "block text-sm font-semibold text-gray-700 mb-2", children: "First Name *" }),

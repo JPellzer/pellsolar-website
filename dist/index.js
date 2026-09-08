@@ -45,8 +45,8 @@ var website_leads = pgTable("website_leads", {
   // Contact info
   firstName: varchar("firstName", { length: 128 }).notNull(),
   lastName: varchar("lastName", { length: 128 }).notNull(),
-  email: varchar("email", { length: 320 }).notNull(),
-  phone: varchar("phone", { length: 32 }).notNull(),
+  email: varchar("email", { length: 320 }),
+  phone: varchar("phone", { length: 32 }),
   address: text("address"),
   // Qualification
   ownershipType: website_ownershipTypeEnum("ownershipType").notNull(),
@@ -66,6 +66,9 @@ var website_leads = pgTable("website_leads", {
   status: website_leadStatusEnum("status").default("New").notNull(),
   source: varchar("source", { length: 64 }).default("homepage").notNull(),
   notes: text("notes"),
+  crmDealId: integer("crmDealId"),
+  crmCustomerId: integer("crmCustomerId"),
+  crmStatus: varchar("crmStatus", { length: 32 }),
   // Timestamps
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().notNull().$onUpdate(() => /* @__PURE__ */ new Date())
@@ -250,6 +253,20 @@ async function createLead(data) {
   }
   const result = await db.insert(website_leads).values(data).returning({ id: website_leads.id });
   return { id: result[0].id, isDuplicate: false };
+}
+async function setLeadCrmInfo(id, info) {
+  const db = await getDb();
+  if (!db) return;
+  const updateData = {};
+  if (info.crmDealId !== void 0) updateData.crmDealId = info.crmDealId;
+  if (info.crmCustomerId !== void 0) updateData.crmCustomerId = info.crmCustomerId;
+  if (info.crmStatus !== void 0) updateData.crmStatus = info.crmStatus;
+  if (Object.keys(updateData).length === 0) return;
+  try {
+    await db.update(website_leads).set(updateData).where(eq(website_leads.id, id));
+  } catch (error) {
+    console.error("[Database] Failed to set lead CRM info:", error);
+  }
 }
 async function getLeads(filters) {
   const db = await getDb();
@@ -1080,6 +1097,46 @@ import { z as z2 } from "zod";
 import { TRPCError as TRPCError3 } from "@trpc/server";
 import { eq as eq2, desc as desc2, and as and2, gt } from "drizzle-orm";
 import crypto3 from "crypto";
+var CRM_CHAT_WEBHOOK_URL = "https://pellsolar-crm-prod.onrender.com/api/webhooks/website-chat";
+async function forwardChatLeadToCrm(input) {
+  if (!input.visitorEmail && !input.visitorPhone) return;
+  let localLeadId;
+  try {
+    const { id } = await createLead({
+      firstName: input.visitorName || "Website Chat Visitor",
+      lastName: "",
+      email: input.visitorEmail || void 0,
+      phone: input.visitorPhone || void 0,
+      ownershipType: "homeowner",
+      interestType: "other",
+      source: "chat",
+      notes: input.firstMessage
+    });
+    localLeadId = id;
+  } catch (e) {
+    console.warn("[Chat] Failed to store chat lead locally:", e);
+  }
+  try {
+    const res = await fetch(CRM_CHAT_WEBHOOK_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...getCrmAuthHeaders() },
+      body: JSON.stringify({
+        visitor_name: input.visitorName,
+        visitor_email: input.visitorEmail,
+        visitor_phone: input.visitorPhone,
+        first_message: input.firstMessage,
+        session_id: input.sessionToken,
+        source: "chat"
+      })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (localLeadId && (data.deal_id || data.customer_id)) {
+      await setLeadCrmInfo(localLeadId, { crmDealId: data.deal_id, crmCustomerId: data.customer_id, crmStatus: "accepted" });
+    }
+  } catch (e) {
+    console.warn("[Chat] Failed to forward chat lead to CRM:", e);
+  }
+}
 var adminProcedure2 = protectedProcedure.use(({ ctx, next }) => {
   if (ctx.user.role !== "admin") {
     throw new TRPCError3({ code: "FORBIDDEN", message: "Admin access required" });
@@ -1139,6 +1196,14 @@ Reply (Safari): ${chatUrl}`;
     } catch (e) {
       console.error("[Chat] SMS failed:", e);
     }
+    forwardChatLeadToCrm({
+      visitorName: input.visitorName,
+      visitorEmail: input.visitorEmail,
+      visitorPhone: input.visitorPhone,
+      firstMessage: input.firstMessage,
+      sessionToken
+    }).catch(() => {
+    });
     return { sessionToken, sessionId: session.id };
   }),
   // Public: send a message
@@ -1464,7 +1529,12 @@ var CreateLeadSchema = z3.object({
   existingSolar: z3.boolean().optional().transform((v) => v === void 0 ? void 0 : v ? 1 : 0),
   solarMotivation: z3.enum(["price_stability", "reduce_bills", "all_electric", "other"]).optional(),
   paymentPreference: z3.enum(["leasing", "financing", "cash"]).optional(),
-  monthlyBillRange: z3.string().optional(),
+  monthlyBillRange: z3.string().optional().transform((v) => {
+    if (!v || v === "" || v === "unknown") return v;
+    const num = parseInt(v.replace(/\D/g, ""), 10);
+    if (isNaN(num) || num < 0 || num > 9999) return "unknown";
+    return String(num);
+  }),
   interestType: z3.enum(["solar", "battery", "solar_battery", "ev_charger", "other"]).default("solar"),
   interestOtherText: z3.string().optional(),
   city: z3.string().optional(),
@@ -1475,8 +1545,10 @@ var CreateLeadSchema = z3.object({
   billFileName: z3.string().optional(),
   source: LeadSourceSchema.default("homepage"),
   utmData: UtmDataSchema,
-  // Legacy honeypot retained for compatible form callers.
-  _hp: z3.string().optional(),
+  // Honeypot field — hidden from humans, bots may fill it
+  honeypot: z3.string().max(200).default(""),
+  // Form timing — epoch ms when form was loaded
+  form_loaded_at: z3.number().int().min(0).optional(),
   // Rendered as an off-screen field; a value indicates automation.
   companyWebsite: z3.string().max(200).default(""),
   formSeconds: z3.number().int().min(0).max(86400).default(0),
@@ -1507,7 +1579,7 @@ var appRouter = router({
     // Public: submit a new lead
     create: publicProcedure.input(CreateLeadSchema).mutation(async ({ input, ctx }) => {
       runSpamChecks(ctx.req, {
-        honeypot: input.companyWebsite || input._hp,
+        honeypot: input.honeypot || input.companyWebsite,
         address: input.address,
         phone: input.phone
       });
@@ -1620,6 +1692,15 @@ var appRouter = router({
         });
         if (crmRes.deal_id) crmDealId = crmRes.deal_id;
         crmSuspect = crmRes.suspect === true;
+        if (crmRes.deal_id || crmRes.customer_id) {
+          await setLeadCrmInfo(id, {
+            crmDealId: crmRes.deal_id,
+            crmCustomerId: crmRes.customer_id,
+            crmStatus: crmRes.success ? "accepted" : void 0
+          });
+        } else if (crmRes.success === false) {
+          await setLeadCrmInfo(id, { crmStatus: "failed" });
+        }
       } catch (e) {
         console.warn("[CRM] postToCrm failed in leads.create:", e);
       }
@@ -1679,17 +1760,42 @@ var appRouter = router({
       source: z3.string().optional(),
       notes: z3.string().optional(),
       utm_data: UtmDataSchema,
-      // Honeypot — must be empty; bots fill this in
-      _hp: z3.string().optional()
+      // Honeypot field — hidden from humans, bots may fill it
+      honeypot: z3.string().max(200).default(""),
+      // Form timing — epoch ms when form was loaded
+      form_loaded_at: z3.number().int().min(0).optional()
     })).mutation(async ({ input, ctx }) => {
       runSpamChecks(ctx.req, {
-        honeypot: input._hp,
+        honeypot: input.honeypot,
         address: input.address,
         phone: input.phone
       });
+      let localLeadId;
+      try {
+        const { id } = await createLead({
+          firstName: input.first_name,
+          lastName: input.last_name,
+          email: input.email || void 0,
+          phone: input.phone || void 0,
+          address: input.address,
+          ownershipType: "homeowner",
+          interestType: "other",
+          source: input.source || "financing",
+          notes: input.notes
+        });
+        localLeadId = id;
+      } catch (e) {
+        console.warn("[Leads] Failed to store crm.submitLead lead locally:", e);
+      }
       const result = await postToCrm(input);
       if (!result.success) {
         console.warn("[CRM] Lead sync failed:", result.error);
+      } else if (localLeadId) {
+        await setLeadCrmInfo(localLeadId, {
+          crmDealId: result.deal_id,
+          crmCustomerId: result.customer_id,
+          crmStatus: "accepted"
+        });
       }
       if (ENV.twilioNotifyNumber && input.type === "new_lead") {
         const phone = input.phone ?? "";
@@ -1757,7 +1863,7 @@ Provide a helpful, accurate diagnostic response. Use the exact brand-specific ap
     submitCall: publicProcedure.input(z3.object({
       firstName: z3.string().min(1),
       lastName: z3.string(),
-      phone: z3.string().min(7),
+      phone: z3.string().optional(),
       email: z3.string().optional(),
       address: z3.string().optional(),
       systemType: z3.string().optional(),
@@ -1768,11 +1874,16 @@ Provide a helpful, accurate diagnostic response. Use the exact brand-specific ap
       duration: z3.string().optional(),
       description: z3.string().optional(),
       aiDiagnosis: z3.string().optional(),
-      // Honeypot — must be empty; bots fill this in
-      _hp: z3.string().optional()
+      // Honeypot field — hidden from humans, bots may fill it
+      honeypot: z3.string().max(200).default(""),
+      // Form timing — epoch ms when form was loaded
+      form_loaded_at: z3.number().int().min(0).optional()
     })).mutation(async ({ input, ctx }) => {
+      if (!input.phone?.trim() && !input.email?.trim()) {
+        throw new TRPCError5({ code: "BAD_REQUEST", message: "A phone number or email address is required." });
+      }
       runSpamChecks(ctx.req, {
-        honeypot: input._hp,
+        honeypot: input.honeypot,
         address: input.address,
         phone: input.phone
       });
@@ -1820,13 +1931,13 @@ Provide a helpful, accurate diagnostic response. Use the exact brand-specific ap
         const servicePayload = {
           name: `${input.firstName} ${input.lastName || ""}`.trim(),
           email: input.email || "",
-          phone: input.phone.replace(/\D/g, ""),
+          phone: (input.phone || "").replace(/\D/g, ""),
           address: input.address || "",
           serviceType: (input.selectedIssues ?? []).length > 0 ? "repair" : "other",
           problemDescription: input.description || (input.selectedIssues ?? []).join(", ") || "Service request",
           preferredDate: "",
           preferredTime: "",
-          source: "website-service-form",
+          source: "service",
           submittedAt: Date.now(),
           // Extra context fields
           systemType: input.systemType || "",
@@ -1844,12 +1955,31 @@ Provide a helpful, accurate diagnostic response. Use the exact brand-specific ap
         };
         const res = await fetch("https://pellsolar-crm-prod.onrender.com/api/webhooks/service-intake", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", ...getCrmAuthHeaders() },
           body: JSON.stringify(servicePayload)
         });
         crmResult = await res.json().catch(() => ({ success: res.ok }));
       } catch (e) {
         console.error("[CRM] Service intake webhook failed:", e);
+      }
+      try {
+        const { id: localLeadId } = await createLead({
+          firstName: input.firstName,
+          lastName: input.lastName || "",
+          email: input.email || void 0,
+          phone: input.phone || void 0,
+          address: input.address,
+          ownershipType: "homeowner",
+          interestType: "other",
+          source: "service",
+          notes: techBrief
+        });
+        const crmDealId = crmResult && "deal_id" in crmResult ? crmResult.deal_id : void 0;
+        if (crmDealId) {
+          await setLeadCrmInfo(localLeadId, { crmDealId, crmCustomerId: crmResult.customer_id, crmStatus: "accepted" });
+        }
+      } catch (e) {
+        console.warn("[Leads] Failed to store service.submitCall lead locally:", e);
       }
       if (ENV.twilioNotifyNumber) {
         const phone = input.phone ?? "";
