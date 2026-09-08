@@ -397,8 +397,9 @@ export const appRouter = router({
         // Store locally so this lead shows up in the website's own admin dashboard,
         // regardless of whether the CRM forward below succeeds.
         let localLeadId: number | undefined;
+        console.log("[DEBUG] crm.submitLead: about to call createLead()");
         try {
-          const { id } = await createLead({
+          const { id, isDuplicate } = await createLead({
             firstName: input.first_name,
             lastName: input.last_name,
             email: input.email || undefined,
@@ -410,8 +411,9 @@ export const appRouter = router({
             notes: input.notes,
           });
           localLeadId = id;
+          console.log("[DEBUG] crm.submitLead: createLead() returned id=" + id + " isDuplicate=" + isDuplicate);
         } catch (e) {
-          console.warn("[Leads] Failed to store crm.submitLead lead locally:", e);
+          console.warn("[Leads] Failed to store crm.submitLead lead locally:", e, e instanceof Error ? e.stack : "");
         }
 
         const result = await postToCrm(input);
