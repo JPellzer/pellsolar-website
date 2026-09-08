@@ -38,6 +38,7 @@ interface FormData {
   billFileName: string;
   smsConsent: boolean;
   companyWebsite: string;
+  honeypot: string;
 }
 
 type TurnstileApi = {
@@ -359,7 +360,9 @@ export default function QuotePage() {
     billFile: null, billFileKey: "", billFileUrl: "", billFileName: "",
     smsConsent: false,
     companyWebsite: "",
+    honeypot: "",
   });
+  const [formLoadedAt] = useState(Date.now());
 
   const createLead = trpc.leads.create.useMutation({
     onSuccess: (data, variables) => {
@@ -460,7 +463,8 @@ export default function QuotePage() {
       source,
       billFileKey: billKey || undefined, billFileUrl: billUrl || undefined, billFileName: billName || undefined,
       utmData: hasAttribution(attribution) ? attribution : undefined,
-      _hp: "", // legacy honeypot retained for compatible server callers
+      honeypot: form.honeypot,
+      form_loaded_at: formLoadedAt,
       companyWebsite: form.companyWebsite,
       formSeconds: Math.max(0, Math.floor((Date.now() - formStartedAtRef.current) / 1000)),
       pageUrl: window.location.href,
@@ -965,6 +969,20 @@ export default function QuotePage() {
                         aria-hidden="true"
                         style={{ position: "absolute", left: "-9999px", opacity: 0, height: 0 }}
                       />
+                      {/* Honeypot field - hidden from humans, visible to bots */}
+                      <div style={{ position: "absolute", left: "-9999px", width: "1px", height: "1px", overflow: "hidden" }}>
+                        <label htmlFor="fax_field">Fax</label>
+                        <input
+                          type="text"
+                          id="fax_field"
+                          name="honeypot"
+                          value={form.honeypot}
+                          onChange={e => update({ honeypot: e.target.value })}
+                          tabIndex={-1}
+                          autoComplete="off"
+                          aria-hidden="true"
+                        />
+                      </div>
                       <InvisibleTurnstile siteKey={turnstileConfig.data?.siteKey} onToken={onTurnstileToken} />
                       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "12px" }}>
                         <div>

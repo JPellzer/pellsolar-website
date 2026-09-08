@@ -114,8 +114,10 @@ const CreateLeadSchema = z.object({
   billFileName: z.string().optional(),
   source: LeadSourceSchema.default("homepage"),
   utmData: UtmDataSchema,
-  // Legacy honeypot retained for compatible form callers.
-  _hp: z.string().optional(),
+  // Honeypot field — hidden from humans, bots may fill it
+  honeypot: z.string().max(200).default(""),
+  // Form timing — epoch ms when form was loaded
+  form_loaded_at: z.number().int().min(0).optional(),
   // Rendered as an off-screen field; a value indicates automation.
   companyWebsite: z.string().max(200).default(""),
   formSeconds: z.number().int().min(0).max(86_400).default(0),
@@ -155,7 +157,7 @@ export const appRouter = router({
       .mutation(async ({ input, ctx }) => {
         // ── Bot / spam protection ──────────────────────────────────────────
         runSpamChecks(ctx.req, {
-          honeypot: input.companyWebsite || input._hp,
+          honeypot: input.honeypot || input.companyWebsite,
           address: input.address,
           phone: input.phone,
         });
@@ -362,13 +364,15 @@ export const appRouter = router({
         source: z.string().optional(),
         notes: z.string().optional(),
         utm_data: UtmDataSchema,
-        // Honeypot — must be empty; bots fill this in
-        _hp: z.string().optional(),
+        // Honeypot field — hidden from humans, bots may fill it
+        honeypot: z.string().max(200).default(""),
+        // Form timing — epoch ms when form was loaded
+        form_loaded_at: z.number().int().min(0).optional(),
       }))
       .mutation(async ({ input, ctx }) => {
         // ── Bot / spam protection ──────────────────────────────────────────
         runSpamChecks(ctx.req, {
-          honeypot: input._hp,
+          honeypot: input.honeypot,
           address: input.address,
           phone: input.phone,
         });
@@ -468,13 +472,15 @@ Provide a helpful, accurate diagnostic response. Use the exact brand-specific ap
         duration: z.string().optional(),
         description: z.string().optional(),
         aiDiagnosis: z.string().optional(),
-        // Honeypot — must be empty; bots fill this in
-        _hp: z.string().optional(),
+        // Honeypot field — hidden from humans, bots may fill it
+        honeypot: z.string().max(200).default(""),
+        // Form timing — epoch ms when form was loaded
+        form_loaded_at: z.number().int().min(0).optional(),
       }))
       .mutation(async ({ input, ctx }) => {
         // ── Bot / spam protection ──────────────────────────────────────────
         runSpamChecks(ctx.req, {
-          honeypot: input._hp,
+          honeypot: input.honeypot,
           address: input.address,
           phone: input.phone,
         });

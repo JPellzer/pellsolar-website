@@ -84,7 +84,8 @@ function SavingsBarChart() {
 }
 
 export default function Financing() {
-  const [form, setForm] = useState({ firstName: "", lastName: "", email: "", phone: "", bill: "", address: "", city: "", state: "", zip: "" });
+  const [form, setForm] = useState({ firstName: "", lastName: "", email: "", phone: "", bill: "", address: "", city: "", state: "", zip: "", honeypot: "" });
+  const [formLoadedAt] = useState(Date.now());
   const [submitted, setSubmitted] = useState(false);
   const submitToCrm = trpc.crm.submitLead.useMutation();
 
@@ -112,7 +113,8 @@ export default function Financing() {
       source: "website-financing",
       notes: form.bill ? `Monthly bill: ${form.bill}` : "",
       utm_data: utmData,
-      _hp: "", // honeypot — always empty for real users
+      honeypot: form.honeypot,
+      form_loaded_at: formLoadedAt,
     }, {
       onSuccess: () => setSubmitted(true),
       onError: () => {
@@ -430,6 +432,20 @@ export default function Financing() {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-xl p-8 space-y-5">
+              {/* Honeypot field - hidden from humans, visible to bots */}
+              <div style={{ position: "absolute", left: "-9999px", width: "1px", height: "1px", overflow: "hidden" }}>
+                <label htmlFor="website_field">Website</label>
+                <input
+                  type="text"
+                  id="website_field"
+                  name="honeypot"
+                  value={form.honeypot}
+                  onChange={e => setForm({ ...form, honeypot: e.target.value })}
+                  tabIndex={-1}
+                  autoComplete="off"
+                  aria-hidden="true"
+                />
+              </div>
               <div className="grid sm:grid-cols-2 gap-5">
                 <div>
                   <label className="block text-sm font-semibold text-[#0B1D51] mb-1">First Name *</label>

@@ -46,7 +46,8 @@ export default function SolarRepair() {
   const [description, setDescription] = useState("");
 
   // Contact form
-  const [contact, setContact] = useState({ firstName: "", lastName: "", phone: "", email: "", address: "", _hp: "" });
+  const [contact, setContact] = useState({ firstName: "", lastName: "", phone: "", email: "", address: "", honeypot: "" });
+  const [formLoadedAt] = useState(Date.now());
   const [smsConsent, setSmsConsent] = useState(false);
 
 
@@ -124,7 +125,7 @@ export default function SolarRepair() {
         ? `${issueText}. Duration: ${duration}. Details: ${description}`
         : `${issueText}. Duration: ${duration}.`;
       // Client-side honeypot check (belt-and-suspenders before the server check)
-      if (contact._hp && contact._hp.trim().length > 0) {
+      if (contact.honeypot && contact.honeypot.trim().length > 0) {
         // Silently succeed — bot doesn't know it was blocked
         setStep("done");
         return;
@@ -145,6 +146,8 @@ export default function SolarRepair() {
         customerExists,
         source: "website-service-form",
         submittedAt: new Date().toISOString(),
+        honeypot: contact.honeypot,
+        form_loaded_at: formLoadedAt,
       };
       // Step 3 — POST directly to CRM webhook
       const res = await fetch(
@@ -571,16 +574,19 @@ export default function SolarRepair() {
                   </div>
                   <form onSubmit={handleSubmitContact} className="p-8 space-y-5">
                     {/* Honeypot — hidden from real users, bots fill it in */}
-                    <input
-                      type="text"
-                      name="_hp"
-                      value={contact._hp}
-                      onChange={e => setContact(c => ({ ...c, _hp: e.target.value }))}
-                      tabIndex={-1}
-                      aria-hidden="true"
-                      autoComplete="off"
-                      style={{ position: "absolute", left: "-9999px", width: "1px", height: "1px", opacity: 0, pointerEvents: "none" }}
-                    />
+                    <div style={{ position: "absolute", left: "-9999px", width: "1px", height: "1px", overflow: "hidden" }}>
+                      <label htmlFor="website_field">Website</label>
+                      <input
+                        type="text"
+                        id="website_field"
+                        name="honeypot"
+                        value={contact.honeypot}
+                        onChange={e => setContact(c => ({ ...c, honeypot: e.target.value }))}
+                        tabIndex={-1}
+                        aria-hidden="true"
+                        autoComplete="off"
+                      />
+                    </div>
                     <div className="grid sm:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-1">First Name <span className="text-red-500">*</span></label>

@@ -213,7 +213,8 @@ export default function UploadBill() {
   const [csvDragOver, setCsvDragOver] = useState(false);
   const [billDragOver, setBillDragOver] = useState(false);
   const [uploadType, setUploadType] = useState<"csv" | "bill" | "both">("both");
-  const [form, setForm] = useState({ firstName: "", lastName: "", email: "", phone: "", address: "" });
+  const [form, setForm] = useState({ firstName: "", lastName: "", email: "", phone: "", address: "", honeypot: "" });
+  const [formLoadedAt] = useState(Date.now());
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -258,7 +259,8 @@ export default function UploadBill() {
         billFileKey: csvKey ?? billKey,
         billFileUrl: csvUrl ?? billUrl,
         billFileName: csvFile?.name ?? billFile?.name,
-        _hp: "", // honeypot — always empty for real users
+        honeypot: form.honeypot,
+        form_loaded_at: formLoadedAt,
       });
 
       setSubmitted(true);
@@ -485,6 +487,20 @@ export default function UploadBill() {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-8 shadow-sm space-y-6">
+              {/* Honeypot field - hidden from humans, visible to bots */}
+              <div style={{ position: "absolute", left: "-9999px", width: "1px", height: "1px", overflow: "hidden" }}>
+                <label htmlFor="website_field">Website</label>
+                <input
+                  type="text"
+                  id="website_field"
+                  name="honeypot"
+                  value={form.honeypot}
+                  onChange={e => setForm(f => ({ ...f, honeypot: e.target.value }))}
+                  tabIndex={-1}
+                  autoComplete="off"
+                  aria-hidden="true"
+                />
+              </div>
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">First Name *</label>
