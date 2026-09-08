@@ -927,7 +927,12 @@ export default function QuotePage() {
                           type="text"
                           inputMode="numeric"
                           value={form.monthlyBill}
-                          onChange={e => update({ monthlyBill: e.target.value.replace(/\D/g, "") })}
+                          onChange={e => {
+                            const digits = e.target.value.replace(/\D/g, '');
+                            if (digits === '' || (parseInt(digits, 10) >= 0 && parseInt(digits, 10) <= 9999)) {
+                              update({ monthlyBill: digits });
+                            }
+                          }}
                           placeholder="250"
                           style={{
                             width: "100%",

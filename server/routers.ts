@@ -103,7 +103,12 @@ const CreateLeadSchema = z.object({
   existingSolar: z.boolean().optional().transform(v => v === undefined ? undefined : (v ? 1 : 0)),
   solarMotivation: z.enum(["price_stability", "reduce_bills", "all_electric", "other"]).optional(),
   paymentPreference: z.enum(["leasing", "financing", "cash"]).optional(),
-  monthlyBillRange: z.string().optional(),
+  monthlyBillRange: z.string().optional().transform(v => {
+    if (!v || v === '' || v === 'unknown') return v;
+    const num = parseInt(v.replace(/\D/g, ''), 10);
+    if (isNaN(num) || num < 0 || num > 9999) return 'unknown';
+    return String(num);
+  }),
   interestType: z.enum(["solar", "battery", "solar_battery", "ev_charger", "other"]).default("solar"),
   interestOtherText: z.string().optional(),
   city: z.string().optional(),

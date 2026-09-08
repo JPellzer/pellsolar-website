@@ -499,10 +499,16 @@ export default function Financing() {
                 <p className="text-xs text-gray-500 mb-2">Having your bill helps us give you a more accurate quote — but you can still proceed without it.</p>
                 <input
                   type="text"
+                  inputMode="numeric"
                   value={form.bill}
-                  onChange={e => setForm({ ...form, bill: e.target.value })}
+                  onChange={e => {
+                    const digits = e.target.value.replace(/\D/g, '');
+                    if (digits === '' || (parseInt(digits, 10) >= 0 && parseInt(digits, 10) <= 9999)) {
+                      setForm({ ...form, bill: digits });
+                    }
+                  }}
                   className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[#2BABE2]"
-                  placeholder="e.g. $300/mo — leave blank if you don't have it"
+                  placeholder="300"
                 />
               </div>
               <div>
