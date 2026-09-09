@@ -128,19 +128,53 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
 
   // Convert to Anthropic format
   const anthropicMessages = nonSystemMessages.map((msg) => {
+    // Handle array content (text + images)
+    if (Array.isArray(msg.content)) {
+      const contentBlocks = msg.content.map((c) => {
+        if (typeof c === "string") {
+          return { type: "text", text: c };
+        }
+        if ("type" in c && c.type === "image_url" && "image_url" in c) {
+          // Convert image_url format to Anthropic's image format
+          const imageUrl = c.image_url.url;
+          // Anthropic expects base64 or source object
+          if (imageUrl.startsWith("data:")) {
+            const [header, base64] = imageUrl.split(",");
+            const mediaType = header.match(/data:([^;]+)/)?.[1] || "image/jpeg";
+            return {
+              type: "image",
+              source: {
+                type: "base64",
+                media_type: mediaType,
+                data: base64,
+              },
+            };
+          }
+          // For URLs, we'd need to fetch and convert - skip for now
+          return { type: "text", text: "" };
+        }
+        if ("text" in c) {
+          return { type: "text", text: c.text };
+        }
+        return { type: "text", text: "" };
+      }).filter((block) => block.type === "image" || (block.type === "text" && block.text));
+
+      return {
+        role: msg.role === "assistant" ? ("assistant" as const) : ("user" as const),
+        content: contentBlocks as Array<{ type: "text"; text: string } | { type: "image"; source: { type: "base64"; media_type: string; data: string } }>,
+      };
+    }
+
+    // Handle string content
     let content: string;
     if (typeof msg.content === "string") {
       content = msg.content;
-    } else if (Array.isArray(msg.content)) {
-      content = msg.content
-        .map((c) => (typeof c === "string" ? c : "text" in c ? c.text : ""))
-        .join("\n");
     } else {
       content = "text" in msg.content ? msg.content.text : "";
     }
 
     return {
-      role: msg.role === "assistant" ? "assistant" : "user",
+      role: msg.role === "assistant" ? ("assistant" as const) : ("user" as const),
       content,
     };
   });
@@ -154,10 +188,10 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
   });
 
   const response = await client.messages.create({
-    model: "claude-haiku-4-5-20251001",
-    max_tokens: maxTokens || max_tokens || 1024,
+    model: process.env.DIAG_MODEL || "claude-sonnet-4-6",
+    max_tokens: maxTokens || max_tokens || 2048,
     system: systemPrompt || undefined,
-    messages: anthropicMessages as Array<{ role: "user" | "assistant"; content: string }>,
+    messages: anthropicMessages as any, // Type cast needed for image content blocks
   });
 
   // Transform Anthropic response to OpenAI format

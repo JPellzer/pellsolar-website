@@ -60,6 +60,20 @@ export const website_leads = pgTable("website_leads", {
   crmCustomerId: integer("crmCustomerId"),
   crmStatus: varchar("crmStatus", { length: 32 }),
 
+  // Service diagnostic fields
+  systemType: varchar("systemType", { length: 64 }),
+  inverterBrand: varchar("inverterBrand", { length: 64 }),
+  batteryBrand: varchar("batteryBrand", { length: 64 }),
+  systemAge: varchar("systemAge", { length: 32 }),
+  selectedIssues: text("selectedIssues"), // JSON array as string
+  duration: varchar("duration", { length: 64 }),
+  errorCode: text("errorCode"),
+  aiDiagnosis: text("aiDiagnosis"),
+  aiModel: varchar("aiModel", { length: 64 }),
+  diagnosisOutcome: varchar("diagnosisOutcome", { length: 32 }), // "helped" | "need_help" | "unknown"
+  diagnosisEmailSentAt: timestamp("diagnosisEmailSentAt"),
+  photoKeys: text("photoKeys").array(),
+
   // Timestamps
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().notNull().$onUpdate(() => new Date()),

@@ -23,7 +23,7 @@ import {
   getAllUnsubscribes,
 } from "./db";
 import { storageGetSignedUrl, storagePut } from "./storage";
-import { notifyOwner } from "./_core/notification";
+import { notifyOwner, sendDiagnosisEmail } from "./_core/notification";
 import { sendSms } from "./_core/sms";
 import { ENV } from "./_core/env";
 import { makeRequest, type GeocodingResult } from "./_core/map";
@@ -42,6 +42,11 @@ import { checkCustomerInCrm } from "./crmCustomerCheck";
 
 // ─── In-memory rate limit map for unsubscribe endpoint ──────────────────────
 const unsubRateLimit = new Map<string, number[]>();
+
+// ─── In-memory rate limit map for diagnose endpoint (5/hour per IP) ─────────
+const diagnoseRateLimit = new Map<string, number[]>();
+const DIAGNOSE_RATE_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+const DIAGNOSE_RATE_MAX = 5;
 
 // ─── Admin guard ─────────────────────────────────────────────────────────────
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
@@ -457,6 +462,8 @@ export const appRouter = router({
   service: router({
     diagnose: publicProcedure
       .input(z.object({
+        firstName: z.string().min(1),
+        email: z.string().email(),
         systemType: z.string(),
         inverterBrand: z.string(),
         batteryBrand: z.string(),
@@ -464,22 +471,50 @@ export const appRouter = router({
         selectedIssues: z.array(z.string()),
         duration: z.string(),
         description: z.string(),
+        errorCode: z.string().optional(),
+        photoKeys: z.array(z.string()).optional(),
+        honeypot: z.string().max(200).default(""),
       }))
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
+        // Rate limiting: 5 diagnoses per hour per IP
+        const ip = getClientIp(ctx.req);
+        const now = Date.now();
+        const windowStart = now - DIAGNOSE_RATE_WINDOW_MS;
+        const timestamps = (diagnoseRateLimit.get(ip) ?? []).filter((t) => t > windowStart);
+        if (timestamps.length >= DIAGNOSE_RATE_MAX) {
+          throw new TRPCError({
+            code: "TOO_MANY_REQUESTS",
+            message: "Too many diagnostic requests. Please wait a while before trying again.",
+          });
+        }
+        timestamps.push(now);
+        diagnoseRateLimit.set(ip, timestamps);
+
+        // Spam checks (honeypot + Turnstile if configured)
+        if (input.honeypot && input.honeypot.trim().length > 0) {
+          // Honeypot filled = bot. Silently return generic message.
+          return { diagnosis: "We were unable to generate a diagnostic at this time. Please submit your service request and our team will contact you shortly." };
+        }
+
         const issueList = input.selectedIssues.join(", ") || "unspecified issue";
 
-        // Brand-specific guidance so the AI uses correct terminology
+        // Expanded brand-specific guidance
         const brandGuidance: Record<string, string> = {
-          "SolarEdge": "This is a SolarEdge system. Use SolarEdge-specific terminology: power optimizers (P-series or S-series), HD-Wave inverter, StorEdge, mySolarEdge app or SolarEdge monitoring portal. Error codes appear on the inverter LED or in the monitoring portal. Common fixes: check optimizer pairing in the portal, verify DC disconnect is on, look up the specific error code in the mySolarEdge app.",
-          "Enphase": "This is an Enphase microinverter system. Use Enphase-specific terminology: IQ microinverters (IQ7, IQ8), IQ Gateway (formerly Envoy), Enlighten app, IQ Battery (formerly Encharge). Each panel has its own microinverter. Common fixes: check Enlighten app for individual panel status, verify IQ Gateway is connected to WiFi, check for IQ8 or IQ7 error indicators in the app.",
-          "Tesla / SolarCity": "This is a Tesla/SolarCity system. Use Tesla-specific terminology: Tesla Solar Inverter, Powerwall (if battery present), Tesla app. Common fixes: check Tesla app for alerts and system status, verify gateway is online, check breaker panel for the Tesla Solar Inverter breaker.",
-          "SMA": "This is an SMA inverter system. Use SMA-specific terminology: Sunny Boy (string inverter), Sunny Tripower, SMA Sunny Portal, SMA Energy app. Common fixes: check Sunny Portal event log, verify AC/DC disconnects are on, check for red/yellow LED status codes on the inverter display.",
-          "Fronius": "This is a Fronius inverter system. Use Fronius-specific terminology: Fronius Primo or Symo inverter, Fronius Solar.web monitoring portal, Fronius Smart Meter. Common fixes: check Solar.web for state codes, verify AC disconnect is on, check the inverter display for error state numbers.",
-          "SunPower": "This is a SunPower system. Use SunPower-specific terminology: SunPower Equinox system, SunPower monitoring app, AC modules or SunPower inverter. Common fixes: check SunPower monitoring app for alerts, verify system is communicating, contact SunPower support for warranty-related issues.",
+          "SolarEdge": "SolarEdge system: Use power optimizers (P-series/S-series), HD-Wave inverter, mySolarEdge app/portal. Error codes on inverter LED or portal. Safe power-cycle: AC disconnect OFF → wait 30s → DC disconnect OFF → wait 30s → DC ON → AC ON. Warranty: inverter 12yr (25yr if registered), optimizers 25yr. Check optimizer pairing, DC disconnect, error code lookup in app.",
+          "Enphase": "Enphase microinverter system: IQ microinverters (IQ7/IQ8), IQ Gateway (Envoy), Enlighten app, IQ Battery (Encharge). Each panel has its own microinverter. Safe power-cycle: IQ Gateway only (unplug 30s, replug). Warranty: microinverters 25yr, IQ Gateway 5yr, IQ Battery 10yr. Check Enlighten for individual panel status, Gateway WiFi, IQ error indicators.",
+          "Tesla / SolarCity": "Tesla system: Tesla Solar Inverter (separate from Powerwall), Tesla app. Safe power-cycle: breaker panel → Tesla Solar Inverter breaker OFF → wait 30s → ON. Warranty: Tesla Solar Inverter 12.5yr, Powerwall 10yr. Check Tesla app alerts, gateway online, breaker panel.",
+          "Tesla Powerwall": "Tesla Powerwall battery: Tesla app, Gateway. Safe power-cycle: Powerwall breaker OFF → wait 30s → ON. Do NOT power-cycle during outage/backup mode. Warranty: 10yr. Check app for Backup Reserve settings (100% = max backup), Storm Watch, Gateway online, backup circuit test via Go Off-Grid.",
+          "SMA": "SMA inverter: Sunny Boy/Tripower, SMA Sunny Portal, SMA Energy app. Safe power-cycle: AC disconnect OFF → DC disconnect OFF → wait 5min → DC ON → AC ON. Warranty: 10yr. Check Sunny Portal event log, AC/DC disconnects, LED status (red/yellow = error).",
+          "Fronius": "Fronius inverter: Primo/Symo, Solar.web portal, Smart Meter. Safe power-cycle: AC disconnect OFF → wait 30s → ON. Warranty: 10yr. Check Solar.web state codes, AC disconnect, inverter display error numbers.",
+          "SunPower": "SunPower Equinox: SunPower monitoring app, AC modules or inverter. Warranty: 25yr complete system (panels, inverter, labor). Check SunPower app alerts, system communication. Contact SunPower support for warranty claims.",
+          "LG": "LG RESU battery: LG ThinQ app (monitoring), battery management system. Warranty: 10yr. Check ThinQ app for battery status, state of charge, errors. LG batteries pair with various inverters (SolarEdge StorEdge, SMA, Fronius) — troubleshoot inverter separately.",
+          "Panasonic": "Panasonic EverVolt battery: EverVolt monitoring (varies by installer). Warranty: 10yr. Check monitoring for battery status, charge/discharge cycles. Panasonic panels have separate 25yr warranty.",
+          "Generac PWRcell": "Generac PWRcell battery: PWRview app, SnapRS system. Safe power-cycle: PWRcell breaker OFF → wait 30s → ON. Warranty: 10yr. Check PWRview app for battery health, ECO/Clean Backup/Priority Backup modes, inverter status.",
+          "Franklin WH": "Franklin WH battery: aGate+ (controller), aPower (battery), Franklin app. Safe power-cycle: system breaker OFF → wait 30s → ON. Warranty: 12yr. Check Franklin app for battery status, grid/solar/battery flow diagram, alerts.",
         };
-        const brandNote = brandGuidance[input.inverterBrand] || (input.inverterBrand && input.inverterBrand !== "Don't Know" ? `This system uses a ${input.inverterBrand} inverter. Use terminology and troubleshooting steps specific to that brand.` : "");
+        const brandNote = brandGuidance[input.inverterBrand] || (input.inverterBrand && input.inverterBrand !== "Don't Know" ? `This system uses a ${input.inverterBrand} inverter/battery. Use terminology and troubleshooting steps specific to that brand.` : "");
 
-        const prompt = `You are a solar system diagnostic expert for Pell Solar, a Tesla Certified Installer based in Southern California. A customer has submitted the following service request:
+        let prompt = `You are a solar system diagnostic expert for Pell Solar, a Tesla Certified Installer based in Southern California. A customer has submitted the following service request:
 
 System Type: ${input.systemType || "Unknown"}
 Inverter/System Brand: ${input.inverterBrand || "Unknown"}
@@ -487,16 +522,94 @@ Battery Brand: ${input.batteryBrand || "None"}
 System Age: ${input.systemAge || "Unknown"}
 Issues Selected: ${issueList}
 Duration: ${input.duration || "Unknown"}
+${input.errorCode ? `Error Code Shown: ${input.errorCode}` : ""}
 Customer Description: ${input.description || "None provided"}
 ${brandNote ? `\nBrand-Specific Context: ${brandNote}` : ""}
-Provide a helpful, accurate diagnostic response. Use the exact brand-specific app names, component names, and error code terminology for their system. Never use generic terms like "phase" or "string" if the brand has specific names for those components. If the issue can be resolved by the customer (like checking the monitoring app, resetting a breaker, or cleaning panels), explain the exact steps for their brand. If it requires a technician visit (roof leak, physical damage, inverter failure, battery not backing up during outage), clearly state that and reassure them the Pell Solar team will follow up. Keep the response under 200 words and use plain language.`;
+
+Provide a helpful, accurate diagnostic response. Use the exact brand-specific app names, component names, and error code terminology for their system. Never use generic terms like "phase" or "string" if the brand has specific names for those components.
+
+If the issue can be resolved by the customer (checking the monitoring app, resetting a breaker, cleaning panels, power-cycling equipment), explain the exact steps for their brand INCLUDING the safe power-cycle order.
+
+If it requires a technician visit (roof leak, physical damage, inverter failure, battery not backing up during outage, burnt smell, arcing, repeatedly tripping breakers), clearly state that and reassure them Pell Solar will follow up.
+
+Always end with: "Call us immediately at (909) 240-5294 if you smell burning, see arcing/sparks, have repeatedly tripping breakers, or notice roof leaks — turn off the AC disconnect labeled SOLAR and do not attempt DIY repairs."
+
+Keep the response under 250 words and use plain language.`;
+
+        const llmMessages: Array<{ role: "system" | "user" | "assistant"; content: string | Array<any> }> = [
+          { role: "system", content: "You are a helpful solar system diagnostic assistant for Pell Solar." },
+        ];
+
+        // If photos were uploaded, include them in the prompt
+        if (input.photoKeys && input.photoKeys.length > 0) {
+          const photoUrls = await Promise.all(
+            input.photoKeys.map(async (key) => {
+              try {
+                return await storageGetSignedUrl(key);
+              } catch (e) {
+                console.warn("[Diagnose] Failed to get signed URL for photo:", key, e);
+                return null;
+              }
+            })
+          );
+          const validPhotoUrls = photoUrls.filter(Boolean) as string[];
+
+          if (validPhotoUrls.length > 0) {
+            prompt += `\n\nThe customer has uploaded ${validPhotoUrls.length} photo(s). Describe what you see in each photo and incorporate that into your diagnostic.`;
+            const content: Array<{ type: "text"; text: string } | { type: "image_url"; image_url: { url: string } }> = [
+              { type: "text", text: prompt },
+              ...validPhotoUrls.map(url => ({ type: "image_url" as const, image_url: { url } })),
+            ];
+            llmMessages.push({ role: "user", content });
+          } else {
+            llmMessages.push({ role: "user", content: prompt });
+          }
+        } else {
+          llmMessages.push({ role: "user", content: prompt });
+        }
+
         const result = await invokeLLM({
-          messages: [
-            { role: "system", content: "You are a helpful solar system diagnostic assistant for Pell Solar." },
-            { role: "user", content: prompt },
-          ],
+          messages: llmMessages,
         });
-        const diagnosis = result.choices?.[0]?.message?.content ?? "We were unable to generate a diagnostic at this time. Please submit your service request and our team will contact you shortly.";
+        const rawContent = result.choices?.[0]?.message?.content ?? "";
+        const diagnosis = typeof rawContent === "string" ? rawContent : (Array.isArray(rawContent) ? rawContent.map(c => typeof c === "string" ? c : "text" in c ? c.text : "").join("\n") : "We were unable to generate a diagnostic at this time. Please submit your service request and our team will contact you shortly.");
+        const modelUsed = result.model || process.env.DIAG_MODEL || "claude-sonnet-4-6";
+
+        // Send diagnosis email to customer
+        const emailSent = await sendDiagnosisEmail({
+          to: input.email,
+          firstName: input.firstName,
+          inverterBrand: input.inverterBrand,
+          diagnosis,
+        });
+
+        // Store diagnosis in database (create lead record with diagnosis fields)
+        try {
+          await createLead({
+            firstName: input.firstName,
+            lastName: "", // Only have first name at diagnosis stage
+            email: input.email,
+            ownershipType: "homeowner",
+            interestType: "other",
+            source: "service",
+            systemType: input.systemType || undefined,
+            inverterBrand: input.inverterBrand || undefined,
+            batteryBrand: input.batteryBrand || undefined,
+            systemAge: input.systemAge || undefined,
+            selectedIssues: JSON.stringify(input.selectedIssues),
+            duration: input.duration || undefined,
+            errorCode: input.errorCode || undefined,
+            aiDiagnosis: diagnosis,
+            aiModel: modelUsed,
+            diagnosisOutcome: "unknown", // Will be updated by submitCall
+            diagnosisEmailSentAt: emailSent ? new Date() : undefined,
+            photoKeys: input.photoKeys || undefined,
+            notes: `AI Diagnosis generated on ${new Date().toISOString()}`,
+          });
+        } catch (e) {
+          console.warn("[Diagnose] Failed to store diagnosis in database:", e);
+        }
+
         return { diagnosis };
       }),
 
@@ -514,7 +627,10 @@ Provide a helpful, accurate diagnostic response. Use the exact brand-specific ap
         selectedIssues: z.array(z.string()).optional(),
         duration: z.string().optional(),
         description: z.string().optional(),
+        errorCode: z.string().optional(),
         aiDiagnosis: z.string().optional(),
+        diagnosisOutcome: z.enum(["helped", "need_help", "unknown"]).optional(),
+        photoKeys: z.array(z.string()).optional(),
         // Honeypot field — hidden from humans, bots may fill it
         honeypot: z.string().max(200).default(""),
         // Form timing — epoch ms when form was loaded
@@ -539,9 +655,51 @@ Provide a helpful, accurate diagnostic response. Use the exact brand-specific ap
           input.systemAge ? `Age: ${input.systemAge}` : "",
           issuesSummary ? `Issues: ${issuesSummary}` : "",
           input.duration ? `Duration: ${input.duration}` : "",
+          input.errorCode ? `Error Code: ${input.errorCode}` : "",
           input.description ? `Notes: ${input.description}` : "",
         ].filter(Boolean).join(" | ");
 
+        // Check if this is a deflected case (AI resolved it, no CRM ticket needed)
+        const isDeflected = input.diagnosisOutcome === "helped";
+
+        if (isDeflected) {
+          // Send deflection notification to Josh
+          await notifyOwner({
+            title: "AI Deflected Service Request",
+            content: `${input.firstName} ${input.lastName || ""} (${input.email || input.phone})\n${input.inverterBrand || "Unknown brand"} system\nIssues: ${issuesSummary}\n\nAI diagnosis resolved the issue - no CRM ticket created.`,
+          });
+
+          // Store locally with outcome=helped
+          try {
+            await createLead({
+              firstName: input.firstName,
+              lastName: input.lastName || "",
+              email: input.email || undefined,
+              phone: input.phone || undefined,
+              address: input.address,
+              ownershipType: "homeowner",
+              interestType: "other",
+              source: "service",
+              systemType: input.systemType || undefined,
+              inverterBrand: input.inverterBrand || undefined,
+              batteryBrand: input.batteryBrand || undefined,
+              systemAge: input.systemAge || undefined,
+              selectedIssues: JSON.stringify(input.selectedIssues || []),
+              duration: input.duration || undefined,
+              errorCode: input.errorCode || undefined,
+              aiDiagnosis: input.aiDiagnosis || undefined,
+              diagnosisOutcome: "helped",
+              photoKeys: input.photoKeys || undefined,
+              notes: `Deflected by AI diagnosis - no service call created\n${notes}`,
+            });
+          } catch (e) {
+            console.warn("[Leads] Failed to store deflected diagnosis:", e);
+          }
+
+          return { success: true, deflected: true };
+        }
+
+        // Not deflected - proceed with CRM ticket creation
         const crmPayload = {
           first_name: input.firstName,
           last_name: input.lastName || "",
@@ -553,6 +711,7 @@ Provide a helpful, accurate diagnostic response. Use the exact brand-specific ap
           notes,
           source: "website",
         };
+
         // Step 1: Pre-check if customer exists in CRM
         let customerExists = false;
         try {
@@ -571,11 +730,12 @@ Provide a helpful, accurate diagnostic response. Use the exact brand-specific ap
           `System: ${[input.systemType, input.inverterBrand ? `Inverter: ${input.inverterBrand}` : "", input.batteryBrand && input.batteryBrand !== "No Battery" ? `Battery: ${input.batteryBrand}` : "", input.systemAge ? `Age: ${input.systemAge}` : ""].filter(Boolean).join(" | ")}`,
           issuesSummary ? `Issues Reported: ${issuesSummary}` : "",
           input.duration ? `Duration: ${input.duration}` : "",
+          input.errorCode ? `Error Code: ${input.errorCode}` : "",
           input.description ? `Customer Description: "${input.description}"` : "",
           input.aiDiagnosis ? `AI Diagnostic: ${input.aiDiagnosis}` : "",
         ].filter(Boolean).join("\n");
 
-        // Step 2: POST to Claude's service intake webhook
+        // Step 2: POST to CRM service intake webhook
         let crmResult: { success: boolean; customer_id?: number; deal_id?: number } = { success: false };
         try {
           const servicePayload = {
@@ -613,7 +773,7 @@ Provide a helpful, accurate diagnostic response. Use the exact brand-specific ap
           console.error("[CRM] Service intake webhook failed:", e);
         }
 
-        // Store locally so this service request shows up in the website's own admin dashboard
+        // Store locally with all diagnosis fields
         try {
           const { id: localLeadId } = await createLead({
             firstName: input.firstName,
@@ -624,6 +784,16 @@ Provide a helpful, accurate diagnostic response. Use the exact brand-specific ap
             ownershipType: "homeowner",
             interestType: "other",
             source: "service",
+            systemType: input.systemType || undefined,
+            inverterBrand: input.inverterBrand || undefined,
+            batteryBrand: input.batteryBrand || undefined,
+            systemAge: input.systemAge || undefined,
+            selectedIssues: JSON.stringify(input.selectedIssues || []),
+            duration: input.duration || undefined,
+            errorCode: input.errorCode || undefined,
+            aiDiagnosis: input.aiDiagnosis || undefined,
+            diagnosisOutcome: input.diagnosisOutcome || "unknown",
+            photoKeys: input.photoKeys || undefined,
             notes: techBrief,
           });
           const crmDealId = crmResult && "deal_id" in crmResult ? crmResult.deal_id : undefined;
@@ -633,6 +803,7 @@ Provide a helpful, accurate diagnostic response. Use the exact brand-specific ap
         } catch (e) {
           console.warn("[Leads] Failed to store service.submitCall lead locally:", e);
         }
+
         // SMS notification to Josh for service call submissions
         if (ENV.twilioNotifyNumber) {
           const phone = input.phone ?? "";
@@ -640,7 +811,6 @@ Provide a helpful, accurate diagnostic response. Use the exact brand-specific ap
           const formattedPhone3 = cleanPhone3.length === 10
             ? `(${cleanPhone3.slice(0,3)}) ${cleanPhone3.slice(3,6)}-${cleanPhone3.slice(6)}`
             : phone;
-          const issuesSummary = (input.selectedIssues ?? []).join(", ");
           const smsBody = [
             `🔧 PELL SOLAR SERVICE CALL`,
             `Name: ${input.firstName} ${input.lastName || ""}`.trim(),
@@ -654,6 +824,7 @@ Provide a helpful, accurate diagnostic response. Use the exact brand-specific ap
             input.systemAge ? `Age: ${input.systemAge}` : "",
             issuesSummary ? `Issues: ${issuesSummary}` : "",
             input.duration ? `Duration: ${input.duration}` : "",
+            input.errorCode ? `Error Code: ${input.errorCode}` : "",
             input.description ? `Notes: ${input.description}` : "",
           ].filter(Boolean).join("\n");
 

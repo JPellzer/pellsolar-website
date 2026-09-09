@@ -40,17 +40,19 @@ export default function SolarRepair() {
   const [batteryBrand, setBatteryBrand] = useState("");
   const [systemAge, setSystemAge] = useState("");
 
-  // Issues
+  // Issues + diagnosis fields (collected before diagnosis)
+  const [firstName, setFirstName] = useState("");
+  const [email, setEmail] = useState("");
   const [selectedIssues, setSelectedIssues] = useState<string[]>([]);
   const [duration, setDuration] = useState("");
   const [description, setDescription] = useState("");
+  const [errorCode, setErrorCode] = useState("");
+  const [photoKeys, setPhotoKeys] = useState<string[]>([]);
 
-  // Contact form
-  const [contact, setContact] = useState({ firstName: "", lastName: "", phone: "", email: "", address: "", honeypot: "" });
+  // Contact form (only for "I still need help" flow)
+  const [contact, setContact] = useState({ lastName: "", phone: "", address: "", honeypot: "" });
   const [formLoadedAt] = useState(Date.now());
   const [smsConsent, setSmsConsent] = useState(false);
-
-
 
   const diagnose = trpc.service.diagnose.useMutation({
     onSuccess: (data) => {
@@ -61,7 +63,15 @@ export default function SolarRepair() {
   });
 
   const submitCall = trpc.service.submitCall.useMutation({
-    onSuccess: () => setStep("done"),
+    onSuccess: (data) => {
+      if (data.deflected) {
+        // Deflected case - show special confirmation
+        setResolvedWithAI(true);
+        setStep("done");
+      } else {
+        setStep("done");
+      }
+    },
     onError: () => toast.error("Something went wrong. Please try again or call us directly."),
   });
   const isSubmitting = submitCall.isPending;
@@ -80,6 +90,14 @@ export default function SolarRepair() {
   };
 
   const handleGetDiagnosis = () => {
+    if (!firstName.trim()) {
+      toast.error("Please enter your first name.");
+      return;
+    }
+    if (!email.trim() || !email.includes("@")) {
+      toast.error("Please enter a valid email address.");
+      return;
+    }
     if (selectedIssues.length === 0) {
       toast.error("Please select at least one issue.");
       return;
@@ -88,17 +106,53 @@ export default function SolarRepair() {
       toast.error("Please tell us how long this has been happening.");
       return;
     }
-    diagnose.mutate({ systemType, inverterBrand, batteryBrand, systemAge, selectedIssues: selectedIssues.map(id => ISSUE_OPTIONS.find(o => o.id === id)?.label ?? id), duration, description });
+    diagnose.mutate({
+      firstName: firstName.trim(),
+      email: email.trim(),
+      systemType,
+      inverterBrand,
+      batteryBrand,
+      systemAge,
+      selectedIssues: selectedIssues.map(id => ISSUE_OPTIONS.find(o => o.id === id)?.label ?? id),
+      duration,
+      description,
+      errorCode: errorCode || undefined,
+      photoKeys: photoKeys.length > 0 ? photoKeys : undefined,
+      honeypot: "", // No honeypot on diagnose step
+    });
+  };
+
+  const handleResolvedClick = () => {
+    // User clicked "Yes, that helped" - mark as deflected and submit
+    setResolvedWithAI(true);
+    submitCall.mutate({
+      firstName: firstName.trim(),
+      lastName: "", // No last name collected yet
+      email: email.trim(),
+      systemType: systemType || undefined,
+      inverterBrand: inverterBrand || undefined,
+      batteryBrand: batteryBrand || undefined,
+      systemAge: systemAge || undefined,
+      selectedIssues: selectedIssues.map(id => ISSUE_OPTIONS.find(o => o.id === id)?.label ?? id),
+      duration: duration || undefined,
+      description: description || undefined,
+      errorCode: errorCode || undefined,
+      aiDiagnosis: diagnosis || undefined,
+      diagnosisOutcome: "helped",
+      photoKeys: photoKeys.length > 0 ? photoKeys : undefined,
+      honeypot: "",
+      form_loaded_at: formLoadedAt,
+    });
   };
 
   const handleSubmitContact = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!contact.firstName.trim() || !contact.lastName.trim()) {
-      toast.error("Please enter your first and last name.");
+    if (!contact.lastName.trim()) {
+      toast.error("Please enter your last name.");
       return;
     }
-    if (!contact.phone.trim() && !contact.email.trim()) {
-      toast.error("Please enter a phone number or email address.");
+    if (!contact.phone.trim()) {
+      toast.error("Please enter a phone number.");
       return;
     }
     // Client-side honeypot check (belt-and-suspenders before the server check)
@@ -108,10 +162,10 @@ export default function SolarRepair() {
       return;
     }
     submitCall.mutate({
-      firstName: contact.firstName.trim(),
+      firstName: firstName.trim(),
       lastName: contact.lastName.trim(),
-      phone: contact.phone.trim() || undefined,
-      email: contact.email.trim() || undefined,
+      phone: contact.phone.trim(),
+      email: email.trim(),
       address: contact.address.trim() || undefined,
       systemType: systemType || undefined,
       inverterBrand: inverterBrand || undefined,
@@ -120,7 +174,10 @@ export default function SolarRepair() {
       selectedIssues: selectedIssues.map(id => ISSUE_OPTIONS.find(o => o.id === id)?.label ?? id),
       duration: duration || undefined,
       description: description || undefined,
+      errorCode: errorCode || undefined,
       aiDiagnosis: diagnosis || undefined,
+      diagnosisOutcome: "need_help",
+      photoKeys: photoKeys.length > 0 ? photoKeys : undefined,
       honeypot: contact.honeypot,
       form_loaded_at: formLoadedAt,
     });
@@ -455,6 +512,18 @@ export default function SolarRepair() {
                       </div>
 
                       <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Error code shown on inverter or app (optional)</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. E019, AC01, etc."
+                          value={errorCode}
+                          onChange={e => setErrorCode(e.target.value)}
+                          className={inputCls}
+                        />
+                        <p className="text-xs text-gray-500 mt-1">Error codes help us diagnose the issue faster</p>
+                      </div>
+
+                      <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-2">Describe the issue in your own words (optional)</label>
                         <textarea
                           rows={3}
@@ -463,6 +532,33 @@ export default function SolarRepair() {
                           onChange={e => setDescription(e.target.value)}
                           className="w-full border border-gray-300 rounded-xl px-4 py-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#2BABE2] resize-none"
                         />
+                      </div>
+
+                      <div className="border-t border-gray-200 pt-6">
+                        <p className="text-sm font-semibold text-gray-700 mb-4">Before we generate your diagnosis, we need your contact info to email you the results:</p>
+                        <div className="grid sm:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-1">First Name <span className="text-red-500">*</span></label>
+                            <input
+                              type="text"
+                              placeholder="John"
+                              value={firstName}
+                              onChange={e => setFirstName(e.target.value)}
+                              className={inputCls}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-1">Email Address <span className="text-red-500">*</span></label>
+                            <input
+                              type="email"
+                              placeholder="john@example.com"
+                              value={email}
+                              onChange={e => setEmail(e.target.value)}
+                              className={inputCls}
+                            />
+                          </div>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-2">We'll email you the diagnostic results so you have a record of the troubleshooting steps</p>
                       </div>
 
                       <div className="flex flex-col gap-3">
@@ -498,24 +594,21 @@ export default function SolarRepair() {
                       <div className="flex flex-col sm:flex-row gap-3">
                         <button
                           type="button"
-                          onClick={() => setResolvedWithAI(true)}
-                          className="flex-1 py-3 rounded-xl border-2 border-green-500 text-green-700 font-bold hover:bg-green-50 transition-all flex items-center justify-center gap-2"
+                          onClick={handleResolvedClick}
+                          disabled={isSubmitting}
+                          className="flex-1 py-3 rounded-xl border-2 border-green-500 text-green-700 font-bold hover:bg-green-50 transition-all flex items-center justify-center gap-2 disabled:opacity-60"
                         >
-                          <CheckCircle size={18} /> Yes, that helped — thanks!
+                          {isSubmitting && resolvedWithAI ? <><Loader2 size={18} className="animate-spin" /> Submitting…</> : <><CheckCircle size={18} /> Yes, that helped — thanks!</>}
                         </button>
                         <button
                           type="button"
                           onClick={() => setStep("contact")}
-                          className="flex-1 btn-green py-3 flex items-center justify-center gap-2"
+                          disabled={isSubmitting}
+                          className="flex-1 btn-green py-3 flex items-center justify-center gap-2 disabled:opacity-60"
                         >
                           I still need help — contact my team <ArrowRight size={18} />
                         </button>
                       </div>
-                      {resolvedWithAI && (
-                        <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-xl text-center">
-                          <p className="text-green-700 font-semibold">Great! If the issue comes back, don't hesitate to call us at <a href="tel:8666468499" className="underline">(866) 646-8499</a> or <a href="tel:7144553401" className="underline">(714) 455-3401</a> (CA).</p>
-                        </div>
-                      )}
                     </div>
                   </div>
                 </div>
@@ -543,24 +636,18 @@ export default function SolarRepair() {
                         autoComplete="off"
                       />
                     </div>
+                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
+                      <p className="text-sm text-gray-700"><strong>Name:</strong> {firstName} (email: {email})</p>
+                      <p className="text-xs text-gray-500 mt-1">Contact info already collected for diagnosis</p>
+                    </div>
                     <div className="grid sm:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-1">First Name <span className="text-red-500">*</span></label>
-                        <input type="text" placeholder="John" value={contact.firstName} onChange={e => setContact(c => ({ ...c, firstName: e.target.value }))} className={inputCls} required />
-                      </div>
                       <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-1">Last Name <span className="text-red-500">*</span></label>
                         <input type="text" placeholder="Smith" value={contact.lastName} onChange={e => setContact(c => ({ ...c, lastName: e.target.value }))} className={inputCls} required />
                       </div>
-                    </div>
-                    <div className="grid sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-1">Phone Number</label>
-                        <input type="tel" placeholder="(714) 555-0100" value={contact.phone} onChange={e => setContact(c => ({ ...c, phone: e.target.value }))} className={inputCls} />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-1">Email Address</label>
-                        <input type="email" placeholder="john@example.com" value={contact.email} onChange={e => setContact(c => ({ ...c, email: e.target.value }))} className={inputCls} />
+                        <label className="block text-sm font-semibold text-gray-700 mb-1">Phone Number <span className="text-red-500">*</span></label>
+                        <input type="tel" placeholder="(714) 555-0100" value={contact.phone} onChange={e => setContact(c => ({ ...c, phone: e.target.value }))} className={inputCls} required />
                       </div>
                     </div>
                     <div>
