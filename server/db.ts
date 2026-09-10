@@ -183,6 +183,18 @@ export async function getAllLeadsForExport() {
   return db.select().from(website_leads).orderBy(desc(website_leads.createdAt));
 }
 
+export async function recordFollowup(id: number, outcome: "helped" | "need_help", crmInfo?: { crmDealId?: number; crmPendingId?: number }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const updateData: Partial<InsertLead> = {
+    diagnosisOutcome: outcome,
+    followupRespondedAt: new Date(),
+  };
+  if (crmInfo?.crmDealId !== undefined) updateData.crmDealId = crmInfo.crmDealId;
+  if (crmInfo?.crmPendingId !== undefined) updateData.crmPendingId = crmInfo.crmPendingId;
+  await db.update(website_leads).set(updateData).where(eq(website_leads.id, id));
+}
+
 // ─── Project Photo helpers ────────────────────────────────────────────────────
 
 export async function getProjectPhotos(category?: ProjectPhoto["category"]) {

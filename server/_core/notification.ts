@@ -57,6 +57,7 @@ export async function sendDiagnosisEmail(params: {
   firstName: string;
   inverterBrand: string;
   diagnosis: string;
+  websiteLeadId?: number;
 }): Promise<boolean> {
   const apiKey = ENV.sendgridApiKey;
   const from = ENV.notifyFromEmail || "info@pellsolar.com";
@@ -72,6 +73,24 @@ export async function sendDiagnosisEmail(params: {
   }
 
   const subject = "Your Solar System Diagnostic from Pell Solar";
+
+  // Build followup links if we have a lead ID
+  const followupLinks = params.websiteLeadId
+    ? `
+
+Did this help?
+→ Yes, this resolved my issue: https://pellsolar.com/solar-repair?followup=${params.websiteLeadId}&outcome=helped
+→ No, I still need help: https://pellsolar.com/solar-repair?followup=${params.websiteLeadId}&outcome=need_help
+
+Just click one of the links above so we know how to follow up.
+`
+    : `
+
+Did this help?
+If this resolved your issue, great! If not, you can schedule a service call here:
+https://pellsolar.com/solar-repair#service-form
+`;
+
   const body = `Hi ${params.firstName || "there"},
 
 Thanks for using our instant solar diagnostic tool. Based on your ${params.inverterBrand || "solar"} system, here's what we found:
@@ -79,11 +98,7 @@ Thanks for using our instant solar diagnostic tool. Based on your ${params.inver
 ─────────────────────────────────
 ${params.diagnosis}
 ─────────────────────────────────
-
-Did this help?
-If this resolved your issue, great! If not, you can schedule a service call here:
-https://pellsolar.com/solar-repair#service-form
-
+${followupLinks}
 Or call us directly: (909) 240-5294
 
 Safety note: If you smell burning, see arcing/sparks, have repeatedly tripping breakers, or notice roof leaks, turn off the AC disconnect labeled "SOLAR" immediately and call us. Do not attempt DIY repairs in those cases.

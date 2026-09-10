@@ -13,6 +13,7 @@ import {
   updateLeadNotes,
   getLeadStats,
   getAllLeadsForExport,
+  recordFollowup,
   getProjectPhotos,
   createProjectPhoto,
   deleteProjectPhoto,
@@ -47,6 +48,11 @@ const unsubRateLimit = new Map<string, number[]>();
 const diagnoseRateLimit = new Map<string, number[]>();
 const DIAGNOSE_RATE_WINDOW_MS = 60 * 60 * 1000; // 1 hour
 const DIAGNOSE_RATE_MAX = 5;
+
+// ─── In-memory rate limit map for followup endpoint (10/hour per IP) ────────
+const followupRateLimit = new Map<string, number[]>();
+const FOLLOWUP_RATE_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+const FOLLOWUP_RATE_MAX = 10;
 
 // ─── Admin guard ─────────────────────────────────────────────────────────────
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
@@ -575,17 +581,10 @@ Keep the response under 250 words and use plain language.`;
         const diagnosis = typeof rawContent === "string" ? rawContent : (Array.isArray(rawContent) ? rawContent.map(c => typeof c === "string" ? c : "text" in c ? c.text : "").join("\n") : "We were unable to generate a diagnostic at this time. Please submit your service request and our team will contact you shortly.");
         const modelUsed = result.model || process.env.DIAG_MODEL || "claude-sonnet-4-6";
 
-        // Send diagnosis email to customer
-        const emailSent = await sendDiagnosisEmail({
-          to: input.email,
-          firstName: input.firstName,
-          inverterBrand: input.inverterBrand,
-          diagnosis,
-        });
-
-        // Store diagnosis in database (create lead record with diagnosis fields)
+        // Store diagnosis in database first (create lead record with diagnosis fields)
+        let websiteLeadId: number | undefined;
         try {
-          await createLead({
+          const result = await createLead({
             firstName: input.firstName,
             lastName: "", // Only have first name at diagnosis stage
             email: input.email,
@@ -602,12 +601,31 @@ Keep the response under 250 words and use plain language.`;
             aiDiagnosis: diagnosis,
             aiModel: modelUsed,
             diagnosisOutcome: "unknown", // Will be updated by submitCall
-            diagnosisEmailSentAt: emailSent ? new Date() : undefined,
+            diagnosisEmailSentAt: undefined, // Will be set after email sends
             photoKeys: input.photoKeys || undefined,
             notes: `AI Diagnosis generated on ${new Date().toISOString()}`,
           });
+          websiteLeadId = result.id;
         } catch (e) {
           console.warn("[Diagnose] Failed to store diagnosis in database:", e);
+        }
+
+        // Send diagnosis email to customer with followup links
+        const emailSent = await sendDiagnosisEmail({
+          to: input.email,
+          firstName: input.firstName,
+          inverterBrand: input.inverterBrand,
+          diagnosis,
+          websiteLeadId,
+        });
+
+        // Update email sent timestamp if successful
+        if (emailSent && websiteLeadId) {
+          try {
+            await setLeadCrmInfo(websiteLeadId, { crmStatus: "diagnosis_sent" });
+          } catch (e) {
+            console.warn("[Diagnose] Failed to update email sent timestamp:", e);
+          }
         }
 
         return { diagnosis };
@@ -853,6 +871,136 @@ Keep the response under 250 words and use plain language.`;
         }
 
         return { success: true, crm: crmResult, customerExists };
+      }),
+
+    recordFollowupOutcome: publicProcedure
+      .input(z.object({
+        leadId: z.number(),
+        outcome: z.enum(["helped", "need_help"]),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const ip = getClientIp((ctx as any).req);
+
+        // Rate limiting: max 10 requests per IP per hour
+        const now = Date.now();
+        const key = `followup:${ip}`;
+        if (!followupRateLimit.has(key)) followupRateLimit.set(key, []);
+        const timestamps = followupRateLimit.get(key)!.filter((t) => now - t < FOLLOWUP_RATE_WINDOW_MS);
+        if (timestamps.length >= FOLLOWUP_RATE_MAX) {
+          throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "Too many requests. Please try again later." });
+        }
+        timestamps.push(now);
+        followupRateLimit.set(key, timestamps);
+
+        // Get the lead
+        const lead = await getLeadById(input.leadId);
+        if (!lead) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Lead not found" });
+        }
+
+        // Validate that diagnosisOutcome is unknown or null (can only respond once)
+        if (lead.diagnosisOutcome && lead.diagnosisOutcome !== "unknown") {
+          // Idempotent - just show the panel again
+          return {
+            success: true,
+            outcome: input.outcome,
+            alreadyRecorded: true,
+          };
+        }
+
+        // Record the outcome
+        if (input.outcome === "helped") {
+          // Update DB
+          await recordFollowup(input.leadId, "helped");
+
+          // Send deflection email to Josh
+          if (ENV.ownerNotifyEmail) {
+            await notifyOwner({
+              title: "✅ Customer self-resolved (deflection)",
+              content: `${lead.firstName} ${lead.lastName || ""} (${lead.email || lead.phone || "no contact"}) clicked "this helped" after AI diagnosis for their ${lead.inverterBrand || "solar"} system.
+
+AI Diagnosis was:
+${lead.aiDiagnosis || "(none)"}
+
+No further action needed - customer self-resolved.`,
+            }).catch((e) => console.warn("[Followup] Failed to send deflection email:", e));
+          }
+
+          return {
+            success: true,
+            outcome: "helped",
+            message: "Great! Glad we could help. Call us anytime at (909) 240-5294.",
+          };
+        } else {
+          // outcome === "need_help"
+          // Build photo URLs for CRM
+          let photoUrls: Array<{ fileUrl: string; fileKey: string; fileName: string }> = [];
+          if (lead.photoKeys && lead.photoKeys.length > 0) {
+            const urlResults = await Promise.all(
+              lead.photoKeys.map(async (key, idx) => {
+                try {
+                  const signedUrl = await storageGetSignedUrl(key, 7 * 24 * 60 * 60); // 7 days
+                  return signedUrl ? { fileUrl: signedUrl, fileKey: key, fileName: `photo-${idx + 1}.jpg` } : null;
+                } catch (e) {
+                  console.warn("[Followup] Failed to generate signed URL for photo:", key, e);
+                  return null;
+                }
+              })
+            );
+            photoUrls = urlResults.filter(Boolean) as Array<{ fileUrl: string; fileKey: string; fileName: string }>;
+          }
+
+          // Build service payload for CRM
+          const servicePayload = {
+            name: `${lead.firstName} ${lead.lastName || ""}`.trim(),
+            email: lead.email || "",
+            phone: lead.phone || "",
+            address: lead.address || "",
+            serviceType: "repair",
+            problemDescription: `Customer followed up after AI diagnosis - still needs help. Original issues: ${lead.selectedIssues || "none"}`,
+            preferredDate: "",
+            preferredTime: "",
+            source: "service_followup",
+            submittedAt: Date.now(),
+            systemType: lead.systemType || "",
+            inverterBrand: lead.inverterBrand || "",
+            batteryBrand: lead.batteryBrand || "",
+            systemAge: lead.systemAge || "",
+            notes: `FOLLOWUP FROM AI DIAGNOSIS\n\nCustomer tried AI diagnosis but still needs help.\n\nOriginal diagnosis:\n${lead.aiDiagnosis || "(none)"}`,
+            customerDescription: `Customer clicked "still need help" link after AI diagnosis`,
+            aiDiagnostic: lead.aiDiagnosis || "",
+            photoFiles: photoUrls.length > 0 ? photoUrls : undefined,
+          };
+
+          // Post to CRM service intake webhook
+          let crmDealId: number | undefined;
+          let crmPendingId: number | undefined;
+          try {
+            const res = await fetch("https://pellsolar-crm-prod.onrender.com/api/webhooks/service-intake", {
+              method: "POST",
+              headers: { "Content-Type": "application/json", ...getCrmAuthHeaders() },
+              body: JSON.stringify(servicePayload),
+            });
+            const crmResult = await res.json().catch(() => ({ success: res.ok }));
+            if (crmResult && "deal_id" in crmResult) {
+              crmDealId = crmResult.deal_id;
+            }
+            if (crmResult && "pending_id" in crmResult) {
+              crmPendingId = crmResult.pending_id;
+            }
+          } catch (e) {
+            console.error("[Followup] CRM service intake webhook failed:", e);
+          }
+
+          // Update DB with outcome + CRM info
+          await recordFollowup(input.leadId, "need_help", { crmDealId, crmPendingId });
+
+          return {
+            success: true,
+            outcome: "need_help",
+            message: "We've opened a service request and will call you within one business day. You can also call us at (909) 240-5294.",
+          };
+        }
       }),
   }),
 

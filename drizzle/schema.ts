@@ -72,6 +72,8 @@ export const website_leads = pgTable("website_leads", {
   aiModel: varchar("aiModel", { length: 64 }),
   diagnosisOutcome: varchar("diagnosisOutcome", { length: 32 }), // "helped" | "need_help" | "unknown"
   diagnosisEmailSentAt: timestamp("diagnosisEmailSentAt"),
+  followupRespondedAt: timestamp("followupRespondedAt"),
+  crmPendingId: integer("crmPendingId"), // For leads that post to CRM but don't create deal yet
   photoKeys: text("photoKeys").array(),
 
   // Timestamps
