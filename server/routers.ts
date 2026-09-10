@@ -538,7 +538,13 @@ If the issue can be resolved by the customer (checking the monitoring app, reset
 
 If it requires a technician visit (roof leak, physical damage, inverter failure, battery not backing up during outage, burnt smell, arcing, repeatedly tripping breakers), clearly state that and reassure them Pell Solar will follow up.
 
-Always end with: "Call us immediately at (909) 240-5294 if you smell burning, see arcing/sparks, have repeatedly tripping breakers, or notice roof leaks — turn off the AC disconnect labeled SOLAR and do not attempt DIY repairs."
+Your response MUST end with these two sections:
+
+**Warranty:**
+State the warranty term for their specific brand and note that Pell Solar can file warranty claims for them.
+
+**Call us if:**
+Call us immediately at (909) 240-5294 if you smell burning, see arcing/sparks, have repeatedly tripping breakers, or notice roof leaks — turn off the AC disconnect labeled SOLAR and do not attempt DIY repairs.
 
 Keep the response under 250 words and use plain language.`;
 
@@ -578,8 +584,27 @@ Keep the response under 250 words and use plain language.`;
           messages: llmMessages,
         });
         const rawContent = result.choices?.[0]?.message?.content ?? "";
-        const diagnosis = typeof rawContent === "string" ? rawContent : (Array.isArray(rawContent) ? rawContent.map(c => typeof c === "string" ? c : "text" in c ? c.text : "").join("\n") : "We were unable to generate a diagnostic at this time. Please submit your service request and our team will contact you shortly.");
+        let diagnosis = typeof rawContent === "string" ? rawContent : (Array.isArray(rawContent) ? rawContent.map(c => typeof c === "string" ? c : "text" in c ? c.text : "").join("\n") : "We were unable to generate a diagnostic at this time. Please submit your service request and our team will contact you shortly.");
         const modelUsed = result.model || process.env.DIAG_MODEL || "claude-sonnet-4-6";
+
+        // Post-check: ensure warranty section exists
+        if (!diagnosis.includes("Warranty:")) {
+          const warrantyTerms: Record<string, string> = {
+            "Enphase": "Enphase microinverters have a 25-year warranty, and the IQ Gateway has a 5-year warranty",
+            "Tesla Powerwall": "Tesla Powerwall has a 10-year warranty",
+            "Tesla / SolarCity": "Tesla Solar Inverter has a 12.5-year warranty",
+            "SolarEdge": "SolarEdge inverters have a 12-year warranty (25-year if registered), optimizers have a 25-year warranty",
+            "SMA": "SMA inverters have a 10-year warranty",
+            "Fronius": "Fronius inverters have a 10-year warranty",
+            "SunPower": "SunPower Equinox systems have a 25-year complete system warranty (panels, inverter, labor)",
+            "LG": "LG RESU batteries have a 10-year warranty",
+            "Panasonic": "Panasonic EverVolt batteries have a 10-year warranty",
+            "Generac PWRcell": "Generac PWRcell batteries have a 10-year warranty",
+            "Franklin WH": "Franklin WH batteries have a 12-year warranty",
+          };
+          const warrantyInfo = warrantyTerms[input.inverterBrand] || warrantyTerms[input.batteryBrand] || "check your installer paperwork for warranty details or call us";
+          diagnosis += `\n\n**Warranty:**\n${warrantyInfo}. Pell Solar can file warranty claims on your behalf.\n\n**Call us if:**\nCall us immediately at (909) 240-5294 if you smell burning, see arcing/sparks, have repeatedly tripping breakers, or notice roof leaks — turn off the AC disconnect labeled SOLAR and do not attempt DIY repairs.`;
+        }
 
         // Store diagnosis in database first (create lead record with diagnosis fields)
         let websiteLeadId: number | undefined;

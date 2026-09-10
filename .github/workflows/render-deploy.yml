@@ -1,0 +1,84 @@
+name: Deploy to Render
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
+
+concurrency:
+  group: render-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Render Deploy
+        run: |
+          # Trigger deploy
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
+            https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys \
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{"clearCache":"do_not_clear"}')
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+
+          if [ "$HTTP_CODE" != "201" ]; then
+            echo "Failed to trigger deploy. HTTP status: $HTTP_CODE"
+            echo "Response: $BODY"
+            exit 1
+          fi
+
+          DEPLOY_ID=$(echo "$BODY" | jq -r '.id')
+          echo "Deploy triggered successfully. Deploy ID: $DEPLOY_ID"
+          echo "DEPLOY_ID=$DEPLOY_ID" >> $GITHUB_ENV
+
+      - name: Poll Deploy Status
+        run: |
+          MAX_WAIT=900  # 15 minutes
+          INTERVAL=20   # 20 seconds
+          ELAPSED=0
+
+          while [ $ELAPSED -lt $MAX_WAIT ]; do
+            sleep $INTERVAL
+            ELAPSED=$((ELAPSED + INTERVAL))
+
+            RESPONSE=$(curl -s -w "\n%{http_code}" \
+              https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys/${{ env.DEPLOY_ID }} \
+              -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}")
+
+            HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+            BODY=$(echo "$RESPONSE" | sed '$d')
+
+            if [ "$HTTP_CODE" != "200" ]; then
+              echo "Failed to get deploy status. HTTP status: $HTTP_CODE"
+              continue
+            fi
+
+            STATUS=$(echo "$BODY" | jq -r '.status')
+            echo "Deploy status after ${ELAPSED}s: $STATUS"
+
+            case "$STATUS" in
+              "live")
+                echo "✅ Deploy succeeded!"
+                COMMIT=$(echo "$BODY" | jq -r '.commit.id // "unknown"')
+                echo "Commit: $COMMIT"
+                exit 0
+                ;;
+              "build_failed"|"update_failed"|"canceled")
+                echo "❌ Deploy failed with status: $STATUS"
+                exit 1
+                ;;
+              *)
+                echo "Deploy still in progress..."
+                ;;
+            esac
+          done
+
+          echo "❌ Deploy did not complete within $MAX_WAIT seconds"
+          exit 1
