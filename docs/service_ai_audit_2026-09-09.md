@@ -1025,3 +1025,166 @@ Lines added: ~300
 **Deployed:** f4dc0f3 live on pellsolar.com as of 2026-09-10 16:14 GMT
 
 Photos now work end-to-end on production (JPEG ✓ / HEIC ✓).
+
+---
+
+## GitHub Actions Auto-Deploy + Warranty Section Enforcement — 2026-09-10
+
+**Implementer:** Claude (Sonnet 4.5)  
+**Commit:** c1978bd  
+**Status:** ⚠️ Code committed but NOT deployed to production yet (pending GitHub secrets setup)
+
+### Part 1: GitHub Actions Auto-Deploy Workflow
+
+**Issue:** The previous GitHub webhook for Render auto-deploy was removed. Deploys must now be triggered manually or via GitHub Actions.
+
+**Solution:** Created `.github/workflows/render-deploy.yml` that:
+- Triggers on every push to `main` branch (excludes `docs/**` and `*.md` files)
+- POSTs to Render Deploy API: `https://api.render.com/v1/services/{SERVICE_ID}/deploys`
+- Polls deploy status every 20 seconds for up to 15 minutes
+- Exits with success when status is `live`, fails on `build_failed`/`update_failed`/`canceled`
+- Uses concurrency group `render-deploy` with `cancel-in-progress: false` (queues deploys, doesn't cancel)
+
+**Workflow Features:**
+- Uses `curl` + `jq` (both available on `ubuntu-latest`)
+- No external dependencies
+- Prints deploy ID and final commit hash
+- Clear error messages on failure
+
+**Secrets Required (not set yet):**
+- `RENDER_API_KEY` - From Render Dashboard → Account Settings → API Keys
+- `RENDER_SERVICE_ID` - `srv-da6reh9srm7s73eipt1g` (pellsolar-website service)
+
+**Manual Setup Still Needed:**
+```bash
+# From ../pell-solar-crm/.env or Render dashboard
+gh secret set RENDER_API_KEY --repo JPellzer/pellsolar-website
+echo "srv-da6reh9srm7s73eipt1g" | gh secret set RENDER_SERVICE_ID --repo JPellzer/pellsolar-website
+
+# Verify
+gh secret list --repo JPellzer/pellsolar-website
+
+# Enable Actions if needed
+gh api -X PUT repos/JPellzer/pellsolar-website/actions/permissions -f enabled=true
+
+# Trigger deploy
+git commit --allow-empty -m "Trigger deploy" && git push origin main
+
+# Watch
+gh run watch
+```
+
+**Files Changed:**
+- `.github/workflows/render-deploy.yml` - New GitHub Actions workflow (70 lines)
+
+---
+
+### Part 2: Warranty Section Enforcement
+
+**Issue:** The diagnostic LLM prompt suggested including warranty info ("Always end with: Call us immediately...") but the model was omitting the warranty sentence in many responses. Warranty information was appearing inline (e.g., "your microinverters carry a 25-year warranty") but not as a consistent, structured section.
+
+**Solution:** Made warranty info structural by requiring two fixed sections at the end of every diagnosis:
+
+1. **Warranty:** - Brand-specific warranty term + note that Pell Solar can file claims
+2. **Call us if:** - Emergency escalation line (burn smell, arcing, tripping breakers, roof leaks)
+
+**Prompt Changes (server/routers.ts line 541):**
+```diff
+-Always end with: "Call us immediately at (909) 240-5294 if you smell burning..."
++Your response MUST end with these two sections:
++
++**Warranty:**
++State the warranty term for their specific brand and note that Pell Solar can file warranty claims for them.
++
++**Call us if:**
++Call us immediately at (909) 240-5294 if you smell burning, see arcing/sparks, have repeatedly tripping breakers, or notice roof leaks — turn off the AC disconnect labeled SOLAR and do not attempt DIY repairs.
+```
+
+**Post-Check Logic (server/routers.ts line 590):**
+Added fallback warranty mapping in case LLM omits the structured section:
+
+```typescript
+// Post-check: ensure warranty section exists
+if (!diagnosis.includes("Warranty:")) {
+  const warrantyTerms: Record<string, string> = {
+    "Enphase": "Enphase microinverters have a 25-year warranty, and the IQ Gateway has a 5-year warranty",
+    "Tesla Powerwall": "Tesla Powerwall has a 10-year warranty",
+    "Tesla / SolarCity": "Tesla Solar Inverter has a 12.5-year warranty",
+    "SolarEdge": "SolarEdge inverters have a 12-year warranty (25-year if registered), optimizers have a 25-year warranty",
+    "SMA": "SMA inverters have a 10-year warranty",
+    "Fronius": "Fronius inverters have a 10-year warranty",
+    "SunPower": "SunPower Equinox systems have a 25-year complete system warranty (panels, inverter, labor)",
+    "LG": "LG RESU batteries have a 10-year warranty",
+    "Panasonic": "Panasonic EverVolt batteries have a 10-year warranty",
+    "Generac PWRcell": "Generac PWRcell batteries have a 10-year warranty",
+    "Franklin WH": "Franklin WH batteries have a 12-year warranty",
+  };
+  const warrantyInfo = warrantyTerms[input.inverterBrand] || warrantyTerms[input.batteryBrand] || "check your installer paperwork for warranty details or call us";
+  diagnosis += `\n\n**Warranty:**\n${warrantyInfo}. Pell Solar can file warranty claims on your behalf.\n\n**Call us if:**\nCall us immediately at (909) 240-5294 if you smell burning, see arcing/sparks, have repeatedly tripping breakers, or notice roof leaks — turn off the AC disconnect labeled SOLAR and do not attempt DIY repairs.`;
+}
+```
+
+**Brand Coverage:**
+- Enphase: 25yr microinverters, 5yr IQ Gateway
+- Tesla Powerwall: 10yr
+- Tesla Solar Inverter: 12.5yr
+- SolarEdge: 12yr inverters (25yr if registered), 25yr optimizers
+- SMA, Fronius: 10yr
+- SunPower: 25yr complete system
+- LG, Panasonic: 10yr batteries
+- Generac PWRcell: 10yr
+- Franklin WH: 12yr
+- Unknown brands: "check your installer paperwork or call us"
+
+**Test Script Created:**
+`test-warranty-fix.js` - Calls `service.diagnose` on production with:
+- Enphase system, "no production", Herald Warranty, josh@pellsolar.com
+- Validates **Warranty:** and **Call us if:** sections exist in response
+- Prints cleanup SQL for test lead
+
+**Test Results (Pre-Deploy):**
+```
+❌ Warranty section enforcement failed on production test
+```
+**Why:** Code is committed to GitHub (c1978bd) but NOT deployed yet. GitHub Actions cannot trigger deploy until secrets are configured. Production is still running the old prompt that suggests (but doesn't require) warranty info.
+
+**Files Changed:**
+- `server/routers.ts` - Updated diagnose mutation prompt + post-check (lines 541-612)
+- `test-warranty-fix.js` - Production test script (new file)
+- `DEPLOY_INSTRUCTIONS.md` - Manual setup guide (new file)
+
+**Verification After Deploy:**
+```bash
+node test-warranty-fix.js
+```
+Expected output:
+```
+✓ Contains **Warranty:** section: ✅
+✓ Contains **Call us if:** section: ✅
+✓ Contains Enphase warranty info: ✅
+```
+
+**Cleanup After Test:**
+```sql
+DELETE FROM website_leads 
+WHERE email = 'josh@pellsolar.com' 
+  AND first_name = 'Herald Warranty';
+```
+
+---
+
+**Summary of Changes 2026-09-10:**
+1. **GitHub Actions workflow** - Auto-deploy on push to main (secrets pending)
+2. **Warranty section enforcement** - Structured **Warranty:** and **Call us if:** sections required
+3. **Post-check fallback** - Appends warranty if LLM omits it
+4. **Test script** - `test-warranty-fix.js` for production validation
+5. **Documentation** - `DEPLOY_INSTRUCTIONS.md` for manual setup steps
+
+**Next Steps:**
+1. Set GitHub secrets (RENDER_API_KEY, RENDER_SERVICE_ID)
+2. Enable GitHub Actions on repo
+3. Push empty commit to trigger first auto-deploy
+4. Run `node test-warranty-fix.js` to verify warranty sections
+5. Delete test lead from database: `WHERE email='josh@pellsolar.com' AND first_name='Herald Warranty'`
+
+**Deployment Status:** ⚠️ PENDING (awaiting GitHub secrets configuration)
