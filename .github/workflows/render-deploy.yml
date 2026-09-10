@@ -4,9 +4,7 @@ on:
   push:
     branches:
       - main
-    paths-ignore:
-      - 'docs/**'
-      - '*.md'
+  workflow_dispatch:
 
 concurrency:
   group: render-deploy
