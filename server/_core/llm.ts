@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { ENV } from "./env";
 import sharp from "sharp";
+import heicConvert from "heic-convert";
 
 export type Role = "system" | "user" | "assistant" | "tool" | "function";
 
@@ -172,13 +173,26 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
             let mediaType: string;
 
             if (isHeic) {
-              // Convert HEIC to JPEG
-              processedBuffer = await sharp(buffer)
-                .resize(1600, 1600, { fit: "inside", withoutEnlargement: true })
-                .jpeg({ quality: 85 })
-                .toBuffer();
-              mediaType = "image/jpeg";
-              console.log(`[LLM] Converted HEIC image to JPEG: ${imageUrl}`);
+              // Convert HEIC to JPEG using heic-convert (pure JS/wasm)
+              // sharp on Render's Linux doesn't include libheif
+              try {
+                const jpegBuffer = await heicConvert({
+                  buffer,
+                  format: 'JPEG',
+                  quality: 0.85
+                });
+                // Now resize the JPEG with sharp
+                processedBuffer = await sharp(Buffer.from(jpegBuffer))
+                  .resize(1600, 1600, { fit: "inside", withoutEnlargement: true })
+                  .jpeg({ quality: 85 })
+                  .toBuffer();
+                mediaType = "image/jpeg";
+                console.log(`[LLM] Converted HEIC image to JPEG: ${imageUrl}`);
+              } catch (heicError) {
+                console.warn(`[LLM] HEIC conversion failed for ${imageUrl}:`, heicError);
+                // Graceful fallback: skip this image
+                return { type: "text", text: "" };
+              }
             } else {
               // Resize and compress to cap at ~4MB
               const format = contentType.includes("png") ? "png" :
