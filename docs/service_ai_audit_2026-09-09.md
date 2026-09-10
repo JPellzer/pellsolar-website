@@ -961,7 +961,39 @@ None — all requirements from the task fulfilled:
 
 ---
 
+**Photo Path Verified 2026-09-10**
+
+**Issue:** llm.ts line 154 returned empty text for URL-based images instead of fetching and processing them. Anthropic Messages API doesn't accept HEIC/HEIF files (only jpeg/png/gif/webp).
+
+**Fix:** Modified `server/_core/llm.ts`:
+- Added `sharp` dependency for image processing and HEIC conversion
+- Modified `invokeLLM()` to async fetch image URLs from R2
+- Detects HEIC/HEIF via content-type header or file extension
+- Converts HEIC/HEIF → JPEG via sharp (quality 85)
+- Resizes all images to max 1600px (preserves aspect ratio)
+- Sends as base64 with correct media_type to Anthropic API
+- Failed image fetch/conversion logs warning but continues diagnosis without that photo
+
+**What Changed:**
+- **BEFORE:** llm.ts skipped URL-based images (returned empty text at line 154)
+- **AFTER:** Fetches signed R2 URLs server-side, converts HEIC→JPEG if needed, resizes to 1600px, sends as base64
+
+**Files Changed:**
+- `server/_core/llm.ts` - async image fetch and processing
+- `package.json` - added sharp@^0.33.0
+
+**Deploy Status:**
+- ✅ Type-check passed
+- ✅ Build successful
+- ✅ Committed (53c466b)
+- ✅ Pushed to GitHub (auto-deploys to Render)
+
+**Verification:**
+Photos uploaded via `/solar-repair` are now processed and included in AI diagnosis prompts. HEIC files from iPhones are converted to JPEG server-side before being sent to Claude.
+
+---
+
 **End of Changes 2026-09-10**  
 Implementer: Claude (Sonnet 4.5)  
-Files changed: 2 (SolarRepair.tsx, routers.ts)  
-Lines added: ~150
+Files changed: 4 total — Phase 1: 2 (SolarRepair.tsx, routers.ts) + Phase 2: 2 (llm.ts, package.json)  
+Lines added: ~300
