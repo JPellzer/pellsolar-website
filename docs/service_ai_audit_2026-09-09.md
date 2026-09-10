@@ -997,3 +997,31 @@ Photos uploaded via `/solar-repair` are now processed and included in AI diagnos
 Implementer: Claude (Sonnet 4.5)  
 Files changed: 4 total — Phase 1: 2 (SolarRepair.tsx, routers.ts) + Phase 2: 2 (llm.ts, package.json)  
 Lines added: ~300
+
+---
+
+## Photo Path Verified Live — 2026-09-10
+
+**Production verification completed:**
+
+**HEIC Support Added (f4dc0f3):**
+- Issue: Render's prebuilt sharp on Linux doesn't include libheif (HEIC decode fails)
+- Fix: Added `heic-convert` (pure JS/wasm) to decode HEIC→JPEG before sharp resize
+- Modified `server/_core/llm.ts` to:
+  - Detect HEIC/HEIF via content-type or extension
+  - Call `heicConvert({ buffer, format:'JPEG', quality:0.85 })` first
+  - Pass JPEG buffer to sharp for resize
+  - Graceful skip on conversion failure (logs warning, continues diagnosis)
+- Files changed: llm.ts, package.json, heic-convert.d.ts (type declarations)
+
+**Live Test Results:**
+- ✅ **JPEG**: Photo analyzed correctly — Claude detected "Error 3-11: AC Disconnect Fault" from test image with embedded error text
+- ✅ **HEIC**: Converted and analyzed — Claude saw autumn landscape photo from sample HEIC (downloaded from filesamples.com), proving conversion path works
+
+**Commits:**
+- f4dc0f3 — HEIC support via heic-convert
+- 10d62bf — Removed test script after verification
+
+**Deployed:** f4dc0f3 live on pellsolar.com as of 2026-09-10 16:14 GMT
+
+Photos now work end-to-end on production (JPEG ✓ / HEIC ✓).
