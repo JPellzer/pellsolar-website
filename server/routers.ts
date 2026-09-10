@@ -738,6 +738,23 @@ Keep the response under 250 words and use plain language.`;
         // Step 2: POST to CRM service intake webhook
         let crmResult: { success: boolean; customer_id?: number; deal_id?: number } = { success: false };
         try {
+          // Build photo URLs for CRM (needs signed URLs for direct download)
+          let photoUrls: Array<{ fileUrl: string; fileKey: string; fileName: string }> = [];
+          if (input.photoKeys && input.photoKeys.length > 0) {
+            const urlResults = await Promise.all(
+              input.photoKeys.map(async (key, idx) => {
+                try {
+                  const signedUrl = await storageGetSignedUrl(key, 7 * 24 * 60 * 60); // 7 days
+                  return signedUrl ? { fileUrl: signedUrl, fileKey: key, fileName: `photo-${idx + 1}.jpg` } : null;
+                } catch (e) {
+                  console.warn("[CRM] Failed to generate signed URL for photo:", key, e);
+                  return null;
+                }
+              })
+            );
+            photoUrls = urlResults.filter(Boolean) as Array<{ fileUrl: string; fileKey: string; fileName: string }>;
+          }
+
           const servicePayload = {
             name: `${input.firstName} ${input.lastName || ""}`.trim(),
             email: input.email || "",
@@ -762,6 +779,8 @@ Keep the response under 250 words and use plain language.`;
             issuesDuration: input.duration || "",
             customerDescription: input.description || "",
             aiDiagnostic: input.aiDiagnosis || "",
+            // Photo URLs for CRM file attachment
+            photoFiles: photoUrls.length > 0 ? photoUrls : undefined,
           };
           const res = await fetch("https://pellsolar-crm-prod.onrender.com/api/webhooks/service-intake", {
             method: "POST",

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "wouter";
-import { Phone, Wrench, AlertTriangle, CheckCircle, Shield, Zap, Settings, Bug, ChevronDown, ChevronUp, Loader2, Bot, ArrowRight } from "lucide-react";
+import { Phone, Wrench, AlertTriangle, CheckCircle, Shield, Zap, Settings, Bug, ChevronDown, ChevronUp, Loader2, Bot, ArrowRight, Image, X } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { trpc } from "@/lib/trpc";
@@ -48,6 +48,8 @@ export default function SolarRepair() {
   const [description, setDescription] = useState("");
   const [errorCode, setErrorCode] = useState("");
   const [photoKeys, setPhotoKeys] = useState<string[]>([]);
+  const [photoFiles, setPhotoFiles] = useState<File[]>([]);
+  const [uploading, setUploading] = useState(false);
 
   // Contact form (only for "I still need help" flow)
   const [contact, setContact] = useState({ lastName: "", phone: "", address: "", honeypot: "" });
@@ -89,7 +91,75 @@ export default function SolarRepair() {
     setSelectedIssues(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
   };
 
-  const handleGetDiagnosis = () => {
+  const uploadPhoto = async (file: File): Promise<string | null> => {
+    setUploading(true);
+    try {
+      const base64Data = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve((reader.result as string).split(",")[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      const res = await fetch("/api/upload-bill", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fileName: file.name,
+          contentType: file.type,
+          base64Data
+        })
+      });
+      if (!res.ok) throw new Error("Upload failed");
+      const result = await res.json();
+      return result.key;
+    } catch (err) {
+      console.error("Photo upload failed:", err);
+      toast.error("Photo upload failed. You can still continue.");
+      return null;
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    // Validate count
+    if (photoFiles.length + files.length > 3) {
+      toast.error("Maximum 3 photos allowed");
+      return;
+    }
+
+    // Validate size and type
+    for (const file of files) {
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error(`${file.name} is too large. Maximum 10MB per photo.`);
+        return;
+      }
+      if (!file.type.startsWith("image/")) {
+        toast.error(`${file.name} is not an image file.`);
+        return;
+      }
+    }
+
+    setPhotoFiles(prev => [...prev, ...files]);
+
+    // Upload each file immediately
+    for (const file of files) {
+      const key = await uploadPhoto(file);
+      if (key) {
+        setPhotoKeys(prev => [...prev, key]);
+      }
+    }
+  };
+
+  const removePhoto = (index: number) => {
+    setPhotoFiles(prev => prev.filter((_, i) => i !== index));
+    setPhotoKeys(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleGetDiagnosis = async () => {
     if (!firstName.trim()) {
       toast.error("Please enter your first name.");
       return;
@@ -106,6 +176,17 @@ export default function SolarRepair() {
       toast.error("Please tell us how long this has been happening.");
       return;
     }
+
+    // Upload any remaining photos that haven't been uploaded yet
+    if (photoFiles.length > photoKeys.length) {
+      for (let i = photoKeys.length; i < photoFiles.length; i++) {
+        const key = await uploadPhoto(photoFiles[i]);
+        if (key) {
+          setPhotoKeys(prev => [...prev, key]);
+        }
+      }
+    }
+
     diagnose.mutate({
       firstName: firstName.trim(),
       email: email.trim(),
@@ -521,6 +602,60 @@ export default function SolarRepair() {
                           className={inputCls}
                         />
                         <p className="text-xs text-gray-500 mt-1">Error codes help us diagnose the issue faster</p>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Add a photo of the inverter / error screen (optional, up to 3)
+                        </label>
+                        <div className="space-y-3">
+                          {/* Photo upload button */}
+                          {photoFiles.length < 3 && (
+                            <label className="flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-[#2BABE2] hover:bg-[#2BABE2]/5 transition-all">
+                              <Image size={20} className="text-gray-500" />
+                              <span className="text-sm font-semibold text-gray-700">
+                                {uploading ? "Uploading..." : "Choose Photo"}
+                              </span>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                capture="environment"
+                                multiple
+                                onChange={handlePhotoSelect}
+                                disabled={uploading}
+                                className="hidden"
+                              />
+                            </label>
+                          )}
+
+                          {/* Photo thumbnails */}
+                          {photoFiles.length > 0 && (
+                            <div className="grid grid-cols-3 gap-3">
+                              {photoFiles.map((file, idx) => (
+                                <div key={idx} className="relative group">
+                                  <img
+                                    src={URL.createObjectURL(file)}
+                                    alt={`Photo ${idx + 1}`}
+                                    className="w-full h-24 object-cover rounded-lg border-2 border-gray-200"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => removePhoto(idx)}
+                                    className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
+                                  >
+                                    <X size={14} />
+                                  </button>
+                                  {photoKeys[idx] && (
+                                    <div className="absolute bottom-1 left-1 bg-green-500 text-white text-xs px-1.5 py-0.5 rounded">
+                                      ✓
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          <p className="text-xs text-gray-500">Photos of error screens, LED indicators, or inverter displays help with diagnosis (HEIC/HEIF accepted, max 10MB each)</p>
+                        </div>
                       </div>
 
                       <div>
