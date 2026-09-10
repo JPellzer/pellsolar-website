@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { ENV } from "./env";
+import sharp from "sharp";
 
 export type Role = "system" | "user" | "assistant" | "tool" | "function";
 
@@ -127,10 +128,10 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
   const nonSystemMessages = messages.filter((m) => m.role !== "system");
 
   // Convert to Anthropic format
-  const anthropicMessages = nonSystemMessages.map((msg) => {
+  const anthropicMessages = await Promise.all(nonSystemMessages.map(async (msg) => {
     // Handle array content (text + images)
     if (Array.isArray(msg.content)) {
-      const contentBlocks = msg.content.map((c) => {
+      const contentBlocks = await Promise.all(msg.content.map(async (c) => {
         if (typeof c === "string") {
           return { type: "text", text: c };
         }
@@ -150,18 +151,82 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
               },
             };
           }
-          // For URLs, we'd need to fetch and convert - skip for now
-          return { type: "text", text: "" };
+          // For URLs, fetch and convert to base64
+          try {
+            const response = await fetch(imageUrl);
+            if (!response.ok) {
+              console.warn(`[LLM] Failed to fetch image from ${imageUrl}: ${response.status}`);
+              return { type: "text", text: "" };
+            }
+            const arrayBuffer = await response.arrayBuffer();
+            const buffer = Buffer.from(arrayBuffer);
+
+            // Detect content type from URL or response headers
+            const contentType = response.headers.get("content-type") || "";
+            const urlLower = imageUrl.toLowerCase();
+            const isHeic = contentType.includes("heic") || contentType.includes("heif") ||
+                          urlLower.endsWith(".heic") || urlLower.endsWith(".heif");
+
+            // Convert HEIC to JPEG, or resize/compress other formats
+            let processedBuffer: Buffer;
+            let mediaType: string;
+
+            if (isHeic) {
+              // Convert HEIC to JPEG
+              processedBuffer = await sharp(buffer)
+                .resize(1600, 1600, { fit: "inside", withoutEnlargement: true })
+                .jpeg({ quality: 85 })
+                .toBuffer();
+              mediaType = "image/jpeg";
+              console.log(`[LLM] Converted HEIC image to JPEG: ${imageUrl}`);
+            } else {
+              // Resize and compress to cap at ~4MB
+              const format = contentType.includes("png") ? "png" :
+                           contentType.includes("webp") ? "webp" :
+                           contentType.includes("gif") ? "gif" : "jpeg";
+
+              const sharpInstance = sharp(buffer).resize(1600, 1600, { fit: "inside", withoutEnlargement: true });
+
+              if (format === "png") {
+                processedBuffer = await sharpInstance.png({ quality: 85 }).toBuffer();
+                mediaType = "image/png";
+              } else if (format === "webp") {
+                processedBuffer = await sharpInstance.webp({ quality: 85 }).toBuffer();
+                mediaType = "image/webp";
+              } else if (format === "gif") {
+                processedBuffer = await sharpInstance.gif().toBuffer();
+                mediaType = "image/gif";
+              } else {
+                processedBuffer = await sharpInstance.jpeg({ quality: 85 }).toBuffer();
+                mediaType = "image/jpeg";
+              }
+            }
+
+            const base64 = processedBuffer.toString("base64");
+            return {
+              type: "image",
+              source: {
+                type: "base64",
+                media_type: mediaType,
+                data: base64,
+              },
+            };
+          } catch (error) {
+            console.warn(`[LLM] Failed to process image from ${imageUrl}:`, error);
+            return { type: "text", text: "" };
+          }
         }
         if ("text" in c) {
           return { type: "text", text: c.text };
         }
         return { type: "text", text: "" };
-      }).filter((block) => block.type === "image" || (block.type === "text" && block.text));
+      }));
+
+      const filteredBlocks = contentBlocks.filter((block) => block.type === "image" || (block.type === "text" && block.text));
 
       return {
         role: msg.role === "assistant" ? ("assistant" as const) : ("user" as const),
-        content: contentBlocks as Array<{ type: "text"; text: string } | { type: "image"; source: { type: "base64"; media_type: string; data: string } }>,
+        content: filteredBlocks as Array<{ type: "text"; text: string } | { type: "image"; source: { type: "base64"; media_type: string; data: string } }>,
       };
     }
 
@@ -177,7 +242,7 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
       role: msg.role === "assistant" ? ("assistant" as const) : ("user" as const),
       content,
     };
-  });
+  }));
 
   const systemPrompt = systemMessages
     .map((m) => (typeof m.content === "string" ? m.content : ""))
