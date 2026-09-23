@@ -1,4 +1,12 @@
-import { integer, pgEnum, pgTable, text, timestamp, varchar, serial } from "drizzle-orm/pg-core";
+import { integer, jsonb, pgEnum, pgTable, text, timestamp, varchar, serial } from "drizzle-orm/pg-core";
+
+/** One uploaded file attached to a website lead (utility bill or Green Button CSV). */
+export type LeadBillFile = {
+  key: string;
+  url?: string;
+  name: string;
+  type: "bill" | "green_button";
+};
 
 export const website_roleEnum = pgEnum("website_role", ["user", "admin"]);
 export const website_ownershipTypeEnum = pgEnum("website_ownershipType", ["homeowner", "renter"]);
@@ -51,6 +59,8 @@ export const website_leads = pgTable("website_leads", {
   billFileKey: text("billFileKey"),
   billFileUrl: text("billFileUrl"),
   billFileName: varchar("billFileName", { length: 256 }),
+  // Every uploaded file (bills + Green Button CSV). billFileKey/Url/Name above = first bill only.
+  billFiles: jsonb("billFiles").$type<LeadBillFile[]>(),
 
   // CRM
   status: website_leadStatusEnum("status").default("New").notNull(),

@@ -8,6 +8,14 @@ import { getCrmAuthHeaders } from "./crmAuth";
 
 const CRM_WEBHOOK_URL = "https://pellsolar-crm-prod.onrender.com/api/webhooks/website-lead";
 
+export interface CrmBillFile {
+  /** Seven-day signed URL the CRM can download directly */
+  url: string;
+  key: string;
+  name: string;
+  type: "bill" | "green_button";
+}
+
 export interface CrmLeadPayload {
   // Contact info
   first_name: string;
@@ -19,9 +27,11 @@ export interface CrmLeadPayload {
   state?: string;
   zip?: string;
 
-  // Bill upload
+  // Bill upload — first utility bill (legacy single-file fields)
   bill_file_url?: string;
   bill_file_name?: string;
+  // Every uploaded file: utility bills + Green Button CSV
+  bill_files?: CrmBillFile[];
 
   // Lead type
   /** "new_lead" for quote/estimate forms, "service_call" for repair/service forms */
@@ -85,6 +95,7 @@ export async function postToCrm(payload: CrmLeadPayload): Promise<CrmLeadResult>
       monthly_bill: payload.monthly_bill,
       interest: payload.interest,
       bill_file_url: payload.bill_file_url ? "[present]" : undefined,
+      bill_files: payload.bill_files ? payload.bill_files.map(f => `${f.type}:${f.name}`) : undefined,
       visitor_ip: payload.visitor_ip,
       form_seconds: payload.form_seconds,
       honeypot: payload.honeypot ? "[present]" : "",

@@ -1,4 +1,16 @@
-import { Pool } from "pg";
+import { Pool, type PoolClient } from "pg";
+
+/**
+ * Additive-only column migrations for existing databases.
+ * Safe to run on every boot — every statement is IF NOT EXISTS.
+ */
+async function applyAdditiveColumns(client: PoolClient): Promise<void> {
+  try {
+    await client.query(`ALTER TABLE "website_leads" ADD COLUMN IF NOT EXISTS "billFiles" JSONB`);
+  } catch (error) {
+    console.warn("[Schema] Failed to apply additive columns:", error);
+  }
+}
 
 /**
  * ensureSchema — Idempotent DDL execution at server startup.
@@ -29,7 +41,8 @@ export async function ensureSchema(): Promise<void> {
       `);
 
       if (schemaCheck.rows.length > 0) {
-        console.log("[Schema] website_ tables already exist with correct casing — skipping");
+        console.log("[Schema] website_ tables already exist with correct casing — applying additive columns only");
+        await applyAdditiveColumns(client);
         return;
       }
 
@@ -102,6 +115,7 @@ export async function ensureSchema(): Promise<void> {
           "billFileKey" TEXT,
           "billFileUrl" TEXT,
           "billFileName" VARCHAR(256),
+          "billFiles" JSONB,
           status "website_leadStatus" DEFAULT 'New' NOT NULL,
           source VARCHAR(64) DEFAULT 'homepage' NOT NULL,
           notes TEXT,

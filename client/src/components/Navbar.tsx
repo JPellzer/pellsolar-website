@@ -103,6 +103,17 @@ export default function Navbar() {
   const isHome = location === "/";
   const isTransparent = isHome && !scrolled && !mobileOpen;
 
+  // Already on the upload page: wouter ignores same-path navigation, so scroll to the form instead.
+  const isUploadBillPage = location === "/upload-bill" || location === "/upload-your-bill";
+  const handleUploadBillClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    if (!isUploadBillPage) return;
+    const formSection = document.getElementById("upload-form");
+    if (!formSection) return;
+    event.preventDefault();
+    setMobileOpen(false);
+    formSection.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   // Nav items matching pellsolar.com exactly
   const navItems: { label: string; href?: string; dropdown?: DropItem[] }[] = [
     { label: "NEM 3.0", dropdown: [
@@ -183,6 +194,7 @@ export default function Navbar() {
             </Link>
             <Link
               href="/upload-bill"
+              onClick={handleUploadBillClick}
               className="flex items-center gap-1.5 bg-[#0B1D51] border border-[#2BABE2] text-[#2BABE2] px-4 py-2.5 rounded font-bold text-[13px] tracking-wider hover:bg-[#2BABE2]/10 transition-all whitespace-nowrap"
             >
               <Upload size={13} />
@@ -259,6 +271,7 @@ export default function Navbar() {
             </Link>
             <Link
               href="/upload-bill"
+              onClick={handleUploadBillClick}
               className="block w-full text-center border border-[#2BABE2] text-[#2BABE2] py-3 rounded font-bold text-sm tracking-wide"
             >
               UPLOAD A BILL

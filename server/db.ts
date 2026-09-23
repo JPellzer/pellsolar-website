@@ -98,7 +98,22 @@ export async function createLead(data: InsertLead): Promise<{ id: number; isDupl
       if (data.monthlyBillRange && !existingLead.monthlyBillRange) updateData.monthlyBillRange = data.monthlyBillRange;
       if (data.interestType && !existingLead.interestType) updateData.interestType = data.interestType;
       if (data.address && !existingLead.address) updateData.address = data.address;
-      if (data.billFileKey && !existingLead.billFileKey) updateData.billFileKey = data.billFileKey;
+      if (data.billFileKey && !existingLead.billFileKey) {
+        updateData.billFileKey = data.billFileKey;
+        if (data.billFileUrl) updateData.billFileUrl = data.billFileUrl;
+        if (data.billFileName) updateData.billFileName = data.billFileName;
+      }
+      // Append every newly uploaded file to the existing list, deduped by storage key
+      if (data.billFiles && data.billFiles.length > 0) {
+        const merged = [...(existingLead.billFiles ?? [])];
+        const seen = new Set(merged.map(f => f.key));
+        for (const file of data.billFiles) {
+          if (seen.has(file.key)) continue;
+          seen.add(file.key);
+          merged.push(file);
+        }
+        if (merged.length !== (existingLead.billFiles?.length ?? 0)) updateData.billFiles = merged;
+      }
       if (data.notes) updateData.notes = existingLead.notes
         ? `${existingLead.notes}\n[Re-submitted ${new Date().toISOString()}]`
         : `[Re-submitted ${new Date().toISOString()}]`;

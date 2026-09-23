@@ -30,7 +30,7 @@ import { ENV } from "./_core/env";
 import { makeRequest, type GeocodingResult } from "./_core/map";
 import { getLiveGoogleReviewSummary } from "./googleReviews";
 import type { Lead } from "../drizzle/schema";
-import { postToCrm } from "./crmWebhook";
+import { postToCrm, type CrmBillFile } from "./crmWebhook";
 import { getCrmAuthHeaders } from "./crmAuth";
 import { chatRouter } from "./routers/chat";
 import { invokeLLM } from "./_core/llm";
@@ -104,6 +104,30 @@ async function getCrmBillFileUrl(
   return isExternalBillUrl(billFileUrl) ? billFileUrl : undefined;
 }
 
+const BillFileSchema = z.object({
+  key: z.string().min(1).max(512),
+  url: z.string().max(4_096).optional(),
+  name: z.string().min(1).max(256),
+  type: z.enum(["bill", "green_button"]),
+});
+
+// Up to 10 utility bills + 1 Green Button CSV
+const MAX_BILL_FILES = 11;
+
+async function getCrmBillFiles(
+  files?: z.infer<typeof BillFileSchema>[],
+): Promise<CrmBillFile[] | undefined> {
+  if (!files || files.length === 0) return undefined;
+  const resolved = await Promise.all(
+    files.map(async (file) => {
+      const url = await getCrmBillFileUrl(file.key, file.url);
+      return url ? { url, key: file.key, name: file.name, type: file.type } : null;
+    }),
+  );
+  const usable = resolved.filter((f): f is CrmBillFile => f !== null);
+  return usable.length > 0 ? usable : undefined;
+}
+
 const CreateLeadSchema = z.object({
   firstName: z.string().min(1),
   lastName: z.string().min(1),
@@ -130,6 +154,8 @@ const CreateLeadSchema = z.object({
   billFileKey: z.string().optional(),
   billFileUrl: z.string().optional(),
   billFileName: z.string().optional(),
+  // Every uploaded file (bills + Green Button CSV); billFileKey/Url/Name = first bill only
+  billFiles: z.array(BillFileSchema).max(MAX_BILL_FILES).optional(),
   source: LeadSourceSchema.default("homepage"),
   utmData: UtmDataSchema,
   // Honeypot field — hidden from humans, bots may fill it
@@ -204,10 +230,12 @@ export const appRouter = router({
           billFileKey: input.billFileKey,
           billFileUrl: input.billFileUrl,
           billFileName: input.billFileName,
+          billFiles: input.billFiles && input.billFiles.length > 0 ? input.billFiles : undefined,
           source,
           notes: input.interestType === "other" && input.interestOtherText ? input.interestOtherText : undefined,
         });
         const crmBillFileUrl = await getCrmBillFileUrl(input.billFileKey, input.billFileUrl);
+        const crmBillFiles = await getCrmBillFiles(input.billFiles);
         if (!isDuplicate) {
 
         // Notify owner (in-app)
@@ -250,6 +278,7 @@ export const appRouter = router({
             input.interestOtherText ? `Notes: ${input.interestOtherText}` : "",
             input.ownershipType === "renter" ? `⚠️ Renter (not homeowner)` : "",
             billLink ? `Bill file: ${billLink}` : "",
+            crmBillFiles && crmBillFiles.length > 1 ? `Files uploaded: ${crmBillFiles.length}` : "",
             `CRM: https://pellsolar.com/admin/leads/${id}`,
             `Source: ${source}`,
           ].filter(Boolean).join("\n");
@@ -281,6 +310,7 @@ export const appRouter = router({
             // Never send a browser-session-bound /manus-storage path.
             bill_file_url: crmBillFileUrl,
             bill_file_name: input.billFileName || undefined,
+            bill_files: crmBillFiles,
             type: "new_lead",
             source,
             // Individual qualification fields

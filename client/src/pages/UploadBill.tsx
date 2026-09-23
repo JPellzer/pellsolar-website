@@ -3,7 +3,18 @@ import { useLocation } from "wouter";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { trpc } from "@/lib/trpc";
-import { ChevronDown, ChevronUp, Phone, Mail, CheckCircle2, AlertTriangle } from "lucide-react";
+import { ChevronDown, ChevronUp, Phone, Mail, CheckCircle2, AlertTriangle, X } from "lucide-react";
+
+// ─── Bill file limits (mirror server/uploadRoute.ts) ─────────────────────────
+const MAX_BILL_FILES = 10;
+const MAX_FILE_BYTES = 10 * 1024 * 1024;
+const BILL_EXTENSIONS = /\.(pdf|jpe?g|png|webp|heic|heif)$/i;
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
 
 // ─── SCE Step data ────────────────────────────────────────────────────────────
 const SCE_STEPS: { num: number; title: string; content: React.ReactNode }[] = [
@@ -209,15 +220,17 @@ async function uploadFileToServer(file: File): Promise<{ key: string; url: strin
 export default function UploadBill() {
   const [openStep, setOpenStep] = useState<number | null>(0);
   const [csvFile, setCsvFile] = useState<File | null>(null);
-  const [billFile, setBillFile] = useState<File | null>(null);
+  const [billFiles, setBillFiles] = useState<File[]>([]);
   const [csvDragOver, setCsvDragOver] = useState(false);
   const [billDragOver, setBillDragOver] = useState(false);
   const [uploadType, setUploadType] = useState<"csv" | "bill" | "both">("both");
   const [form, setForm] = useState({ firstName: "", lastName: "", email: "", phone: "", address: "", honeypot: "" });
   const [formLoadedAt] = useState(Date.now());
+  const formStartedAtRef = useRef(Date.now());
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [billError, setBillError] = useState<string | null>(null);
 
   const csvInputRef = useRef<HTMLInputElement>(null);
   const billInputRef = useRef<HTMLInputElement>(null);
@@ -226,26 +239,67 @@ export default function UploadBill() {
   const [, navigate] = useLocation();
   const createLead = trpc.leads.create.useMutation();
 
+  /** Append bills to the list — never replaces. Dedupes by name+size, enforces type/size/count. */
+  const addBillFiles = (incoming: FileList | File[] | null | undefined) => {
+    if (!incoming || incoming.length === 0) return;
+    const problems: string[] = [];
+    const next = [...billFiles];
+    for (const file of Array.from(incoming)) {
+      if (!BILL_EXTENSIONS.test(file.name)) {
+        problems.push(`${file.name}: only PDF, JPG, PNG, WebP, or HEIC files are accepted.`);
+        continue;
+      }
+      if (file.size > MAX_FILE_BYTES) {
+        problems.push(`${file.name}: file is over 10MB.`);
+        continue;
+      }
+      if (next.some(f => f.name === file.name && f.size === file.size)) continue;
+      if (next.length >= MAX_BILL_FILES) {
+        problems.push(`You can upload up to ${MAX_BILL_FILES} bills. ${file.name} was not added.`);
+        continue;
+      }
+      next.push(file);
+    }
+    setBillFiles(next);
+    setBillError(problems.length > 0 ? problems.join(" ") : null);
+  };
+
+  const removeBillFile = (index: number) => {
+    setBillFiles(current => current.filter((_, i) => i !== index));
+    setBillError(null);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setSubmitting(true);
     try {
-      let csvKey: string | undefined;
-      let csvUrl: string | undefined;
-      let billKey: string | undefined;
-      let billUrl: string | undefined;
+      const includeCsv = uploadType !== "bill";
+      const includeBills = uploadType !== "csv";
+      const csvToUpload = includeCsv ? csvFile : null;
+      const billsToUpload = includeBills ? billFiles : [];
 
-      if (csvFile) {
-        const result = await uploadFileToServer(csvFile);
-        csvKey = result.key;
-        csvUrl = result.publicUrl || result.url;
+      // Upload every file first. Any failure aborts before the lead is created.
+      const uploaded: { key: string; url: string; name: string; type: "bill" | "green_button" }[] = [];
+      if (csvToUpload) {
+        try {
+          const result = await uploadFileToServer(csvToUpload);
+          uploaded.push({ key: result.key, url: result.publicUrl || result.url, name: csvToUpload.name, type: "green_button" });
+        } catch (err) {
+          throw new Error(`Could not upload ${csvToUpload.name}: ${err instanceof Error ? err.message : "upload failed"}. Please try again.`);
+        }
       }
-      if (billFile) {
-        const result = await uploadFileToServer(billFile);
-        billKey = result.key;
-        billUrl = result.publicUrl || result.url;
+      for (const bill of billsToUpload) {
+        try {
+          const result = await uploadFileToServer(bill);
+          uploaded.push({ key: result.key, url: result.publicUrl || result.url, name: bill.name, type: "bill" });
+        } catch (err) {
+          throw new Error(`Could not upload ${bill.name}: ${err instanceof Error ? err.message : "upload failed"}. Please try again.`);
+        }
       }
+
+      // Legacy single-bill fields = first utility bill only. The CSV lives only in billFiles.
+      const firstBill = uploaded.find(f => f.type === "bill");
 
       const leadResult = await createLead.mutateAsync({
         firstName: form.firstName,
@@ -256,11 +310,14 @@ export default function UploadBill() {
         source: "upload-bill",
         ownershipType: "homeowner",
         interestType: "solar_battery",
-        billFileKey: csvKey ?? billKey,
-        billFileUrl: csvUrl ?? billUrl,
-        billFileName: csvFile?.name ?? billFile?.name,
+        billFileKey: firstBill?.key,
+        billFileUrl: firstBill?.url,
+        billFileName: firstBill?.name,
+        billFiles: uploaded.length > 0 ? uploaded : undefined,
         honeypot: form.honeypot,
         form_loaded_at: formLoadedAt,
+        formSeconds: Math.max(0, Math.floor((Date.now() - formStartedAtRef.current) / 1000)),
+        pageUrl: window.location.href,
       });
 
       setSubmitted(true);
@@ -457,7 +514,7 @@ export default function UploadBill() {
       </section>
 
       {/* ── UPLOAD FORM ──────────────────────────────────────────────────── */}
-      <section ref={formRef} className="py-16 bg-gray-50">
+      <section id="upload-form" ref={formRef} className="py-16 bg-gray-50 scroll-mt-24">
         <div className="max-w-3xl mx-auto px-6">
           <h2 className="text-3xl md:text-4xl font-extrabold text-[#0B1D51] text-center mb-3" style={{ fontFamily: "'Montserrat', sans-serif" }}>
             Your Info &amp; Files
@@ -631,7 +688,7 @@ export default function UploadBill() {
               {(uploadType === "bill" || uploadType === "both") && (
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Utility Bill <span className="text-gray-400 font-normal">(PDF, JPG, or PNG)</span>
+                    Utility Bills <span className="text-gray-400 font-normal">(PDF, JPG, or PNG — up to {MAX_BILL_FILES} files)</span>
                   </label>
                   <div
                     onClick={() => billInputRef.current?.click()}
@@ -640,34 +697,70 @@ export default function UploadBill() {
                     onDrop={e => {
                       e.preventDefault();
                       setBillDragOver(false);
-                      const f = e.dataTransfer.files[0];
-                      if (f) setBillFile(f);
+                      addBillFiles(e.dataTransfer.files);
                     }}
                     className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors ${
-                      billDragOver ? "border-[#2BABE2] bg-[#2BABE2]/5" : billFile ? "border-green-400 bg-green-50" : "border-gray-300 hover:border-[#2BABE2] hover:bg-[#2BABE2]/5"
+                      billDragOver ? "border-[#2BABE2] bg-[#2BABE2]/5" : billFiles.length > 0 ? "border-green-400 bg-green-50" : "border-gray-300 hover:border-[#2BABE2] hover:bg-[#2BABE2]/5"
                     }`}
                   >
                     <input
                       ref={billInputRef}
                       type="file"
+                      multiple
                       accept=".pdf,.jpg,.jpeg,.png,.webp,.heic,.heif"
                       className="hidden"
-                      onChange={e => { if (e.target.files?.[0]) setBillFile(e.target.files[0]); }}
+                      onChange={e => {
+                        addBillFiles(e.target.files);
+                        // Reset so re-selecting the same file fires onChange again
+                        e.target.value = "";
+                      }}
                     />
-                    {billFile ? (
+                    {billFiles.length > 0 ? (
                       <div>
                         <div className="text-3xl mb-2">🧾</div>
-                        <p className="text-green-700 font-semibold">{billFile.name}</p>
-                        <p className="text-gray-400 text-sm mt-1">Click to change file</p>
+                        <p className="text-green-700 font-semibold">
+                          {billFiles.length} {billFiles.length === 1 ? "bill" : "bills"} ready to upload
+                        </p>
+                        <p className="text-gray-400 text-sm mt-1">
+                          {billFiles.length < MAX_BILL_FILES ? "Click or drop to add more" : `Maximum of ${MAX_BILL_FILES} bills reached`}
+                        </p>
                       </div>
                     ) : (
                       <div>
                         <div className="text-4xl mb-3">🧾</div>
-                        <p className="text-gray-600 font-semibold">Drop your utility bill here</p>
-                        <p className="text-gray-400 text-sm mt-1">or click to browse — PDF, JPG, PNG, HEIC, WebP accepted</p>
+                        <p className="text-gray-600 font-semibold">Drop your utility bills here</p>
+                        <p className="text-gray-400 text-sm mt-1">or click to browse — PDF, JPG, PNG, HEIC, WebP accepted. Add several months if you have them.</p>
                       </div>
                     )}
                   </div>
+                  {billFiles.length > 0 && (
+                    <ul className="mt-3 space-y-2" aria-label="Selected utility bills">
+                      {billFiles.map((file, index) => (
+                        <li
+                          key={`${file.name}-${file.size}-${index}`}
+                          className="flex items-center gap-3 bg-white border border-gray-200 rounded-lg px-3 py-2"
+                        >
+                          <span className="text-lg flex-shrink-0">🧾</span>
+                          <span className="text-sm text-gray-800 font-medium truncate flex-1">{file.name}</span>
+                          <span className="text-xs text-gray-400 flex-shrink-0">{formatBytes(file.size)}</span>
+                          <button
+                            type="button"
+                            onClick={() => removeBillFile(index)}
+                            aria-label={`Remove ${file.name}`}
+                            className="text-gray-400 hover:text-red-500 transition-colors p-1 rounded flex-shrink-0"
+                          >
+                            <X size={16} />
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {billError && (
+                    <p className="mt-2 text-sm text-amber-700 flex items-start gap-1.5">
+                      <AlertTriangle size={14} className="mt-0.5 flex-shrink-0" />
+                      <span>{billError}</span>
+                    </p>
+                  )}
                 </div>
               )}
 
