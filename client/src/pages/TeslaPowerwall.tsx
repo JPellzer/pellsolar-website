@@ -237,7 +237,7 @@ export default function TeslaPowerwall() {
               <h3 className="text-xl font-bold text-gray-900 mb-2" style={{ fontFamily: "'Montserrat', sans-serif" }}>NEM 3.0 Shield</h3>
               <p className="text-gray-500 text-sm mb-4">1 Powerwall · avoid peak charges · 13.5 kWh</p>
               <div className="mb-6">
-                <span className="text-4xl font-black text-[#2BABE2]">$142</span>
+                <span className="text-4xl font-black text-[#2BABE2]">$133</span>
                 <span className="text-gray-500 text-lg">/mo</span>
               </div>
               <ul className="text-left space-y-2 mb-8">
@@ -252,13 +252,13 @@ export default function TeslaPowerwall() {
             <div className="bg-white rounded-2xl border-2 border-[#2BABE2] p-8 text-center hover:shadow-lg transition-shadow relative">
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#2BABE2] text-white text-xs font-bold uppercase tracking-wider px-4 py-1 rounded-full">Best Value</div>
               <h3 className="text-xl font-bold text-gray-900 mb-2" style={{ fontFamily: "'Montserrat', sans-serif" }}>NEM 3.0 Shield+</h3>
-              <p className="text-gray-500 text-sm mb-4">2 Powerwalls · extended coverage · 27 kWh</p>
+              <p className="text-gray-500 text-sm mb-4">1 Powerwall + Expansion Pack · extended coverage · 27 kWh</p>
               <div className="mb-6">
-                <span className="text-4xl font-black text-[#2BABE2]">$208</span>
+                <span className="text-4xl font-black text-[#2BABE2]">$186</span>
                 <span className="text-gray-500 text-lg">/mo</span>
               </div>
               <ul className="text-left space-y-2 mb-8">
-                {["2 Tesla Powerwall 3 (27 kWh total)", "1 Tesla Smart Meter", "Peak-hour grid protection (4–9pm)", "25-Year Battery Warranty", "Professional Installation", "Permitting and Inspections", "24/7 Monitoring via Tesla App"].map((item, i) => (
+                {["1 Tesla Powerwall 3 + 1 Expansion Pack (27 kWh total)", "1 Tesla Smart Meter", "Peak-hour grid protection (4–9pm)", "25-Year Battery Warranty", "Professional Installation", "Permitting and Inspections", "24/7 Monitoring via Tesla App"].map((item, i) => (
                   <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
                     <CheckCircle size={16} className="text-[#2BABE2] mt-0.5 flex-shrink-0" /> {item}
                   </li>

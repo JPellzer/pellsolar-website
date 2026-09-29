@@ -150,7 +150,7 @@ export default function BatteryBackup() {
               </h3>
               <p className="text-center text-gray-500 mb-6">Battery Only (No Solar)</p>
               <div className="text-center mb-8">
-                <span className="text-6xl font-extrabold text-[#2BABE2]">$142</span>
+                <span className="text-6xl font-extrabold text-[#2BABE2]">$133</span>
                 <span className="text-gray-500 text-lg"> per month*</span>
               </div>
               <ul className="space-y-3 mb-8">
@@ -184,16 +184,16 @@ export default function BatteryBackup() {
             {/* Plan 2 */}
             <div className="bg-white rounded-2xl border-2 border-gray-200 shadow-lg p-8">
               <h3 className="text-2xl font-extrabold text-[#0B1D51] text-center mb-1" style={{ fontFamily: "'Montserrat', sans-serif" }}>
-                2 Tesla Powerwall 3
+                1 Tesla Powerwall 3 + Expansion Pack
               </h3>
               <p className="text-center text-gray-500 mb-6">Battery Only (No Solar)</p>
               <div className="text-center mb-8">
-                <span className="text-6xl font-extrabold text-[#2BABE2]">$208</span>
+                <span className="text-6xl font-extrabold text-[#2BABE2]">$186</span>
                 <span className="text-gray-500 text-lg"> per month*</span>
               </div>
               <ul className="space-y-3 mb-8">
                 {[
-                  "2 Tesla Powerwall 3 Batteries",
+                  "1 Tesla Powerwall 3 + 1 Expansion Pack",
                   "Tesla Smart Meter Included",
                   "12-Year Lease Term",
                   "12-Year Warranty (2 Years Beyond Tesla Standard)",

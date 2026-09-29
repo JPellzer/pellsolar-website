@@ -162,7 +162,7 @@ export default function SolarLease() {
               <h3 className="text-2xl font-extrabold text-[#0B1D51] mb-1" style={{ fontFamily: "'Montserrat', sans-serif" }}>NEM 3.0 Shield</h3>
               <p className="text-gray-500 mb-6">1 Powerwall · avoid peak charges · 13.5 kWh</p>
               <div className="mb-8">
-                <span className="text-5xl font-extrabold text-[#2BABE2]">$142</span>
+                <span className="text-5xl font-extrabold text-[#2BABE2]">$133</span>
                 <span className="text-gray-500"> per month</span>
               </div>
               <ul className="space-y-3 mb-8">
@@ -193,14 +193,14 @@ export default function SolarLease() {
             <div className="bg-white rounded-2xl border-2 border-gray-200 shadow-lg p-8">
               <div className="inline-block bg-gray-100 text-gray-700 text-xs font-bold px-3 py-1 rounded-full mb-4">NEM 3.0 Shield+</div>
               <h3 className="text-2xl font-extrabold text-[#0B1D51] mb-1" style={{ fontFamily: "'Montserrat', sans-serif" }}>NEM 3.0 Shield+</h3>
-              <p className="text-gray-500 mb-6">2 Powerwalls · extended coverage · 27 kWh</p>
+              <p className="text-gray-500 mb-6">1 Powerwall + Expansion Pack · extended coverage · 27 kWh</p>
               <div className="mb-8">
-                <span className="text-5xl font-extrabold text-[#2BABE2]">$208</span>
+                <span className="text-5xl font-extrabold text-[#2BABE2]">$186</span>
                 <span className="text-gray-500"> per month</span>
               </div>
               <ul className="space-y-3 mb-8">
                 {[
-                  "2 Tesla Powerwall 3 (27 kWh total)",
+                  "1 Tesla Powerwall 3 + 1 Expansion Pack (27 kWh total)",
                   "1 Tesla Smart Meter",
                   "Peak-hour grid protection (4–9pm)",
                   "25-Year Battery Warranty",
