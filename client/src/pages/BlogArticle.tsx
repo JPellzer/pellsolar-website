@@ -130,7 +130,7 @@ const articles: Record<string, {
           <li>13.5 kWh usable capacity</li>
           <li>11.5 kW continuous power output (up from 7.6 kW on PW2)</li>
           <li>Integrated solar inverter — no separate inverter needed</li>
-          <li>25-year warranty</li>
+          <li>10-year warranty</li>
           <li>VPP-eligible (earn money dispatching to the grid)</li>
         </ul>
         <p>The integrated inverter is a game-changer. It eliminates a separate piece of equipment, reduces installation cost, and improves system efficiency. The 11.5 kW output means it can power your entire home — including HVAC and EV charging — during an outage.</p>
@@ -141,10 +141,10 @@ const articles: Record<string, {
           <li>13.6 kWh usable capacity (similar to Powerwall)</li>
           <li>10 kW continuous power output</li>
           <li>Stackable — add multiple units easily</li>
-          <li>10-year warranty (shorter than Powerwall)</li>
+          <li>10-year warranty</li>
           <li>Competitive pricing</li>
         </ul>
-        <p>The Franklin is a solid choice for homes that want to stack multiple batteries at a lower per-kWh cost. The shorter warranty is a consideration for long-term planning.</p>
+        <p>The Franklin is a solid choice for homes that want to stack multiple batteries at a lower per-kWh cost.</p>
 
         <h2>Enphase IQ Battery 5P</h2>
         <p>Enphase's battery integrates seamlessly with Enphase microinverter systems.</p>
@@ -169,7 +169,7 @@ const articles: Record<string, {
         <p>The LG RESU is a reliable choice with a smaller footprint, but the lower power output limits its ability to run high-draw appliances during an outage.</p>
 
         <h2>Our Recommendation</h2>
-        <p>For most California homeowners under NEM 3.0, the <strong>Tesla Powerwall 3</strong> is the best choice. The integrated inverter, 25-year warranty, VPP eligibility, and 11.5 kW output make it the most capable and future-proof option. The higher upfront cost is offset by the integrated inverter savings and long-term warranty coverage.</p>
+        <p>For most California homeowners under NEM 3.0, the <strong>Tesla Powerwall 3</strong> is the best choice. The integrated inverter, 10-year warranty, VPP eligibility, and 11.5 kW output make it the most capable and future-proof option. The higher upfront cost is offset by the integrated inverter savings.</p>
         <p>For homes that want to maximize storage capacity at lower cost, the Franklin iBX2 is worth considering — especially when stacking multiple units.</p>
         <p><Link href="/tesla-powerwall" className="text-[#2BABE2] font-semibold">Learn more about the Tesla Powerwall 3 →</Link></p>
       </div>

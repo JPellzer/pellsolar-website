@@ -164,7 +164,7 @@ export default function TeslaPowerwall() {
               { icon: Battery, title: "13.5 kWh Storage", desc: "Each Powerwall 3 stores 13.5 kWh of usable energy. Stack up to 4 units for 54 kWh of total storage — enough to power most homes for 24+ hours." },
               { icon: Sun, title: "Peak Hour Savings", desc: "Store solar energy during the day and discharge during expensive peak hours (4–9 PM). Essential for maximizing savings under NEM 3.0 and time-of-use rates." },
               { icon: Shield, title: "Storm Watch", desc: "When the National Weather Service issues a severe weather alert, Powerwall automatically charges to 100% from the grid to prepare for potential outages." },
-              { icon: Clock, title: "25-Year Warranty", desc: "Tesla backs the Powerwall 3 with a 25-year warranty — one of the longest in the industry. That's decades of reliable backup protection." },
+              { icon: Clock, title: "10-Year Warranty", desc: "Tesla backs the Powerwall 3 with a 10-year warranty covering both the battery and the integrated inverter. That's a decade of reliable backup protection." },
             ].map(card => (
               <div key={card.title} className="bg-gray-50 rounded-2xl p-6 border border-gray-200 hover:shadow-lg transition-shadow">
                 <div className="w-12 h-12 rounded-xl bg-[#2BABE2/15] flex items-center justify-center mb-4">
@@ -201,7 +201,7 @@ export default function TeslaPowerwall() {
                   ["Mounting", "Floor or wall mount, indoor or outdoor"],
                   ["Connectivity", "Wi-Fi, Ethernet, cellular backup"],
                   ["Monitoring", "Tesla app — real-time energy flow"],
-                  ["Warranty", "25 years"],
+                  ["Warranty", "10 years"],
                 ].map(([label, value], i) => (
                   <tr key={label} className={i % 2 === 0 ? "bg-gray-50" : "bg-white"}>
                     <td className="px-6 py-4 font-semibold text-gray-900 text-sm w-1/3">{label}</td>
@@ -298,7 +298,7 @@ export default function TeslaPowerwall() {
               { q: "Can I add a Powerwall to my existing solar system?", a: "Yes. We install Powerwalls on both new and existing solar systems. If your system uses string inverters, the Powerwall 3's built-in inverter can replace it." },
               { q: "How long can a Powerwall power my home?", a: "A single Powerwall 3 (13.5 kWh) can power most homes for 8–12 hours depending on usage. Two Powerwalls can last 24+ hours. With solar recharging during the day, you can potentially stay off-grid indefinitely." },
               { q: "Does the Powerwall work during a power outage?", a: "Yes — that's one of its primary functions. When the grid goes down, Powerwall automatically disconnects from the grid and powers your home within milliseconds." },
-              { q: "What's the warranty?", a: "Tesla offers a 25-year warranty on the Powerwall 3, covering both the battery and the integrated inverter." },
+              { q: "What's the warranty?", a: "Tesla offers a 10-year warranty on the Powerwall 3, covering both the battery and the integrated inverter." },
               { q: "Can I monitor my Powerwall remotely?", a: "Yes. The Tesla app shows real-time energy flow — solar production, battery charge level, home consumption, and grid import/export. You can also control backup reserve levels and Storm Watch settings." },
             ].map((faq, i) => (
               <details key={i} className="group bg-gray-50 rounded-xl border border-gray-200">

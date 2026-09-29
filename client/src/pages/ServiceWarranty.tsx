@@ -42,7 +42,7 @@ export default function ServiceWarranty() {
               { icon: Shield, title: "25-Year Panel Warranty", desc: "All panels we install come with a 25-year product warranty and a 25-year performance guarantee (minimum 80% output at year 25)." },
               { icon: Clock, title: "25-Year Inverter Warranty", desc: "Enphase microinverters include a 25-year warranty. SolarEdge and Tesla inverters carry 12–25 year coverage depending on model." },
               { icon: Wrench, title: "10-Year Workmanship", desc: "Our installation workmanship is warranted for 10 years. If anything related to our installation fails, we fix it at no cost." },
-              { icon: Star, title: "25-Year Battery Warranty", desc: "Tesla Powerwall 3 comes with a 25-year warranty covering both the battery cells and the integrated inverter." },
+              { icon: Star, title: "10-Year Battery Warranty", desc: "Tesla Powerwall 3 comes with a 10-year warranty covering both the battery cells and the integrated inverter." },
               { icon: FileText, title: "Roof Penetration Warranty", desc: "Every roof penetration is flashed and sealed to manufacturer specifications. If a leak occurs due to our installation, we repair it — free." },
               { icon: CheckCircle, title: "Production Guarantee", desc: "Lease customers receive a 90% energy production guarantee. If your system underproduces, you're compensated for the difference." },
             ].map(card => (
@@ -75,7 +75,7 @@ export default function ServiceWarranty() {
                 {[
                   ["Solar Panels", "25 years", "Product defects + performance (80% at yr 25)"],
                   ["Enphase Microinverters", "25 years", "Full replacement"],
-                  ["Tesla Powerwall 3", "25 years", "Battery + integrated inverter"],
+                  ["Tesla Powerwall 3", "10 years", "Battery + integrated inverter"],
                   ["IronRidge Racking", "25 years", "Structural integrity"],
                   ["Installation Workmanship", "10 years", "Labor + materials"],
                   ["Roof Penetrations", "10 years", "Leak-free guarantee"],
