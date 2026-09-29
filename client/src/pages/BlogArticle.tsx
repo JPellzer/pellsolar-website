@@ -1,9 +1,18 @@
-import { Link, useRoute } from "wouter";
+import { Link, useRoute, useSearch } from "wouter";
 import { Calendar, Clock, ArrowLeft, Phone, CheckCircle, ArrowRight } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
 const HERO_IMG = "/manus-storage/solar-home-main-v2_0ad97127.jpg";
+
+// Pages that link into an article with `?from=<path>`. Only these same-site
+// paths are honored for the back link; anything else falls back to /blog.
+// The referring page must render an element with id="tesla-direct".
+const BACK_TARGETS: Record<string, string> = {
+  "/battery-backup": "Home Battery Backup",
+  "/tesla-powerwall": "Tesla Powerwall",
+};
+const BACK_ANCHOR = "tesla-direct";
 
 // ─── Article content ────────────────────────────────────────────────────────
 
@@ -912,6 +921,14 @@ export default function BlogArticle() {
   const slug = params?.slug ?? "";
   const article = articles[slug];
 
+  // wouter's useSearch reads ssrSearch on the server and location.search on
+  // the client, so this resolves identically on both sides (no hydration drift).
+  const search = useSearch();
+  const from = new URLSearchParams(search).get("from") ?? "";
+  const backLabel = BACK_TARGETS[from];
+  const backHref = backLabel ? `${from}#${BACK_ANCHOR}` : "/blog";
+  const backText = backLabel ? `Back to ${backLabel}` : "Back to Blog";
+
   if (!article) {
     return (
       <div className="min-h-screen bg-white" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
@@ -951,8 +968,8 @@ export default function BlogArticle() {
         <div className="max-w-3xl mx-auto px-6">
 
           {/* Back link */}
-          <Link href="/blog" className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-800 text-sm font-medium mb-10 no-underline transition-colors">
-            <ArrowLeft size={16} /> Back to Blog
+          <Link href={backHref} className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-800 text-sm font-medium mb-10 no-underline transition-colors">
+            <ArrowLeft size={16} /> {backText}
           </Link>
 
           {/* Article content */}
@@ -971,6 +988,15 @@ export default function BlogArticle() {
           ">
             {article.content}
           </div>
+
+          {/* Back to the referring page (after Sources) so a finished reader
+              doesn't have to scroll up. Plain /blog readers already get
+              "Back to all articles" below the CTA. */}
+          {backLabel && (
+            <Link href={backHref} className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-800 text-sm font-medium mt-6 no-underline transition-colors">
+              <ArrowLeft size={16} /> {backText}
+            </Link>
+          )}
 
           {/* Author / CTA box */}
           <div className="mt-16 bg-[#0B1D51] rounded-2xl p-8 text-center">

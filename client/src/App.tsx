@@ -1,9 +1,23 @@
 import { Route, Switch, useLocation } from "wouter";
 import { useEffect } from "react";
 
+// Fixed navbar is 84px tall; leave a little breathing room above the target.
+const HASH_SCROLL_OFFSET = 100;
+
 function ScrollToTop() {
   const [location] = useLocation();
   useEffect(() => {
+    // Honor an in-page anchor (e.g. /battery-backup#tesla-direct) after the
+    // route has rendered; otherwise reset to the top like before.
+    const hash = window.location.hash;
+    if (hash.length > 1) {
+      const target = document.getElementById(decodeURIComponent(hash.slice(1)));
+      if (target) {
+        const top = target.getBoundingClientRect().top + window.scrollY - HASH_SCROLL_OFFSET;
+        window.scrollTo({ top: Math.max(0, top), left: 0, behavior: "instant" });
+        return;
+      }
+    }
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
   }, [location]);
   return null;
