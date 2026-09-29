@@ -58,7 +58,7 @@ function SavingsBarChart() {
               <p className="text-[#0B1D51] font-bold text-xs leading-tight">MONTH!</p>
             </div>
             <div className="mt-1 bg-[#0B1D51] text-white text-[9px] font-bold px-2 py-1 rounded text-center leading-tight max-w-[80px]">
-              FIXED MONTHLY<br />SOLAR LEASE<br />PAYMENT
+              PREDICTABLE<br />SOLAR LEASE<br />PAYMENT
             </div>
           </div>
 
@@ -95,8 +95,9 @@ const OPTION_COLUMNS = [
 
 const OPTION_ROWS: { label: string; values: [OptionCell, OptionCell, OptionCell] }[] = [
   { label: "Upfront cost", values: [yes("$0"), yes("$0 down"), "Full system price"] },
-  { label: "Monthly payment", values: ["One payment, set at signing", "Loan payment, as low as 4.99% APR", yes("None")] },
+  { label: "Monthly payment", values: ["One monthly payment; increase locked at signing", "Loan payment, as low as 4.99% APR", yes("None")] },
   { label: "Term", values: ["25 years", "12, 15, or 20 years", "—"] },
+  { label: "Annual increase", values: ["Your choice at signing: 0%, 0.99%, 1.99% or 2.99%", "None, fixed loan payment", "—"] },
   { label: "Credit check", values: [yes("Soft pull, no hit to your score"), "Hard pull, 650+", yes("None")] },
   { label: "Who owns it", values: ["LightReach (Palmetto)", "You", "You"] },
   { label: "Equipment warranty", values: [yes("25 years, panels & inverter"), "Manufacturer standard", "Manufacturer standard"] },
@@ -301,7 +302,7 @@ export default function Financing() {
                 {[
                   "Lower monthly cost vs. utility bill",
                   "Zero down",
-                  "Fixed, predictable payment",
+                  "Predictable payment, annual increase locked at signing",
                   "25-year system warranty",
                   "25-year battery coverage (huge differentiator)",
                   "No maintenance or repair risk",
@@ -450,7 +451,7 @@ export default function Financing() {
                   </div>
                   <div>
                     <div className="text-white font-extrabold text-lg mb-1">Zero-Down Solar Lease</div>
-                    <div className="text-white/80 text-sm">No money down. Fixed monthly payment lower than your current utility bill.</div>
+                    <div className="text-white/80 text-sm">No money down. Predictable monthly payment lower than your current utility bill, with the annual increase locked at signing.</div>
                     <div className="mt-2 flex gap-2 flex-wrap">
                       <span className="bg-green-500/30 text-green-300 text-xs font-bold px-2 py-1 rounded-full">NO MONEY DOWN</span>
                       <span className="bg-green-500/30 text-green-300 text-xs font-bold px-2 py-1 rounded-full">TAX CREDIT BUILT IN</span>
