@@ -156,7 +156,7 @@ const pageMeta: Record<string, Pick<SeoMeta, "title" | "description" | "canonica
   "/financing": {
     title: "Solar Financing Options in Southern California | Pell Solar",
     description:
-      "Compare solar financing, leasing, and payment options with Pell Solar to find a solar and battery plan that fits your household budget.",
+      "Compare a $0-down 25-year solar lease, solar loan financing, and cash purchase with Pell Solar to find the solar and battery plan that fits your household budget.",
     canonicalPath: "/financing",
   },
   "/solar-repair": {

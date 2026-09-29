@@ -177,16 +177,63 @@ export default function Financing() {
         </div>
       </section>
 
-      {/* ── FINANCING & CASH PURCHASE CARDS ─────────────────────────────────── */}
+      {/* ── LEASE, FINANCING & CASH PURCHASE CARDS ──────────────────────────── */}
       <section className="py-16 md:py-20 bg-gray-50">
-        <div className="max-w-5xl mx-auto px-6">
+        <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-4" style={{ fontFamily: "'Montserrat', sans-serif" }}>
-              Own Your System — <span className="text-[#2BABE2]">Two Ways to Buy</span>
+              Your Options — <span className="text-[#2BABE2]">Lease, Finance, or Buy</span>
             </h2>
-            <p className="text-gray-600 text-lg max-w-2xl mx-auto">Both options put you in full ownership of your solar system from day one.</p>
+            <p className="text-gray-600 text-lg max-w-2xl mx-auto">Three ways to go solar: lease it, finance it, or buy it. Financing and cash put you in full ownership from day one; the lease keeps your monthly cost lowest.</p>
           </div>
-          <div className="grid md:grid-cols-2 gap-8">
+          <div className="grid md:grid-cols-3 gap-8">
+            {/* Lease Card (featured) */}
+            <div>
+              <div className="bg-white rounded-2xl border-2 border-[#2BABE2] p-8 shadow-sm relative">
+                <div className="absolute -top-3 left-6 bg-[#2BABE2] text-white text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full">$0 Down</div>
+                <h3 className="text-2xl font-extrabold text-gray-900 mb-1" style={{ fontFamily: "'Montserrat', sans-serif" }}>Lease</h3>
+                <p className="text-gray-500 text-sm mb-6">25 years, $0 down, everything covered — through Palmetto LightReach</p>
+                <p className="text-gray-700 leading-relaxed mb-6">
+                  You don't buy the system. LightReach (Palmetto) owns it, Pell Solar installs and services it, and you get the power for one fixed monthly payment. With the residential tax credit gone, this is usually the lowest monthly cost: the owner claims the commercial credit and passes the savings into your rate.
+                </p>
+                <div className="space-y-0 mb-6">
+                  {[
+                    { label: "Upfront Cost", value: "$0 Down" },
+                    { label: "Term", value: "25 years" },
+                    { label: "Credit Check", value: "Soft pull, no hit to your score" },
+                    { label: "Warranty", value: "25-year panels, inverter & workmanship" },
+                    { label: "Roof Penetrations", value: "10-year warranty" },
+                    { label: "Maintenance & Repairs", value: "Included, parts and labor" },
+                    { label: "Production Guarantee", value: "90%, credited if it falls short" },
+                    { label: "Monitoring", value: "24/7, proactive" },
+                    { label: "Annual Increase", value: "Fixed escalator, locked at signing" },
+                    { label: "If You Sell", value: "Transfers to the buyer" },
+                    { label: "At Year 25", value: "Renew, or have it removed" },
+                  ].map((row) => (
+                    <div key={row.label} className="flex justify-between items-center gap-4 py-3 border-b border-gray-100 last:border-0">
+                      <span className="text-gray-500 text-sm">{row.label}</span>
+                      <span className="font-bold text-gray-900 text-sm text-right">{row.value}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex gap-3 mb-6">
+                  <span className="text-[#2BABE2] text-lg flex-shrink-0">ℹ️</span>
+                  <p className="text-gray-700 text-sm leading-relaxed">
+                    <strong>Good to know:</strong> LightReach owns the system and claims the tax credit, so you don't build equity — but you also never pay for a repair, and the payment is set from day one.
+                  </p>
+                </div>
+                <Link href="/get-quote">
+                  <span className="block text-center bg-[#2BABE2] hover:bg-[#1e96cc] text-white font-bold py-3 px-6 rounded-lg transition-colors cursor-pointer">
+                    Get a Lease Quote
+                  </span>
+                </Link>
+              </div>
+              <p className="text-xs text-gray-500 mt-3 px-2 leading-relaxed">
+                Battery-only leases (Tesla Powerwall 3) run 12 years — <Link href="/tesla-powerwall" className="text-[#2BABE2] font-semibold hover:underline">see Powerwall pricing →</Link>
+                <br />
+                <Link href="/solar-lease" className="text-[#2BABE2] font-semibold hover:underline">Learn more about leasing →</Link>
+              </p>
+            </div>
             {/* Financing Card */}
             <div className="bg-white rounded-2xl border border-gray-200 p-8 shadow-sm">
               <h3 className="text-2xl font-extrabold text-gray-900 mb-1" style={{ fontFamily: "'Montserrat', sans-serif" }}>Financing</h3>
@@ -203,9 +250,9 @@ export default function Financing() {
                   { label: "Ownership", value: "You own it" },
                   { label: "Prepayment Penalty", value: "None" },
                 ].map((row) => (
-                  <div key={row.label} className="flex justify-between items-center py-3 border-b border-gray-100 last:border-0">
+                  <div key={row.label} className="flex justify-between items-center gap-4 py-3 border-b border-gray-100 last:border-0">
                     <span className="text-gray-500 text-sm">{row.label}</span>
-                    <span className="font-bold text-gray-900 text-sm">{row.value}</span>
+                    <span className="font-bold text-gray-900 text-sm text-right">{row.value}</span>
                   </div>
                 ))}
               </div>
@@ -232,9 +279,9 @@ export default function Financing() {
                   { label: "Battery Warranty", value: "10 years (manufacturer)" },
                   { label: "Maintenance", value: "Homeowner responsibility" },
                 ].map((row) => (
-                  <div key={row.label} className="flex justify-between items-center py-3 border-b border-gray-100 last:border-0">
+                  <div key={row.label} className="flex justify-between items-center gap-4 py-3 border-b border-gray-100 last:border-0">
                     <span className="text-gray-500 text-sm">{row.label}</span>
-                    <span className="font-bold text-gray-900 text-sm">{row.value}</span>
+                    <span className="font-bold text-gray-900 text-sm text-right">{row.value}</span>
                   </div>
                 ))}
               </div>
