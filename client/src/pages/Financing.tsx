@@ -1,5 +1,18 @@
 import { Fragment, useState } from "react";
 import { Link } from "wouter";
+import {
+  Activity,
+  BarChart3,
+  Calendar,
+  CreditCard,
+  DollarSign,
+  Home,
+  KeyRound,
+  ShieldCheck,
+  TrendingUp,
+  Wrench,
+  type LucideIcon,
+} from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { trpc } from "@/lib/trpc";
@@ -92,57 +105,67 @@ const PLANS = [
 
 /*
  * Two cell types only, never mixed within a row:
- *  - icon rows: true = green check circle, false = muted dash circle
+ *  - icon rows: true = solid green check, false = muted dash glyph
  *  - text rows: short text, null = muted em dash
+ * Every row carries a lucide icon shown to the left of its label.
  */
-type IconRow = { label: string; type: "icon"; values: [boolean, boolean, boolean] };
-type TextRow = { label: string; type: "text"; values: [string | null, string | null, string | null] };
+type IconRow = { label: string; Icon: LucideIcon; type: "icon"; values: [boolean, boolean, boolean] };
+type TextRow = { label: string; Icon: LucideIcon; type: "text"; values: [string | null, string | null, string | null] };
 type PlanRow = IconRow | TextRow;
 
 const PLAN_SECTIONS: { title: string; rows: PlanRow[] }[] = [
   {
     title: "Cost",
     rows: [
-      { label: "Upfront cost", type: "text", values: ["$0", "$0", "Full system price"] },
-      { label: "Monthly payment", type: "text", values: ["One monthly payment", "Loan payment", "None"] },
-      { label: "Annual increase", type: "text", values: ["0–2.99%, your choice", "None", null] },
+      { label: "Upfront cost", Icon: DollarSign, type: "text", values: ["$0", "$0", "Full system price"] },
+      { label: "Monthly payment", Icon: DollarSign, type: "text", values: ["One monthly payment", "Loan payment", "None"] },
+      { label: "Annual increase", Icon: TrendingUp, type: "text", values: ["0–2.99%, your choice", "None", null] },
     ],
   },
   {
     title: "Ownership & coverage",
     rows: [
-      { label: "You own the system", type: "icon", values: [false, true, true] },
-      { label: "Equipment & workmanship warranty", type: "text", values: ["25 years", "Manufacturer + Pell", "Manufacturer + Pell"] },
-      { label: "Repairs & maintenance included", type: "icon", values: [true, false, false] },
-      { label: "90% production guarantee", type: "icon", values: [true, false, false] },
-      { label: "24/7 monitoring included", type: "icon", values: [true, false, false] },
+      { label: "You own the system", Icon: Home, type: "icon", values: [false, true, true] },
+      { label: "Equipment & workmanship warranty", Icon: ShieldCheck, type: "text", values: ["25 years", "Manufacturer + Pell", "Manufacturer + Pell"] },
+      { label: "Repairs & maintenance included", Icon: Wrench, type: "icon", values: [true, false, false] },
+      { label: "90% production guarantee", Icon: BarChart3, type: "icon", values: [true, false, false] },
+      { label: "24/7 monitoring included", Icon: Activity, type: "icon", values: [true, false, false] },
     ],
   },
   {
     title: "Flexibility",
     rows: [
-      { label: "Term", type: "text", values: ["25 years", "12–20 years", null] },
-      { label: "Credit check", type: "text", values: ["Soft pull, no score hit", "Hard pull, 650+", "None"] },
-      { label: "If you sell", type: "text", values: ["Transfers to buyer", "Pay off or transfer loan", "Stays with house"] },
+      { label: "Term", Icon: Calendar, type: "text", values: ["25 years", "12–20 years", null] },
+      { label: "Credit check", Icon: CreditCard, type: "text", values: ["Soft pull, no score hit", "Hard pull, 650+", "None"] },
+      { label: "If you sell", Icon: KeyRound, type: "text", values: ["Transfers to buyer", "Pay off or transfer loan", "Stays with house"] },
     ],
   },
 ];
 
 const LEASE_TINT = "bg-[#EAF6FC]"; // the Lease card's own fill (unchanged)
 const COLUMN_TINT = "bg-sky-50"; // continuous band under the Lease column, card border sits on top
-// One shared column template (280px label + three equal plan columns) is declared once on
-// the desktop grid in PlanComparison; the bordered body is a subgrid of it. The label column is
-// 280px (not 220px) because "Equipment & workmanship warranty" measures 239px at 14px Inter
-// and must stay on one line.
-const SECTION_TITLE = "text-[11px] font-semibold uppercase tracking-wide text-slate-400 whitespace-nowrap";
+// Inside the bordered body the Lease column is one highlighted panel: sky-50 fill plus 1px
+// sky-200 rails on both sides, applied to every value row and the footer row.
+const LEASE_PANEL = "bg-sky-50 border-x border-sky-200";
+// One shared column template (334px label + three equal plan columns) is declared once on
+// the desktop grid in PlanComparison; the bordered body is a subgrid of it. The label column
+// is 334px because "Equipment & workmanship warranty" measures 263px at 15px Inter semibold
+// (fontkit, Google Fonts TTF) and, with 24px left padding + 16px icon + 10px gap + 16px right
+// padding, must stay on one line at 1280px. Three plan columns of ~257px leave ~191px of card
+// content, enough for "Get a Financing Quote" (151px + 32px padding) and "4.99% APR" (184px).
+const GRID_COLS = "lg:grid-cols-[334px_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)]";
+// Section band: one full-width cell, 40px tall, no column tint shows through it.
+const SECTION_BAND = "flex h-10 items-center whitespace-nowrap bg-slate-100 pl-6 text-[12px] font-bold uppercase tracking-[0.12em] text-slate-600";
+const ROW_LABEL = "text-[15px] leading-5 font-semibold text-slate-900";
+const ROW_ICON = "h-4 w-4 shrink-0 text-slate-400";
 const PRIMARY_BTN = "block text-center bg-[#FED44D] text-[#0B1D51] font-bold text-sm px-4 py-3 rounded-lg no-underline hover:opacity-90 transition-opacity";
 const SECONDARY_BTN = "block text-center border-2 border-[#0B1D51] text-[#0B1D51] font-bold text-sm px-4 py-[10px] rounded-lg no-underline hover:bg-[#0B1D51] hover:text-white transition-colors";
 
 function CheckCell() {
   return (
-    <span className="inline-flex h-[22px] w-[22px] items-center justify-center rounded-full bg-green-100" role="img" aria-label="Included">
-      <svg className="h-3 w-3 text-green-600" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
+    <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-green-600" role="img" aria-label="Included">
+      <svg className="h-4 w-4 text-white" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     </span>
   );
@@ -150,17 +173,22 @@ function CheckCell() {
 
 function NoCell() {
   return (
-    <span className="inline-flex h-[22px] w-[22px] items-center justify-center rounded-full bg-slate-100" role="img" aria-label="Not included">
-      <svg className="h-3 w-3 text-slate-400" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path d="M6 12h12" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-      </svg>
-    </span>
+    <span className="text-lg leading-5 text-slate-300" role="img" aria-label="Not included">—</span>
   );
 }
 
 function TextCell({ text, emphasis }: { text: string | null; emphasis: boolean }) {
-  if (text === null) return <span className="text-[15px] leading-5 text-slate-300" aria-label="Not applicable">—</span>;
-  return <span className={`text-[15px] leading-5 text-slate-900 ${emphasis ? "font-medium" : ""}`}>{text}</span>;
+  if (text === null) return <span className="text-lg leading-5 text-slate-300" aria-label="Not applicable">—</span>;
+  return <span className={`text-[15px] leading-5 ${emphasis ? "font-semibold text-slate-900" : "text-slate-800"}`}>{text}</span>;
+}
+
+function RowLabel({ row }: { row: PlanRow }) {
+  return (
+    <>
+      <row.Icon className={ROW_ICON} aria-hidden="true" />
+      <span className={ROW_LABEL}>{row.label}</span>
+    </>
+  );
 }
 
 function PlanCellValue({ row, index }: { row: PlanRow; index: 0 | 1 | 2 }) {
@@ -211,7 +239,7 @@ function PlanComparison() {
        * columns, so every value sits exactly under its card. The Lease column is
        * tinted continuously from the card down through the last row.
        */}
-      <div className="hidden lg:grid lg:grid-cols-[280px_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)]">
+      <div className={`hidden lg:grid ${GRID_COLS}`}>
         <div aria-hidden="true" />
         {PLANS.map((p) => (
           <div key={p.key} className={`grid px-2 pb-4 ${p.featured ? `${COLUMN_TINT} rounded-t-[24px]` : ""}`}>
@@ -219,26 +247,21 @@ function PlanComparison() {
           </div>
         ))}
 
-        <div className="col-span-4 grid grid-cols-subgrid overflow-hidden rounded-2xl border border-slate-200 bg-white">
-          {PLAN_SECTIONS.map((section, s) => (
+        <div className="col-span-4 grid grid-cols-subgrid overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+          {PLAN_SECTIONS.map((section) => (
             <Fragment key={section.title}>
-              {/* Section header: hairline above spans all four columns, Lease tint continues */}
-              <div className={`flex h-12 items-end border-r border-slate-100 pb-2 pl-6 pr-4 ${s > 0 ? "border-t border-slate-200" : ""}`}>
-                <span className={SECTION_TITLE}>{section.title}</span>
-              </div>
-              {PLANS.map((p) => (
-                <div key={p.key} className={`${s > 0 ? "border-t border-slate-200" : ""} ${p.featured ? COLUMN_TINT : ""}`} aria-hidden="true" />
-              ))}
+              {/* Section band: ONE cell across all four columns, so no column tint shows inside it */}
+              <div className={`col-span-4 ${SECTION_BAND}`}>{section.title}</div>
 
               {section.rows.map((row) => (
                 <Fragment key={row.label}>
-                  <div className="flex h-14 items-center whitespace-nowrap border-t border-r border-slate-100 pl-6 pr-4 text-sm text-slate-500">
-                    {row.label}
+                  <div className="flex h-[60px] items-center gap-2.5 whitespace-nowrap border-t border-r border-slate-100 border-r-slate-200 bg-slate-50 pl-6 pr-4">
+                    <RowLabel row={row} />
                   </div>
                   {PLAN_INDEXES.map((i) => (
                     <div
                       key={PLANS[i].key}
-                      className={`flex h-14 items-center whitespace-nowrap border-t border-slate-100 pl-8 pr-4 ${PLANS[i].featured ? COLUMN_TINT : ""}`}
+                      className={`flex h-[60px] items-center whitespace-nowrap border-t border-slate-100 pl-8 pr-4 ${PLANS[i].featured ? LEASE_PANEL : ""}`}
                     >
                       <PlanCellValue row={row} index={i} />
                     </div>
@@ -247,23 +270,34 @@ function PlanComparison() {
               ))}
             </Fragment>
           ))}
+
+          {/* Footer row: empty label cell, then the three CTAs under their plan columns.
+              px-[33px] = card wrapper px-2 (8) + card border (1) + card p-6 (24), so each
+              button lines up exactly with the button in the card above it. */}
+          <div className="border-t border-r border-slate-100 border-r-slate-200 bg-slate-50" aria-hidden="true" />
+          {PLANS.map((p) => (
+            <div key={p.key} className={`border-t border-slate-100 px-[33px] py-5 ${p.featured ? LEASE_PANEL : ""}`}>
+              <Link href="/get-quote" className={p.featured ? PRIMARY_BTN : SECONDARY_BTN}>{p.cta}</Link>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* Below lg: cards stack, each followed by its own grouped list */}
+      {/* Below lg: cards stack, each followed by its own grouped list (same bands, icon labels,
+          solid checks) and its own CTA as the footer row. */}
       <div className="lg:hidden mx-auto max-w-xl space-y-10">
         {PLANS.map((p, i) => (
           <div key={p.key}>
             <PlanCard plan={p} />
-            <div className={`mt-3 overflow-hidden rounded-2xl border ${p.featured ? `border-sky-200 ${COLUMN_TINT}` : "border-slate-200 bg-white"}`}>
-              {PLAN_SECTIONS.map((section, s) => (
+            <div className={`mt-3 overflow-hidden rounded-2xl border shadow-sm ${p.featured ? `border-sky-200 ${COLUMN_TINT}` : "border-slate-200 bg-white"}`}>
+              {PLAN_SECTIONS.map((section) => (
                 <Fragment key={section.title}>
-                  <div className={`flex h-11 items-end px-5 pb-2 ${s > 0 ? "border-t border-slate-200" : ""}`}>
-                    <span className={SECTION_TITLE}>{section.title}</span>
-                  </div>
+                  <div className={SECTION_BAND}>{section.title}</div>
                   {section.rows.map((row) => (
-                    <div key={row.label} className="flex min-h-[48px] items-center justify-between gap-4 border-t border-slate-100 px-5 py-2">
-                      <span className="min-w-0 text-sm text-slate-500">{row.label}</span>
+                    <div key={row.label} className="flex min-h-[60px] items-center justify-between gap-4 border-t border-slate-100 px-6 py-2">
+                      <span className="flex min-w-0 items-center gap-2.5">
+                        <RowLabel row={row} />
+                      </span>
                       <span className="max-w-[55%] shrink-0 text-right">
                         <PlanCellValue row={row} index={PLAN_INDEXES[i]} />
                       </span>
@@ -271,6 +305,9 @@ function PlanComparison() {
                   ))}
                 </Fragment>
               ))}
+              <div className="border-t border-slate-100 px-6 py-5">
+                <Link href="/get-quote" className={p.featured ? PRIMARY_BTN : SECONDARY_BTN}>{p.cta}</Link>
+              </div>
             </div>
           </div>
         ))}
