@@ -83,6 +83,146 @@ function SavingsBarChart() {
   );
 }
 
+/* ── Options Comparison (Lease / Financing / Cash) ───────────────────────── */
+type OptionCell = string | { text: string; yes: true };
+const yes = (text: string): OptionCell => ({ text, yes: true });
+
+const OPTION_COLUMNS = [
+  { key: "lease", name: "Lease", subtitle: "$0 down, 25 years, everything covered, through Palmetto LightReach", cta: "Get a Lease Quote", featured: true },
+  { key: "finance", name: "Financing", subtitle: "Own it with a fixed-rate solar loan", cta: "Get a Financing Quote", featured: false },
+  { key: "cash", name: "Cash Purchase", subtitle: "Own it outright, no monthly payments", cta: "Get a Cash Quote", featured: false },
+] as const;
+
+const OPTION_ROWS: { label: string; values: [OptionCell, OptionCell, OptionCell] }[] = [
+  { label: "Upfront cost", values: [yes("$0"), yes("$0 down"), "Full system price"] },
+  { label: "Monthly payment", values: ["One payment, set at signing", "Loan payment, as low as 4.99% APR", yes("None")] },
+  { label: "Term", values: ["25 years", "12, 15, or 20 years", "—"] },
+  { label: "Credit check", values: [yes("Soft pull, no hit to your score"), "Hard pull, 650+", yes("None")] },
+  { label: "Who owns it", values: ["LightReach (Palmetto)", "You", "You"] },
+  { label: "Equipment warranty", values: [yes("25 years, panels & inverter"), "Manufacturer standard", "Manufacturer standard"] },
+  { label: "Workmanship", values: [yes("25 years"), yes("Pell Solar workmanship warranty"), yes("Pell Solar workmanship warranty")] },
+  { label: "Roof penetrations", values: [yes("10-year warranty"), yes("10-year warranty"), yes("10-year warranty")] },
+  { label: "Maintenance & repairs", values: [yes("Included for 25 years, parts and labor"), "Homeowner", "Homeowner"] },
+  { label: "Production guarantee", values: [yes("90%, credited if it falls short"), "—", "—"] },
+  { label: "Monitoring", values: [yes("24/7, proactive"), "Manufacturer app", "Manufacturer app"] },
+  { label: "Federal tax credit", values: ["Claimed by LightReach, passed into your rate", "Not available since Dec 31, 2025", "Not available since Dec 31, 2025"] },
+  { label: "If you sell", values: ["Transfers to the buyer", "Pay off or transfer the loan", "System stays with the house"] },
+  { label: "End of term", values: ["Renew, or have it removed", "You own it, no more payments", "—"] },
+  { label: "Prepayment penalty", values: ["—", yes("None"), "—"] },
+  { label: "Best for", values: ["Lowest monthly cost, zero upkeep", "Owning with $0 down", "No payments, biggest long-term savings"] },
+];
+
+const LEASE_TINT = "bg-[#EAF6FC]";
+const PRIMARY_BTN = "block text-center bg-[#FED44D] text-[#0B1D51] font-bold text-sm px-4 py-3 rounded-lg no-underline hover:opacity-90 transition-opacity";
+const SECONDARY_BTN = "block text-center border-2 border-[#0B1D51] text-[#0B1D51] font-bold text-sm px-4 py-[10px] rounded-lg no-underline hover:bg-[#0B1D51] hover:text-white transition-colors";
+
+function CheckIcon() {
+  return (
+    <svg className="inline-block w-3.5 h-3.5 mr-1.5 -mt-0.5 flex-shrink-0 text-[#22c55e]" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function OptionValue({ cell }: { cell: OptionCell }) {
+  if (cell === "—") return <span className="text-gray-300">—</span>;
+  if (typeof cell === "string") return <span className="font-semibold text-gray-900">{cell}</span>;
+  return (
+    <span className="font-semibold text-gray-900">
+      <CheckIcon />
+      {cell.text}
+    </span>
+  );
+}
+
+function ZeroDownPill() {
+  return (
+    <span className="inline-block bg-[#2BABE2] text-white text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full">
+      $0 Down
+    </span>
+  );
+}
+
+function OptionsComparison() {
+  return (
+    <>
+      {/* Desktop: single comparison table */}
+      <div className="hidden md:block rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+        <table className="w-full table-fixed border-collapse">
+          <colgroup>
+            <col className="w-[22%]" />
+            <col className="w-[26%]" />
+            <col className="w-[26%]" />
+            <col className="w-[26%]" />
+          </colgroup>
+          <thead>
+            <tr>
+              <th scope="col" className="align-bottom px-5 pt-5 pb-3" />
+              {OPTION_COLUMNS.map((c) => (
+                <th key={c.key} scope="col" className={`text-left align-top px-5 pt-5 pb-3 ${c.featured ? LEASE_TINT : ""}`}>
+                  <div className="h-5 mb-1">{c.featured && <ZeroDownPill />}</div>
+                  <div
+                    className={c.featured ? "text-[22px] font-extrabold text-[#0B1D51] leading-tight" : "text-lg font-bold text-gray-900 leading-tight"}
+                    style={{ fontFamily: "'Montserrat', sans-serif" }}
+                  >
+                    {c.name}
+                  </div>
+                  <div className="text-xs text-gray-500 font-normal leading-snug mt-1">{c.subtitle}</div>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {OPTION_ROWS.map((row) => (
+              <tr key={row.label} className="border-t border-gray-100">
+                <th scope="row" className="text-left align-top px-5 py-2.5 text-sm font-medium text-gray-500 leading-snug">{row.label}</th>
+                {row.values.map((cell, i) => (
+                  <td key={OPTION_COLUMNS[i].key} className={`align-top px-5 py-2.5 text-sm leading-snug ${OPTION_COLUMNS[i].featured ? LEASE_TINT : ""}`}>
+                    <OptionValue cell={cell} />
+                  </td>
+                ))}
+              </tr>
+            ))}
+            <tr className="border-t border-gray-200">
+              <td className="px-5 pt-4 pb-5" />
+              {OPTION_COLUMNS.map((c) => (
+                <td key={c.key} className={`px-5 pt-4 pb-5 ${c.featured ? LEASE_TINT : ""}`}>
+                  <Link href="/get-quote" className={c.featured ? PRIMARY_BTN : SECONDARY_BTN}>{c.cta}</Link>
+                </td>
+              ))}
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      {/* Mobile: three stacked compact cards */}
+      <div className="md:hidden space-y-5">
+        {OPTION_COLUMNS.map((c, i) => (
+          <div key={c.key} className={`rounded-2xl border p-5 shadow-sm ${c.featured ? `${LEASE_TINT} border-[#2BABE2]` : "bg-white border-gray-200"}`}>
+            {c.featured && <div className="mb-1.5"><ZeroDownPill /></div>}
+            <h3
+              className={c.featured ? "text-2xl font-extrabold text-[#0B1D51] leading-tight" : "text-xl font-bold text-gray-900 leading-tight"}
+              style={{ fontFamily: "'Montserrat', sans-serif" }}
+            >
+              {c.name}
+            </h3>
+            <p className="text-xs text-gray-500 mt-1 mb-3">{c.subtitle}</p>
+            <div className="mb-4">
+              {OPTION_ROWS.map((row) => (
+                <div key={row.label} className="flex justify-between items-start gap-4 py-2 border-t border-gray-200/70 text-sm leading-snug">
+                  <span className="text-gray-500 flex-shrink-0">{row.label}</span>
+                  <span className="text-right"><OptionValue cell={row.values[i]} /></span>
+                </div>
+              ))}
+            </div>
+            <Link href="/get-quote" className={c.featured ? PRIMARY_BTN : SECONDARY_BTN}>{c.cta}</Link>
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
+
 export default function Financing() {
   const [form, setForm] = useState({ firstName: "", lastName: "", email: "", phone: "", bill: "", address: "", city: "", state: "", zip: "", honeypot: "" });
   const [formLoadedAt] = useState(Date.now());
@@ -177,122 +317,21 @@ export default function Financing() {
         </div>
       </section>
 
-      {/* ── LEASE, FINANCING & CASH PURCHASE CARDS ──────────────────────────── */}
+      {/* ── YOUR OPTIONS — LEASE / FINANCING / CASH COMPARISON ───────────────── */}
       <section className="py-16 md:py-20 bg-gray-50">
         <div className="max-w-6xl mx-auto px-6">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-4" style={{ fontFamily: "'Montserrat', sans-serif" }}>
+          <div className="text-center mb-10">
+            <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-3" style={{ fontFamily: "'Montserrat', sans-serif" }}>
               Your Options — <span className="text-[#2BABE2]">Lease, Finance, or Buy</span>
             </h2>
-            <p className="text-gray-600 text-lg max-w-2xl mx-auto">Three ways to go solar: lease it, finance it, or buy it. Financing and cash put you in full ownership from day one; the lease keeps your monthly cost lowest.</p>
+            <p className="text-gray-600 text-lg">Three ways to go solar: lease it, finance it, or buy it.</p>
           </div>
-          <div className="grid md:grid-cols-3 gap-8">
-            {/* Lease Card (featured) */}
-            <div>
-              <div className="bg-white rounded-2xl border-2 border-[#2BABE2] p-8 shadow-sm relative">
-                <div className="absolute -top-3 left-6 bg-[#2BABE2] text-white text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full">$0 Down</div>
-                <h3 className="text-2xl font-extrabold text-gray-900 mb-1" style={{ fontFamily: "'Montserrat', sans-serif" }}>Lease</h3>
-                <p className="text-gray-500 text-sm mb-6">25 years, $0 down, everything covered — through Palmetto LightReach</p>
-                <p className="text-gray-700 leading-relaxed mb-6">
-                  You don't buy the system. LightReach (Palmetto) owns it, Pell Solar installs and services it, and you get the power for one fixed monthly payment. With the residential tax credit gone, this is usually the lowest monthly cost: the owner claims the commercial credit and passes the savings into your rate.
-                </p>
-                <div className="space-y-0 mb-6">
-                  {[
-                    { label: "Upfront Cost", value: "$0 Down" },
-                    { label: "Term", value: "25 years" },
-                    { label: "Credit Check", value: "Soft pull, no hit to your score" },
-                    { label: "Warranty", value: "25-year panels, inverter & workmanship" },
-                    { label: "Roof Penetrations", value: "10-year warranty" },
-                    { label: "Maintenance & Repairs", value: "Included, parts and labor" },
-                    { label: "Production Guarantee", value: "90%, credited if it falls short" },
-                    { label: "Monitoring", value: "24/7, proactive" },
-                    { label: "Annual Increase", value: "Fixed escalator, locked at signing" },
-                    { label: "If You Sell", value: "Transfers to the buyer" },
-                    { label: "At Year 25", value: "Renew, or have it removed" },
-                  ].map((row) => (
-                    <div key={row.label} className="flex justify-between items-center gap-4 py-3 border-b border-gray-100 last:border-0">
-                      <span className="text-gray-500 text-sm">{row.label}</span>
-                      <span className="font-bold text-gray-900 text-sm text-right">{row.value}</span>
-                    </div>
-                  ))}
-                </div>
-                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex gap-3 mb-6">
-                  <span className="text-[#2BABE2] text-lg flex-shrink-0">ℹ️</span>
-                  <p className="text-gray-700 text-sm leading-relaxed">
-                    <strong>Good to know:</strong> LightReach owns the system and claims the tax credit, so you don't build equity — but you also never pay for a repair, and the payment is set from day one.
-                  </p>
-                </div>
-                <Link href="/get-quote">
-                  <span className="block text-center bg-[#2BABE2] hover:bg-[#1e96cc] text-white font-bold py-3 px-6 rounded-lg transition-colors cursor-pointer">
-                    Get a Lease Quote
-                  </span>
-                </Link>
-              </div>
-              <p className="text-xs text-gray-500 mt-3 px-2 leading-relaxed">
-                Battery-only leases (Tesla Powerwall 3) run 12 years — <Link href="/tesla-powerwall" className="text-[#2BABE2] font-semibold hover:underline">see Powerwall pricing →</Link>
-                <br />
-                <Link href="/solar-lease" className="text-[#2BABE2] font-semibold hover:underline">Learn more about leasing →</Link>
-              </p>
-            </div>
-            {/* Financing Card */}
-            <div className="bg-white rounded-2xl border border-gray-200 p-8 shadow-sm">
-              <h3 className="text-2xl font-extrabold text-gray-900 mb-1" style={{ fontFamily: "'Montserrat', sans-serif" }}>Financing</h3>
-              <p className="text-gray-500 text-sm mb-6">Flexible loan terms and rates</p>
-              <p className="text-gray-700 leading-relaxed mb-6">
-                For homeowners who want to own their solar system, we offer financing with competitive fixed rates and flexible terms. You own the equipment from day one, and every payment builds equity in your home.
-              </p>
-              <div className="space-y-0 mb-6">
-                {[
-                  { label: "Upfront Cost", value: "$0 Down" },
-                  { label: "APR", value: "As low as 4.99%" },
-                  { label: "Terms Available", value: "12, 15, or 20 years" },
-                  { label: "Min. Credit Score", value: "650" },
-                  { label: "Ownership", value: "You own it" },
-                  { label: "Prepayment Penalty", value: "None" },
-                ].map((row) => (
-                  <div key={row.label} className="flex justify-between items-center gap-4 py-3 border-b border-gray-100 last:border-0">
-                    <span className="text-gray-500 text-sm">{row.label}</span>
-                    <span className="font-bold text-gray-900 text-sm text-right">{row.value}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 flex gap-3">
-                <span className="text-yellow-500 text-lg flex-shrink-0">⚠️</span>
-                <p className="text-gray-700 text-sm leading-relaxed">
-                  <strong>Important:</strong> The 30% federal tax credit is no longer available for financed purchases as of December 30, 2025. Your total cost will be the full system price plus interest.
-                </p>
-              </div>
-            </div>
-            {/* Cash Purchase Card */}
-            <div className="bg-white rounded-2xl border border-gray-200 p-8 shadow-sm">
-              <h3 className="text-2xl font-extrabold text-gray-900 mb-1" style={{ fontFamily: "'Montserrat', sans-serif" }}>Cash Purchase</h3>
-              <p className="text-gray-500 text-sm mb-6">Outright ownership, no monthly payments</p>
-              <p className="text-gray-700 leading-relaxed mb-6">
-                Paying cash means no monthly payments and no interest. You own everything outright and benefit from reduced electric bills for the life of the system. This is the simplest option if upfront cost isn't a concern.
-              </p>
-              <div className="space-y-0 mb-6">
-                {[
-                  { label: "Upfront Cost", value: "Full system price" },
-                  { label: "Monthly Payment", value: "None" },
-                  { label: "Ownership", value: "You own it" },
-                  { label: "Warranty", value: "Manufacturer standard" },
-                  { label: "Battery Warranty", value: "10 years (manufacturer)" },
-                  { label: "Maintenance", value: "Homeowner responsibility" },
-                ].map((row) => (
-                  <div key={row.label} className="flex justify-between items-center gap-4 py-3 border-b border-gray-100 last:border-0">
-                    <span className="text-gray-500 text-sm">{row.label}</span>
-                    <span className="font-bold text-gray-900 text-sm text-right">{row.value}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 flex gap-3">
-                <span className="text-yellow-500 text-lg flex-shrink-0">⚠️</span>
-                <p className="text-gray-700 text-sm leading-relaxed">
-                  <strong>Important:</strong> The 30% federal tax credit is no longer available for cash purchases as of December 30, 2025. The price you pay is the full system cost without any federal incentive.
-                </p>
-              </div>
-            </div>
-          </div>
+          <OptionsComparison />
+          <p className="text-xs text-gray-500 mt-4 text-center leading-relaxed">
+            Battery-only leases (Tesla Powerwall 3) run 12 years — <Link href="/tesla-powerwall" className="text-[#2BABE2] font-semibold hover:underline">see Powerwall pricing →</Link>
+            <span className="mx-2 text-gray-300">·</span>
+            <Link href="/solar-lease" className="text-[#2BABE2] font-semibold hover:underline">Learn more about leasing →</Link>
+          </p>
         </div>
       </section>
 
