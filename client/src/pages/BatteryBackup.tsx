@@ -1,4 +1,5 @@
 import { Link } from "wouter";
+import { ArrowRight } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
@@ -72,6 +73,18 @@ export default function BatteryBackup() {
               </p>
             </div>
           </div>
+
+          {/* Callout: thinking about ordering from Tesla direct */}
+          <Link href="/blog/tesla-powerwall-wait-times" className="mt-12 block bg-gray-50 rounded-2xl border border-gray-200 p-6 no-underline hover:shadow-lg hover:border-[#2BABE2] transition-all group">
+            <p className="text-[#2BABE2] font-bold text-xs tracking-widest uppercase mb-2">Thinking about ordering straight from Tesla?</p>
+            <p className="text-gray-700 leading-relaxed mb-3">
+              Tesla direct can cost less. It can also mean a long wait: Tesla's own timeline runs 2–3 months, and plenty of homeowners report far longer. We install the same Powerwall 3 locally in about a month.
+            </p>
+            <p className="text-gray-900 font-semibold flex items-center gap-2">
+              Read the article, with sources
+              <ArrowRight size={18} className="text-[#2BABE2] group-hover:translate-x-1 transition-transform flex-shrink-0" />
+            </p>
+          </Link>
         </div>
       </section>
 
