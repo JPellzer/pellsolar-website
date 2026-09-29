@@ -83,141 +83,125 @@ function SavingsBarChart() {
   );
 }
 
-/* ── Options Comparison (Lease / Financing / Cash) ───────────────────────── */
-type OptionCell = string | { text: string; yes: true };
-const yes = (text: string): OptionCell => ({ text, yes: true });
+/* ── Three ways to go solar (Lease / Financing / Cash) ───────────────────── */
+type PlanCell = "—" | "✓" | string | { check: true; text: string };
+const ck = (text: string): PlanCell => ({ check: true, text });
 
-const OPTION_COLUMNS = [
-  { key: "lease", name: "Lease", subtitle: "$0 down, 25 years, everything covered, through Palmetto LightReach", cta: "Get a Lease Quote", featured: true },
-  { key: "finance", name: "Financing", subtitle: "Own it with a fixed-rate solar loan", cta: "Get a Financing Quote", featured: false },
-  { key: "cash", name: "Cash Purchase", subtitle: "Own it outright, no monthly payments", cta: "Get a Cash Quote", featured: false },
+const PLANS = [
+  { key: "lease", name: "Lease", kicker: "", headline: "$0 down", tagline: "LightReach owns it and covers everything for 25 years.", cta: "Get a Lease Quote", featured: true },
+  { key: "finance", name: "Financing", kicker: "As low as", headline: "4.99% APR", tagline: "Own the system with a fixed-rate solar loan.", cta: "Get a Financing Quote", featured: false },
+  { key: "cash", name: "Cash Purchase", kicker: "", headline: "Pay once", tagline: "Own it outright, no monthly payment.", cta: "Get a Cash Quote", featured: false },
 ] as const;
 
-const OPTION_ROWS: { label: string; values: [OptionCell, OptionCell, OptionCell] }[] = [
-  { label: "Upfront cost", values: [yes("$0"), yes("$0 down"), "Full system price"] },
-  { label: "Monthly payment", values: ["One monthly payment; increase locked at signing", "Loan payment, as low as 4.99% APR", yes("None")] },
-  { label: "Term", values: ["25 years", "12, 15, or 20 years", "—"] },
-  { label: "Annual increase", values: ["Your choice at signing: 0%, 0.99%, 1.99% or 2.99%", "None, fixed loan payment", "—"] },
-  { label: "Credit check", values: [yes("Soft pull, no hit to your score"), "Hard pull, 650+", yes("None")] },
-  { label: "Who owns it", values: ["LightReach (Palmetto)", "You", "You"] },
-  { label: "Equipment warranty", values: [yes("25 years, panels & inverter"), "Manufacturer standard", "Manufacturer standard"] },
-  { label: "Workmanship", values: [yes("25 years"), yes("Pell Solar workmanship warranty"), yes("Pell Solar workmanship warranty")] },
-  { label: "Roof penetrations", values: [yes("10-year warranty"), yes("10-year warranty"), yes("10-year warranty")] },
-  { label: "Maintenance & repairs", values: [yes("Included for 25 years, parts and labor"), "Homeowner", "Homeowner"] },
-  { label: "Production guarantee", values: [yes("90%, credited if it falls short"), "—", "—"] },
-  { label: "Monitoring", values: [yes("24/7, proactive"), "Manufacturer app", "Manufacturer app"] },
-  { label: "Federal tax credit", values: ["Claimed by LightReach, passed into your rate", "Not available since Dec 31, 2025", "Not available since Dec 31, 2025"] },
-  { label: "If you sell", values: ["Transfers to the buyer", "Pay off or transfer the loan", "System stays with the house"] },
-  { label: "End of term", values: ["Renew, or have it removed", "You own it, no more payments", "—"] },
-  { label: "Prepayment penalty", values: ["—", yes("None"), "—"] },
-  { label: "Best for", values: ["Lowest monthly cost, zero upkeep", "Owning with $0 down", "No payments, biggest long-term savings"] },
+const PLAN_ROWS: { label: string; values: [PlanCell, PlanCell, PlanCell] }[] = [
+  { label: "Upfront cost", values: ["$0", "$0", "Full price"] },
+  { label: "You own the system", values: ["—", "✓", "✓"] },
+  { label: "Term", values: ["25 years", "12, 15 or 20 years", "—"] },
+  { label: "Credit check", values: ["Soft pull, no score hit", "Hard pull, 650+", "None"] },
+  { label: "Warranty", values: [ck("25-yr equipment & labor"), "Manufacturer + Pell workmanship", "Manufacturer + Pell workmanship"] },
+  { label: "Repairs & maintenance", values: [ck("Included, parts & labor"), "Homeowner", "Homeowner"] },
+  { label: "Production guarantee", values: [ck("90%"), "—", "—"] },
+  { label: "Annual payment increase", values: ["0–2.99%, your choice", "None", "—"] },
+  { label: "If you sell", values: [ck("Transfers to buyer"), "Pay off or transfer loan", "Stays with house"] },
 ];
 
 const LEASE_TINT = "bg-[#EAF6FC]";
+const PLAN_GRID_COLS = "grid grid-cols-[212px_1fr_1fr_1fr] gap-x-4";
 const PRIMARY_BTN = "block text-center bg-[#FED44D] text-[#0B1D51] font-bold text-sm px-4 py-3 rounded-lg no-underline hover:opacity-90 transition-opacity";
 const SECONDARY_BTN = "block text-center border-2 border-[#0B1D51] text-[#0B1D51] font-bold text-sm px-4 py-[10px] rounded-lg no-underline hover:bg-[#0B1D51] hover:text-white transition-colors";
 
-function CheckIcon() {
+function CheckIcon({ className = "" }: { className?: string }) {
   return (
-    <svg className="inline-block w-3.5 h-3.5 mr-1.5 -mt-0.5 flex-shrink-0 text-[#22c55e]" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <svg className={`inline-block w-4 h-4 flex-shrink-0 text-[#22c55e] ${className}`} viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
 
-function OptionValue({ cell }: { cell: OptionCell }) {
-  if (cell === "—") return <span className="text-gray-300">—</span>;
-  if (typeof cell === "string") return <span className="font-semibold text-gray-900">{cell}</span>;
+function PlanValue({ cell }: { cell: PlanCell }) {
+  if (cell === "—") return <span className="text-gray-300" aria-label="Not applicable">—</span>;
+  if (cell === "✓") return <CheckIcon className="-mt-0.5" />;
+  if (typeof cell === "string") return <span className="font-medium text-gray-900">{cell}</span>;
   return (
-    <span className="font-semibold text-gray-900">
+    <span className="inline-flex items-center gap-1.5 font-medium text-gray-900">
       <CheckIcon />
-      {cell.text}
+      <span>{cell.text}</span>
     </span>
   );
 }
 
 function ZeroDownPill() {
   return (
-    <span className="inline-block bg-[#2BABE2] text-white text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full">
+    <span className="inline-block bg-[#2BABE2] text-white text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-sm">
       $0 Down
     </span>
   );
 }
 
-function OptionsComparison() {
+function PlanCard({ plan, children }: { plan: (typeof PLANS)[number]; children?: React.ReactNode }) {
+  return (
+    <div
+      className={`relative flex flex-col rounded-2xl border p-5 sm:p-6 ${
+        plan.featured ? `${LEASE_TINT} border-[#2BABE2] shadow-md` : "bg-white border-gray-200 shadow-sm"
+      }`}
+    >
+      {plan.featured && (
+        <div className="absolute -top-3 left-5 sm:left-6"><ZeroDownPill /></div>
+      )}
+      <div className="text-base font-bold text-gray-900">{plan.name}</div>
+      <div className="mt-3 h-4 text-xs font-semibold uppercase tracking-wider text-gray-500">{plan.kicker}</div>
+      <div className="text-[32px] font-extrabold leading-none text-[#0B1D51] whitespace-nowrap" style={{ fontFamily: "'Montserrat', sans-serif" }}>
+        {plan.headline}
+      </div>
+      <p className="mt-3 text-sm text-gray-600 leading-snug">{plan.tagline}</p>
+      {children}
+      <div className="mt-auto pt-6">
+        <Link href="/get-quote" className={plan.featured ? PRIMARY_BTN : SECONDARY_BTN}>{plan.cta}</Link>
+      </div>
+    </div>
+  );
+}
+
+function PlanComparison() {
   return (
     <>
-      {/* Desktop: single comparison table */}
-      <div className="hidden md:block rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-        <table className="w-full table-fixed border-collapse">
-          <colgroup>
-            <col className="w-[22%]" />
-            <col className="w-[26%]" />
-            <col className="w-[26%]" />
-            <col className="w-[26%]" />
-          </colgroup>
-          <thead>
-            <tr>
-              <th scope="col" className="align-bottom px-5 pt-5 pb-3" />
-              {OPTION_COLUMNS.map((c) => (
-                <th key={c.key} scope="col" className={`text-left align-top px-5 pt-5 pb-3 ${c.featured ? LEASE_TINT : ""}`}>
-                  <div className="h-5 mb-1">{c.featured && <ZeroDownPill />}</div>
-                  <div
-                    className={c.featured ? "text-[22px] font-extrabold text-[#0B1D51] leading-tight" : "text-lg font-bold text-gray-900 leading-tight"}
-                    style={{ fontFamily: "'Montserrat', sans-serif" }}
-                  >
-                    {c.name}
-                  </div>
-                  <div className="text-xs text-gray-500 font-normal leading-snug mt-1">{c.subtitle}</div>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {OPTION_ROWS.map((row) => (
-              <tr key={row.label} className="border-t border-gray-100">
-                <th scope="row" className="text-left align-top px-5 py-2.5 text-sm font-medium text-gray-500 leading-snug">{row.label}</th>
-                {row.values.map((cell, i) => (
-                  <td key={OPTION_COLUMNS[i].key} className={`align-top px-5 py-2.5 text-sm leading-snug ${OPTION_COLUMNS[i].featured ? LEASE_TINT : ""}`}>
-                    <OptionValue cell={cell} />
-                  </td>
-                ))}
-              </tr>
-            ))}
-            <tr className="border-t border-gray-200">
-              <td className="px-5 pt-4 pb-5" />
-              {OPTION_COLUMNS.map((c) => (
-                <td key={c.key} className={`px-5 pt-4 pb-5 ${c.featured ? LEASE_TINT : ""}`}>
-                  <Link href="/get-quote" className={c.featured ? PRIMARY_BTN : SECONDARY_BTN}>{c.cta}</Link>
-                </td>
-              ))}
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      {/* Desktop (1280px+): card row + aligned feature grid */}
+      <div className="hidden xl:block">
+        <div className={`${PLAN_GRID_COLS} items-stretch`}>
+          <div aria-hidden="true" />
+          {PLANS.map((p) => <PlanCard key={p.key} plan={p} />)}
+        </div>
 
-      {/* Mobile: three stacked compact cards */}
-      <div className="md:hidden space-y-5">
-        {OPTION_COLUMNS.map((c, i) => (
-          <div key={c.key} className={`rounded-2xl border p-5 shadow-sm ${c.featured ? `${LEASE_TINT} border-[#2BABE2]` : "bg-white border-gray-200"}`}>
-            {c.featured && <div className="mb-1.5"><ZeroDownPill /></div>}
-            <h3
-              className={c.featured ? "text-2xl font-extrabold text-[#0B1D51] leading-tight" : "text-xl font-bold text-gray-900 leading-tight"}
-              style={{ fontFamily: "'Montserrat', sans-serif" }}
-            >
-              {c.name}
-            </h3>
-            <p className="text-xs text-gray-500 mt-1 mb-3">{c.subtitle}</p>
-            <div className="mb-4">
-              {OPTION_ROWS.map((row) => (
-                <div key={row.label} className="flex justify-between items-start gap-4 py-2 border-t border-gray-200/70 text-sm leading-snug">
-                  <span className="text-gray-500 flex-shrink-0">{row.label}</span>
-                  <span className="text-right"><OptionValue cell={row.values[i]} /></span>
+        <div className="mt-4 rounded-2xl border border-gray-200 bg-white overflow-hidden">
+          {PLAN_ROWS.map((row, r) => (
+            <div key={row.label} className={`${PLAN_GRID_COLS} ${r > 0 ? "border-t border-gray-100" : ""}`}>
+              <div className="px-5 py-3 text-sm text-gray-500 leading-5 whitespace-nowrap">{row.label}</div>
+              {row.values.map((cell, i) => (
+                <div
+                  key={PLANS[i].key}
+                  className={`px-5 py-3 text-sm leading-5 whitespace-nowrap ${PLANS[i].featured ? LEASE_TINT : ""}`}
+                >
+                  <PlanValue cell={cell} />
                 </div>
               ))}
             </div>
-            <Link href="/get-quote" className={c.featured ? PRIMARY_BTN : SECONDARY_BTN}>{c.cta}</Link>
-          </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Below 1280px: stacked cards, each with a compact per-plan list */}
+      <div className="xl:hidden space-y-6 max-w-xl mx-auto">
+        {PLANS.map((p, i) => (
+          <PlanCard key={p.key} plan={p}>
+            <div className="mt-5 border-t border-gray-200/80">
+              {PLAN_ROWS.map((row) => (
+                <div key={row.label} className="flex items-start justify-between gap-3 py-2 border-b border-gray-200/60 text-xs leading-5">
+                  <span className="text-gray-500 flex-shrink-0">{row.label}</span>
+                  <span className="text-right"><PlanValue cell={row.values[i]} /></span>
+                </div>
+              ))}
+            </div>
+          </PlanCard>
         ))}
       </div>
     </>
@@ -318,17 +302,20 @@ export default function Financing() {
         </div>
       </section>
 
-      {/* ── YOUR OPTIONS — LEASE / FINANCING / CASH COMPARISON ───────────────── */}
+      {/* ── THREE WAYS TO GO SOLAR — LEASE / FINANCING / CASH ────────────────── */}
       <section className="py-16 md:py-20 bg-gray-50">
         <div className="max-w-6xl mx-auto px-6">
-          <div className="text-center mb-10">
+          <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-3" style={{ fontFamily: "'Montserrat', sans-serif" }}>
-              Your Options — <span className="text-[#2BABE2]">Lease, Finance, or Buy</span>
+              Three ways to go solar
             </h2>
-            <p className="text-gray-600 text-lg">Three ways to go solar: lease it, finance it, or buy it.</p>
+            <p className="text-gray-600 text-lg">Lease it, finance it, or buy it.</p>
           </div>
-          <OptionsComparison />
-          <p className="text-xs text-gray-500 mt-4 text-center leading-relaxed">
+          <PlanComparison />
+          <p className="text-xs text-gray-500 mt-6 text-center leading-relaxed max-w-3xl mx-auto">
+            The federal residential tax credit ended December 31, 2025. With a lease, LightReach claims the commercial credit and builds it into your rate. Roof penetrations carry a 10-year warranty on every option.
+          </p>
+          <p className="text-xs text-gray-500 mt-3 text-center leading-relaxed">
             Battery-only leases (Tesla Powerwall 3) run 12 years — <Link href="/tesla-powerwall" className="text-[#2BABE2] font-semibold hover:underline">see Powerwall pricing →</Link>
             <span className="mx-2 text-gray-300">·</span>
             <Link href="/solar-lease" className="text-[#2BABE2] font-semibold hover:underline">Learn more about leasing →</Link>
