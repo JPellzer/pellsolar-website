@@ -91,7 +91,6 @@ export default function CityPageTemplate({
                 {[
                   `Average ${sunHours} peak sun hours per day`,
                   `${utility} service area — NEM 3.0 applies`,
-                  "Federal solar tax credit available",
                   "California Property Tax Exclusion for solar",
                   "Rising utility rates make solar ROI stronger every year",
                 ].map((item) => (

@@ -14,7 +14,7 @@ const arizonaCities = [
 const arizonaStats = [
   { value: "6.5–7.5", label: "Peak Sun Hours / Day", icon: Sun },
   { value: "299", label: "Sunny Days Per Year", icon: Sun },
-  { value: "30%", label: "Federal Tax Credit", icon: Shield },
+  { value: "25-Yr", label: "System Warranty", icon: Shield },
   { value: "$0", label: "Down Available", icon: Zap },
 ];
 
@@ -100,7 +100,6 @@ export default function Arizona() {
                 {[
                   "6.5–7.5 peak sun hours per day — best in the US",
                   "APS and SRP rates rising 3–5% annually",
-                  "30% federal tax credit available through 2032",
                   "Arizona property tax exemption for solar",
                   "Net metering available through APS and SRP",
                   "25-year system warranty — we stand behind our work",
@@ -147,7 +146,7 @@ export default function Arizona() {
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
             {[
-              { title: "30% Federal Tax Credit", desc: "Deduct 30% of your total system cost from your federal taxes. Available through 2032.", icon: Shield, color: "text-blue-500", bg: "bg-blue-50" },
+              { title: "Financing Options", desc: "Lease and financing options available.", icon: Shield, color: "text-blue-500", bg: "bg-blue-50" },
               { title: "Arizona Tax Credit", desc: "Arizona offers a 25% state income tax credit (up to $1,000) for residential solar installations.", icon: Sun, color: "text-orange-500", bg: "bg-orange-50" },
               { title: "Property Tax Exemption", desc: "Solar installations are excluded from Arizona property tax assessment — your home value increase doesn't raise your taxes.", icon: CheckCircle, color: "text-[#2BABE2]", bg: "bg-[#2BABE2/10]" },
               { title: "Sales Tax Exemption", desc: "Solar equipment is exempt from Arizona's 5.6% state sales tax, saving hundreds on your installation.", icon: Zap, color: "text-yellow-500", bg: "bg-yellow-50" },

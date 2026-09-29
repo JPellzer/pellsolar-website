@@ -153,7 +153,7 @@ export default function SolarPanelsinIdahoPage() {
           <div className="grid md:grid-cols-3 gap-6">
             {[
               { title: "Net Metering",          desc: "Idaho Power offers full retail credit for excess solar energy sent back to the grid.", icon: "⚡" },
-              { title: "Federal Tax Credit",    desc: "Claim the federal solar tax credit when you purchase or finance your system.", icon: "💰" },
+              { title: "Financing Options",     desc: "Lease and financing options available.", icon: "💰" },
               { title: "Property Tax Exemption", desc: "Solar installations are exempt from property tax increases in Idaho.", icon: "🏠" },
             ].map(({ title, desc, icon }) => (
               <div key={title} className="bg-white rounded-2xl p-6 border border-gray-200 text-center shadow-sm">
