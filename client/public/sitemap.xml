@@ -80,6 +80,7 @@
   <url><loc>https://pellsolar.com/our-work</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <!-- Blog -->
   <url><loc>https://pellsolar.com/blog</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://pellsolar.com/blog/tesla-powerwall-wait-times</loc><changefreq>yearly</changefreq><priority>0.7</priority></url>
   <url><loc>https://pellsolar.com/blog/how-solar-panels-work</loc><changefreq>yearly</changefreq><priority>0.7</priority></url>
   <url><loc>https://pellsolar.com/blog/nem-3-explained</loc><changefreq>yearly</changefreq><priority>0.8</priority></url>
   <url><loc>https://pellsolar.com/blog/tesla-powerwall-vs-other-batteries</loc><changefreq>yearly</changefreq><priority>0.7</priority></url>

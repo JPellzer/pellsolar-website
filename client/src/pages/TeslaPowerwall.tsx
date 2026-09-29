@@ -115,6 +115,15 @@ export default function TeslaPowerwall() {
               </div>
             </div>
           </div>
+
+          {/* Callout: ordered from Tesla direct */}
+          <Link href="/blog/tesla-powerwall-wait-times" className="mt-12 block bg-gray-50 rounded-2xl border border-gray-200 p-6 no-underline hover:shadow-lg hover:border-[#2BABE2] transition-all group">
+            <p className="text-[#2BABE2] font-bold text-xs tracking-widest uppercase mb-2">Ordered from Tesla and still waiting?</p>
+            <p className="text-gray-900 font-semibold flex items-center gap-2">
+              Read: Tesla makes a great battery. Installing it is a local job.
+              <ArrowRight size={18} className="text-[#2BABE2] group-hover:translate-x-1 transition-transform flex-shrink-0" />
+            </p>
+          </Link>
         </div>
       </section>
 

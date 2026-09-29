@@ -220,6 +220,7 @@ const pageMeta: Record<string, Pick<SeoMeta, "title" | "description" | "canonica
 };
 
 const blogArticles: Record<string, { title: string; description: string }> = {
+  "tesla-powerwall-wait-times": { title: "Tesla Makes a Great Battery. Installing It Is a Local Job.", description: "Ordering a Powerwall straight from Tesla can cost less. Here's what homeowners report about the wait once they do, with the sources, so you can decide with your eyes open." },
   "how-solar-panels-work": { title: "How Solar Panels Work: A Simple Guide for Homeowners", description: "Learn how solar panels convert sunlight into usable electricity, how inverters work, and how solar energy supports your home." },
   "nem-3-explained": { title: "NEM 3.0 Explained: What California Homeowners Need to Know", description: "Understand California NEM 3.0, solar export rates, and why battery storage matters for new solar homeowners." },
   "tesla-powerwall-vs-other-batteries": { title: "Tesla Powerwall vs. Other Home Batteries", description: "Compare Tesla Powerwall with other home battery options and learn which energy-storage features matter for your home." },

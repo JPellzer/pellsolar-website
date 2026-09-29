@@ -7,6 +7,15 @@ const HERO_IMG = "/manus-storage/solar-home-main-v2_0ad97127.jpg";
 
 const articles = [
   {
+    slug: "tesla-powerwall-wait-times",
+    title: "Tesla Makes a Great Battery. Installing It Is a Local Job.",
+    excerpt: "Ordering a Powerwall straight from Tesla can cost less. Here's what homeowners report about the wait once they do — with the sources — so you can decide with your eyes open.",
+    date: "September 28, 2026",
+    readTime: "7 min read",
+    category: "Battery Storage",
+    categoryColor: "bg-purple-100 text-purple-700",
+  },
+  {
     slug: "how-solar-panels-work",
     title: "How Solar Panels Work: A Simple Guide for Homeowners",
     excerpt: "Ever wonder what actually happens when sunlight hits your roof? Here's a clear, jargon-free explanation of how solar panels convert sunlight into electricity — and how that electricity powers your home.",

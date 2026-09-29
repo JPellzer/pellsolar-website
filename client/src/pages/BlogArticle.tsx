@@ -17,6 +17,107 @@ const articles: Record<string, {
   content: React.ReactNode;
 }> = {
 
+  "tesla-powerwall-wait-times": {
+    title: "Tesla Makes a Great Battery. Installing It Is a Local Job.",
+    subtitle: "Ordering a Powerwall straight from Tesla can cost less. Here's what homeowners report about the wait once they do — with the sources — so you can decide with your eyes open.",
+    date: "September 28, 2026",
+    readTime: "7 min read",
+    category: "Battery Storage",
+    categoryColor: "bg-purple-100 text-purple-700",
+    content: (
+      <div className="prose prose-lg max-w-none">
+        <p>Let's get one thing out of the way: the Tesla Powerwall 3 is the best home battery you can buy. We're a Tesla Certified Installer, and it's <Link href="/tesla-powerwall">the battery we recommend</Link> for most homes in the Inland Empire.</p>
+        <p>So this isn't a page about the product. It's about who puts it on your wall, because that's where the experience splits. You can order a Powerwall directly from Tesla, or a local certified installer can put in the exact same battery. Same hardware, same Tesla warranty, same app. Very different wait.</p>
+
+        <h2>Yes, Tesla direct can be cheaper</h2>
+        <p>Tesla makes the Powerwall, so it can sell it at its own price, and ordering direct may get you a lower number than a local installer can offer. We won't pretend otherwise.</p>
+        <p>What that price buys you is a spot in a national queue. Tesla sells nationally from one website, and your design, scheduling, and service all run through that one central operation: the app, and a scheduling team that isn't down the street.</p>
+
+        <h2>What Tesla says the timeline is</h2>
+        <p>Tesla's own support pages lay it out: <a href="https://tesla.com/support/energy/solar-panels/going-solar/process-overview" target="_blank" rel="noopener noreferrer">permitting takes 2 to 6 weeks</a> depending on your city, the install itself takes 1 to 3 days, and permission to operate from your utility takes <a href="https://tesla.com/support/energy/solar-panels/install/turn-on-your-system" target="_blank" rel="noopener noreferrer">another 1 to 6 weeks</a> after that. Add the site assessment and design up front, and a smooth Tesla direct project runs about 2 to 3 months from order to power-on.</p>
+        <p>That's the plan. Here's how it goes in practice.</p>
+
+        <h2>What homeowners actually report</h2>
+        <p>Plenty of Tesla direct installs go fine. <a href="https://www.consumeraffairs.com/solar-energy/tesla-energy.html" target="_blank" rel="noopener noreferrer">A Brea homeowner</a> said the whole thing took about three months from signed contract to a running system, and a Las Vegas customer described the same three months with a fast, professional crew.</p>
+        <p>Then there's the other column:</p>
+        <ul>
+          <li>A <a href="https://www.consumeraffairs.com/solar-energy/tesla-energy.html" target="_blank" rel="noopener noreferrer">Hacienda Heights</a> homeowner had an install scheduled for October 28, 2025. Tesla canceled it the morning of, by email. The new date was January 7, and when the crew showed up, they had the wrong parts.</li>
+          <li><a href="https://www.consumeraffairs.com/solar-energy/tesla-energy.html" target="_blank" rel="noopener noreferrer">A Texas homeowner</a> said it took a full year from down payment to installation.</li>
+          <li><a href="https://www.solarreviews.com/installers/tesla-energy-reviews" target="_blank" rel="noopener noreferrer">A Glendale homeowner</a> who already had Tesla solar spent more than two years trying to get Powerwalls added, couldn't get the project manager to respond, and gave up and went with another company.</li>
+          <li><a href="https://www.solarreviews.com/installers/tesla-energy-reviews" target="_blank" rel="noopener noreferrer">A San Francisco homeowner</a> waited four months after the site survey, only for Tesla to cancel the order because it decided the roof wasn't accessible.</li>
+        </ul>
+        <p>The ratings tell the same story: Tesla Energy sits at 1.9 out of 5 on <a href="https://www.consumeraffairs.com/solar-energy/tesla-energy.html" target="_blank" rel="noopener noreferrer">ConsumerAffairs</a> across 590 reviews, and 2.79 out of 5 on <a href="https://www.solarreviews.com/installers/tesla-energy-reviews" target="_blank" rel="noopener noreferrer">SolarReviews</a> across more than 1,200. Review sites do hear from unhappy customers more than happy ones. Read a few pages anyway, and the pattern repeats: installs canceled at the last minute, wrong parts, and long stretches where nobody answers.</p>
+
+        <h2>Why it's happening</h2>
+        <p>This isn't a knock on the people who show up in the Tesla trucks. The reviews of the crews themselves are often excellent. It's about how the operation is built.</p>
+        <p>Tesla has been winding down its own install crews for the last couple of years. In <a href="https://electrek.co/2024/09/25/tesla-calls-certify-energy-installers-as-it-winds-down-solar-installations/" target="_blank" rel="noopener noreferrer">September 2024</a> it started recruiting outside certified installers as it scaled back in-house installations, and <a href="https://electrek.co/2026/08/26/tesla-solar-business-2026-how-it-works/" target="_blank" rel="noopener noreferrer">by 2026</a> Tesla's own support pages describe a hybrid model where certified installers handle the work in areas Tesla doesn't install directly. Electrek's read on it: installing is local, labor-heavy, low-margin work, and Tesla never managed to scale it profitably.</p>
+        <p>That's the whole story in one line. Installing a battery is local work: a permit with your city, a crew that knows your utility, a truck that can come back Tuesday. A company that sells globally is running that from a national queue. A local installer runs it from down the street.</p>
+
+        <h2>After the install</h2>
+        <p>The queue doesn't go away once the battery is on the wall. <a href="https://www.consumeraffairs.com/solar-energy/tesla-energy.html" target="_blank" rel="noopener noreferrer">Southern California customers report</a> a service visit scheduled 30 days out and then canceled the day of (Rancho Cucamonga), months of waiting for an appointment that gets canceled at the last minute (Palm Springs), and six months of emails to get an install problem fixed (Colton). That's the most common complaint on both review sites.</p>
+
+        <h2>Same Powerwall. Local crew. About a month.</h2>
+        <p>Here's what changes when a Tesla Certified Installer like Pell Solar puts in your Powerwall:</p>
+        <ul>
+          <li><strong>Same battery, same warranty.</strong> It's the same Powerwall 3, and Tesla's warranty applies either way. You give up nothing on the hardware.</li>
+          <li><strong>About a month, not a season.</strong> Right now our battery installs are running about a month from signed contract to permission to operate. We pull the permit, do the install, and handle the utility paperwork ourselves.</li>
+          <li><strong>A person, not a queue.</strong> We've been family-owned in Upland since 2003. When something needs attention, you call our office and talk to someone who knows your system, not an app ticket that gets you a date four months out.</li>
+          <li><strong>One contractor for all of it.</strong> Solar, battery, EV charger, panel upgrade: one licensed local contractor (CSLB #949122), with <Link href="/reviews">local reviews</Link> you can check.</li>
+        </ul>
+
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse text-sm">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="border border-gray-200 px-4 py-2 text-left"></th>
+                <th className="border border-gray-200 px-4 py-2 text-center">Ordering direct from Tesla</th>
+                <th className="border border-gray-200 px-4 py-2 text-center">Pell Solar</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                ["Battery", "Powerwall 3", "Powerwall 3"],
+                ["Warranty", "Tesla's", "Tesla's"],
+                ["Price", "Can be lower; Tesla sets its own", "Turnkey quote; we'll tell you honestly where we land"],
+                ["Who installs", "Tesla crews in some areas, certified installers in others", "Local crew out of Upland"],
+                ["Typical timeline", "About 2–3 months when it goes to plan", "About a month, contract to PTO"],
+                ["When something's wrong", "App ticket, regional scheduling", "Call the office"],
+              ].map(([factor, tesla, pell], i) => (
+                <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                  <td className="border border-gray-200 px-4 py-2 font-medium">{factor}</td>
+                  <td className="border border-gray-200 px-4 py-2 text-center">{tesla}</td>
+                  <td className="border border-gray-200 px-4 py-2 text-center">{pell}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <h2>Already ordered from Tesla?</h2>
+        <p>If your project is on track, great. You're going to love the battery. If it's been months and you're still waiting on a date, or your install day got canceled, you don't have to just wait. Call us at <a href="tel:8666468499">(866) 646-8499</a>, tell us where you are in the process, and we'll give you a straight answer on how fast we could get you done and what it would cost. No pressure either way.</p>
+        <div className="flex flex-col sm:flex-row gap-4 mb-8">
+          <Link href="/get-quote" className="btn-gold" style={{ color: "#0B1D51", textDecoration: "none" }}>Get a Powerwall quote</Link>
+          <Link href="/upload-bill" className="btn-navy" style={{ color: "white", textDecoration: "none" }}>Upload your bill</Link>
+        </div>
+
+        <h2>Sources</h2>
+        <ul>
+          <li><a href="https://tesla.com/support/energy/solar-panels/going-solar/process-overview" target="_blank" rel="noopener noreferrer">Tesla — Solar and Powerwall process overview (permits 2–6 weeks, install 1–3 days)</a></li>
+          <li><a href="https://tesla.com/support/energy/solar-panels/install/turn-on-your-system" target="_blank" rel="noopener noreferrer">Tesla — Turning on your system (PTO 1–6 weeks after install)</a></li>
+          <li><a href="https://electrek.co/2026/08/26/tesla-solar-business-2026-how-it-works/" target="_blank" rel="noopener noreferrer">Electrek, Aug 26, 2026 — How Tesla's solar business works in 2026 after killing Solar Roof</a></li>
+          <li><a href="https://electrek.co/2024/09/25/tesla-calls-certify-energy-installers-as-it-winds-down-solar-installations/" target="_blank" rel="noopener noreferrer">Electrek, Sep 25, 2024 — Tesla calls to certify energy installers as it winds down its solar installations</a></li>
+          <li><a href="https://www.consumeraffairs.com/solar-energy/tesla-energy.html" target="_blank" rel="noopener noreferrer">ConsumerAffairs — Tesla Energy reviews (1.9/5, 590 reviews)</a></li>
+          <li><a href="https://www.solarreviews.com/installers/tesla-energy-reviews" target="_blank" rel="noopener noreferrer">SolarReviews — Tesla Energy reviews (2.79/5, 1,207 reviews)</a></li>
+          <li><a href="https://www.thecooldown.com/green-home/tesla-solar-installation-issues-homeowner-complaints/" target="_blank" rel="noopener noreferrer">The Cool Down, Sep 19, 2026 — Tesla solar owner says 100-degree heat stalled install, leaving new Powerwall at 2%</a></li>
+          <li><a href="https://www.thecooldown.com/green-home/tesla-solar-output-repair-case-stalled/" target="_blank" rel="noopener noreferrer">The Cool Down, Sep 2026 — California homeowner says Tesla solar output fell to a quarter, then repair case stalled</a></li>
+          <li><a href="https://www.thecooldown.com/green-home/tesla-powerwall-arizona-homeowner-service-delay/" target="_blank" rel="noopener noreferrer">The Cool Down, Sep 2026 — Arizona homeowner says Tesla disabled Powerwall for safety, then scheduled service 4 months out</a></li>
+        </ul>
+
+        <p><small className="text-gray-500">Pell Solar is an independent Tesla Certified Installer, not Tesla, Inc. Tesla and Powerwall are trademarks of Tesla, Inc. Customer experiences above are summarized from the public reviews and reporting linked here; individual experiences vary.</small></p>
+      </div>
+    ),
+  },
+
   "how-solar-panels-work": {
     title: "How Solar Panels Work: A Simple Guide for Homeowners",
     subtitle: "A clear, jargon-free explanation of how solar panels convert sunlight into electricity — and how that electricity powers your home.",
