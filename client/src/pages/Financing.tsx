@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { Link } from "wouter";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -84,50 +84,88 @@ function SavingsBarChart() {
 }
 
 /* ── Three ways to go solar (Lease / Financing / Cash) ───────────────────── */
-type PlanCell = "—" | "✓" | string | { check: true; text: string };
-const ck = (text: string): PlanCell => ({ check: true, text });
-
 const PLANS = [
   { key: "lease", name: "Lease", kicker: "", headline: "$0 down", tagline: "LightReach owns it and covers everything for 25 years.", cta: "Get a Lease Quote", featured: true },
   { key: "finance", name: "Financing", kicker: "As low as", headline: "4.99% APR", tagline: "Own the system with a fixed-rate solar loan.", cta: "Get a Financing Quote", featured: false },
   { key: "cash", name: "Cash Purchase", kicker: "", headline: "Pay once", tagline: "Own it outright, no monthly payment.", cta: "Get a Cash Quote", featured: false },
 ] as const;
 
-const PLAN_ROWS: { label: string; values: [PlanCell, PlanCell, PlanCell] }[] = [
-  { label: "Upfront cost", values: ["$0", "$0", "Full price"] },
-  { label: "You own the system", values: ["—", "✓", "✓"] },
-  { label: "Term", values: ["25 years", "12, 15 or 20 years", "—"] },
-  { label: "Credit check", values: ["Soft pull, no score hit", "Hard pull, 650+", "None"] },
-  { label: "Warranty", values: [ck("25-yr equipment & labor"), "Manufacturer + Pell workmanship", "Manufacturer + Pell workmanship"] },
-  { label: "Repairs & maintenance", values: [ck("Included, parts & labor"), "Homeowner", "Homeowner"] },
-  { label: "Production guarantee", values: [ck("90%"), "—", "—"] },
-  { label: "Annual payment increase", values: ["0–2.99%, your choice", "None", "—"] },
-  { label: "If you sell", values: [ck("Transfers to buyer"), "Pay off or transfer loan", "Stays with house"] },
+/*
+ * Two cell types only, never mixed within a row:
+ *  - icon rows: true = green check circle, false = muted dash circle
+ *  - text rows: short text, null = muted em dash
+ */
+type IconRow = { label: string; type: "icon"; values: [boolean, boolean, boolean] };
+type TextRow = { label: string; type: "text"; values: [string | null, string | null, string | null] };
+type PlanRow = IconRow | TextRow;
+
+const PLAN_SECTIONS: { title: string; rows: PlanRow[] }[] = [
+  {
+    title: "Cost",
+    rows: [
+      { label: "Upfront cost", type: "text", values: ["$0", "$0", "Full system price"] },
+      { label: "Monthly payment", type: "text", values: ["One monthly payment", "Loan payment", "None"] },
+      { label: "Annual increase", type: "text", values: ["0–2.99%, your choice", "None", null] },
+    ],
+  },
+  {
+    title: "Ownership & coverage",
+    rows: [
+      { label: "You own the system", type: "icon", values: [false, true, true] },
+      { label: "Equipment & workmanship warranty", type: "text", values: ["25 years", "Manufacturer + Pell", "Manufacturer + Pell"] },
+      { label: "Repairs & maintenance included", type: "icon", values: [true, false, false] },
+      { label: "90% production guarantee", type: "icon", values: [true, false, false] },
+      { label: "24/7 monitoring included", type: "icon", values: [true, false, false] },
+    ],
+  },
+  {
+    title: "Flexibility",
+    rows: [
+      { label: "Term", type: "text", values: ["25 years", "12–20 years", null] },
+      { label: "Credit check", type: "text", values: ["Soft pull, no score hit", "Hard pull, 650+", "None"] },
+      { label: "If you sell", type: "text", values: ["Transfers to buyer", "Pay off or transfer loan", "Stays with house"] },
+    ],
+  },
 ];
 
-const LEASE_TINT = "bg-[#EAF6FC]";
-const PLAN_GRID_COLS = "grid grid-cols-[212px_1fr_1fr_1fr] gap-x-4";
+const LEASE_TINT = "bg-[#EAF6FC]"; // the Lease card's own fill (unchanged)
+const COLUMN_TINT = "bg-sky-50"; // continuous band under the Lease column, card border sits on top
+// One shared column template (280px label + three equal plan columns) is declared once on
+// the desktop grid in PlanComparison; the bordered body is a subgrid of it. The label column is
+// 280px (not 220px) because "Equipment & workmanship warranty" measures 239px at 14px Inter
+// and must stay on one line.
+const SECTION_TITLE = "text-[11px] font-semibold uppercase tracking-wide text-slate-400 whitespace-nowrap";
 const PRIMARY_BTN = "block text-center bg-[#FED44D] text-[#0B1D51] font-bold text-sm px-4 py-3 rounded-lg no-underline hover:opacity-90 transition-opacity";
 const SECONDARY_BTN = "block text-center border-2 border-[#0B1D51] text-[#0B1D51] font-bold text-sm px-4 py-[10px] rounded-lg no-underline hover:bg-[#0B1D51] hover:text-white transition-colors";
 
-function CheckIcon({ className = "" }: { className?: string }) {
+function CheckCell() {
   return (
-    <svg className={`inline-block w-4 h-4 flex-shrink-0 text-[#22c55e] ${className}`} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
+    <span className="inline-flex h-[22px] w-[22px] items-center justify-center rounded-full bg-green-100" role="img" aria-label="Included">
+      <svg className="h-3 w-3 text-green-600" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    </span>
   );
 }
 
-function PlanValue({ cell }: { cell: PlanCell }) {
-  if (cell === "—") return <span className="text-gray-300" aria-label="Not applicable">—</span>;
-  if (cell === "✓") return <CheckIcon className="-mt-0.5" />;
-  if (typeof cell === "string") return <span className="font-medium text-gray-900">{cell}</span>;
+function NoCell() {
   return (
-    <span className="inline-flex items-center gap-1.5 font-medium text-gray-900">
-      <CheckIcon />
-      <span>{cell.text}</span>
+    <span className="inline-flex h-[22px] w-[22px] items-center justify-center rounded-full bg-slate-100" role="img" aria-label="Not included">
+      <svg className="h-3 w-3 text-slate-400" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M6 12h12" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+      </svg>
     </span>
   );
+}
+
+function TextCell({ text, emphasis }: { text: string | null; emphasis: boolean }) {
+  if (text === null) return <span className="text-[15px] leading-5 text-slate-300" aria-label="Not applicable">—</span>;
+  return <span className={`text-[15px] leading-5 text-slate-900 ${emphasis ? "font-medium" : ""}`}>{text}</span>;
+}
+
+function PlanCellValue({ row, index }: { row: PlanRow; index: 0 | 1 | 2 }) {
+  if (row.type === "icon") return row.values[index] ? <CheckCell /> : <NoCell />;
+  return <TextCell text={row.values[index]} emphasis={PLANS[index].featured} />;
 }
 
 function ZeroDownPill() {
@@ -162,46 +200,79 @@ function PlanCard({ plan, children }: { plan: (typeof PLANS)[number]; children?:
   );
 }
 
+const PLAN_INDEXES = [0, 1, 2] as const;
+
 function PlanComparison() {
   return (
     <>
-      {/* Desktop (1280px+): card row + aligned feature grid */}
-      <div className="hidden xl:block">
-        <div className={`${PLAN_GRID_COLS} items-stretch`}>
-          <div aria-hidden="true" />
-          {PLANS.map((p) => <PlanCard key={p.key} plan={p} />)}
-        </div>
+      {/*
+       * Desktop (lg+): ONE grid. Row 1 holds the three plan cards on the shared
+       * column template; the bordered body below is a subgrid of the same
+       * columns, so every value sits exactly under its card. The Lease column is
+       * tinted continuously from the card down through the last row.
+       */}
+      <div className="hidden lg:grid lg:grid-cols-[280px_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)]">
+        <div aria-hidden="true" />
+        {PLANS.map((p) => (
+          <div key={p.key} className={`grid px-2 pb-4 ${p.featured ? `${COLUMN_TINT} rounded-t-[24px]` : ""}`}>
+            <PlanCard plan={p} />
+          </div>
+        ))}
 
-        <div className="mt-4 rounded-2xl border border-gray-200 bg-white overflow-hidden">
-          {PLAN_ROWS.map((row, r) => (
-            <div key={row.label} className={`${PLAN_GRID_COLS} ${r > 0 ? "border-t border-gray-100" : ""}`}>
-              <div className="px-5 py-3 text-sm text-gray-500 leading-5 whitespace-nowrap">{row.label}</div>
-              {row.values.map((cell, i) => (
-                <div
-                  key={PLANS[i].key}
-                  className={`px-5 py-3 text-sm leading-5 whitespace-nowrap ${PLANS[i].featured ? LEASE_TINT : ""}`}
-                >
-                  <PlanValue cell={cell} />
-                </div>
+        <div className="col-span-4 grid grid-cols-subgrid overflow-hidden rounded-2xl border border-slate-200 bg-white">
+          {PLAN_SECTIONS.map((section, s) => (
+            <Fragment key={section.title}>
+              {/* Section header: hairline above spans all four columns, Lease tint continues */}
+              <div className={`flex h-12 items-end border-r border-slate-100 pb-2 pl-6 pr-4 ${s > 0 ? "border-t border-slate-200" : ""}`}>
+                <span className={SECTION_TITLE}>{section.title}</span>
+              </div>
+              {PLANS.map((p) => (
+                <div key={p.key} className={`${s > 0 ? "border-t border-slate-200" : ""} ${p.featured ? COLUMN_TINT : ""}`} aria-hidden="true" />
               ))}
-            </div>
+
+              {section.rows.map((row) => (
+                <Fragment key={row.label}>
+                  <div className="flex h-14 items-center whitespace-nowrap border-t border-r border-slate-100 pl-6 pr-4 text-sm text-slate-500">
+                    {row.label}
+                  </div>
+                  {PLAN_INDEXES.map((i) => (
+                    <div
+                      key={PLANS[i].key}
+                      className={`flex h-14 items-center whitespace-nowrap border-t border-slate-100 pl-8 pr-4 ${PLANS[i].featured ? COLUMN_TINT : ""}`}
+                    >
+                      <PlanCellValue row={row} index={i} />
+                    </div>
+                  ))}
+                </Fragment>
+              ))}
+            </Fragment>
           ))}
         </div>
       </div>
 
-      {/* Below 1280px: stacked cards, each with a compact per-plan list */}
-      <div className="xl:hidden space-y-6 max-w-xl mx-auto">
+      {/* Below lg: cards stack, each followed by its own grouped list */}
+      <div className="lg:hidden mx-auto max-w-xl space-y-10">
         {PLANS.map((p, i) => (
-          <PlanCard key={p.key} plan={p}>
-            <div className="mt-5 border-t border-gray-200/80">
-              {PLAN_ROWS.map((row) => (
-                <div key={row.label} className="flex items-start justify-between gap-3 py-2 border-b border-gray-200/60 text-xs leading-5">
-                  <span className="text-gray-500 flex-shrink-0">{row.label}</span>
-                  <span className="text-right"><PlanValue cell={row.values[i]} /></span>
-                </div>
+          <div key={p.key}>
+            <PlanCard plan={p} />
+            <div className={`mt-3 overflow-hidden rounded-2xl border ${p.featured ? `border-sky-200 ${COLUMN_TINT}` : "border-slate-200 bg-white"}`}>
+              {PLAN_SECTIONS.map((section, s) => (
+                <Fragment key={section.title}>
+                  <div className={`flex h-11 items-end px-5 pb-2 ${s > 0 ? "border-t border-slate-200" : ""}`}>
+                    <span className={SECTION_TITLE}>{section.title}</span>
+                  </div>
+                  {section.rows.map((row) => (
+                    <div key={row.label} className="flex min-h-[48px] items-center justify-between gap-4 border-t border-slate-100 px-5 py-2">
+                      <span className="min-w-0 text-sm text-slate-500">{row.label}</span>
+                      <span className="max-w-[55%] shrink-0 text-right">
+                        <PlanCellValue row={row} index={PLAN_INDEXES[i]} />
+                      </span>
+                    </div>
+                  ))}
+                </Fragment>
               ))}
             </div>
-          </PlanCard>
+          </div>
         ))}
       </div>
     </>
@@ -312,7 +383,7 @@ export default function Financing() {
             <p className="text-gray-600 text-lg">Lease it, finance it, or buy it.</p>
           </div>
           <PlanComparison />
-          <p className="text-xs text-gray-500 mt-6 text-center leading-relaxed max-w-3xl mx-auto">
+          <p className="text-[13px] text-gray-500 mt-6 text-center leading-relaxed max-w-2xl mx-auto">
             The federal residential tax credit ended December 31, 2025. With a lease, LightReach claims the commercial credit and builds it into your rate. Roof penetrations carry a 10-year warranty on every option.
           </p>
           <p className="text-xs text-gray-500 mt-3 text-center leading-relaxed">
