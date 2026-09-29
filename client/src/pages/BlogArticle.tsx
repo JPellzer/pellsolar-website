@@ -194,15 +194,10 @@ const articles: Record<string, {
           <li><strong>Medium system (10–14 kW):</strong> $28,000–$38,000</li>
           <li><strong>Large system (16–20 kW):</strong> $42,000–$54,000</li>
         </ul>
-        <p>After the 30% federal tax credit, those numbers drop to:</p>
-        <ul>
-          <li><strong>Small system:</strong> $12,600–$16,800</li>
-          <li><strong>Medium system:</strong> $19,600–$26,600</li>
-          <li><strong>Large system:</strong> $29,400–$37,800</li>
-        </ul>
+        <p>The 30% federal residential tax credit ended for systems installed after December 31, 2025, so these are the numbers to plan around before any state or utility incentives.</p>
 
         <h2>Adding Battery Storage</h2>
-        <p>A Tesla Powerwall 3 adds approximately $10,000–$12,000 to the system cost before the tax credit. After the 30% credit, that's $7,000–$8,400. Under NEM 3.0, the battery typically pays for itself within 3–5 years through avoided peak-rate electricity purchases.</p>
+        <p>A Tesla Powerwall 3 adds approximately $10,000–$12,000 to the system cost. Under NEM 3.0, the battery typically pays for itself within 3–5 years through avoided peak-rate electricity purchases.</p>
 
         <h2>What Affects the Cost</h2>
         <p>Several factors influence your final quote:</p>
@@ -218,8 +213,8 @@ const articles: Record<string, {
         <h2>Financing Options</h2>
         <p>Most California homeowners finance their solar system rather than paying cash:</p>
         <ul>
-          <li><strong>Solar loan:</strong> $0 down, you own the system, claim the 30% tax credit yourself. Typical payment: $150–$250/month for a 20-year loan.</li>
-          <li><strong>Solar lease:</strong> $0 down, the leasing company owns the system and claims the tax credit. Fixed payment for 25 years. Pell Solar's Solar Shield package starts at $234/month.</li>
+          <li><strong>Solar loan:</strong> $0 down, you own the system. Typical payment: $150–$250/month for a 20-year loan.</li>
+          <li><strong>Solar lease:</strong> $0 down, the leasing company owns the system. Fixed payment for 25 years. Pell Solar's Solar Shield package starts at $234/month.</li>
           <li><strong>Cash purchase:</strong> Highest upfront cost, best long-term return. Typical payback: 6–9 years.</li>
         </ul>
 
@@ -241,72 +236,26 @@ const articles: Record<string, {
   },
 
   "solar-tax-credit-guide": {
-    title: "The 30% Federal Solar Tax Credit: Complete 2024 Guide",
-    subtitle: "The federal solar investment tax credit (ITC) lets you deduct 30% of your solar system cost from your federal taxes. Here's exactly how it works.",
-    date: "January 8, 2024",
-    readTime: "7 min read",
+    title: "The 30% Federal Solar Tax Credit Ended in 2025. Here's What Changed.",
+    subtitle: "The residential clean energy credit is gone for systems installed after December 31, 2025. What that means if you're going solar now.",
+    date: "September 28, 2026",
+    readTime: "3 min read",
     category: "Incentives",
     categoryColor: "bg-orange-100 text-orange-700",
     content: (
       <div className="prose prose-lg max-w-none">
-        <p>The federal solar investment tax credit (ITC) is the most valuable solar incentive available to American homeowners. Under the Inflation Reduction Act of 2022, the credit was extended and increased to 30% through 2032.</p>
+        <p>For almost two decades, the federal residential clean energy credit let homeowners take 30% of a solar or battery system's cost off their federal taxes. That ended with the One Big Beautiful Bill Act, signed July 4, 2025. Under the new law, the credit is not available for residential systems installed after December 31, 2025.</p>
 
-        <h2>What Is the Solar Tax Credit?</h2>
-        <p>The ITC allows you to deduct <strong>30% of your total solar system cost</strong> from your federal income taxes. This includes panels, inverters, batteries, installation labor, permitting, and inspection fees.</p>
-        <p>It's a <em>tax credit</em> — not a deduction. A deduction reduces your taxable income; a credit directly reduces the taxes you owe. If your system costs $25,000, you get a $7,500 credit against your federal tax bill.</p>
+        <h2>If your system was installed in 2025</h2>
+        <p>You can still claim it. File IRS Form 5695 with your 2025 federal return and keep your contract, invoices, and the date your system was completed. Talk to a tax professional about your situation.</p>
 
-        <h2>What's Included in the Credit</h2>
-        <p>The 30% credit applies to:</p>
-        <ul>
-          <li>Solar panels</li>
-          <li>Inverters (string, microinverters, power optimizers)</li>
-          <li>Battery storage (Tesla Powerwall, Franklin, Enphase IQ)</li>
-          <li>Racking and mounting hardware</li>
-          <li>Wiring and electrical work</li>
-          <li>Installation labor</li>
-          <li>Permitting and inspection fees</li>
-          <li>Sales tax on equipment</li>
-        </ul>
+        <h2>If you're going solar now</h2>
+        <p>Buying with cash or a loan, there is no federal credit to factor in, so price the system on what it actually saves you on your electric bill, which is still the main reason solar and batteries pay off in the Inland Empire.</p>
+        <p>Leases and power purchase agreements work differently: the company that owns the system may qualify for a separate commercial credit, which is one reason lease pricing can come in lower than a purchase. Ask us which option makes sense for your home.</p>
 
-        <h2>Who Qualifies</h2>
-        <p>To claim the credit, you must:</p>
-        <ul>
-          <li>Own (not lease) the solar system</li>
-          <li>Install it at your primary or secondary U.S. residence</li>
-          <li>Owe federal income taxes (the credit is non-refundable)</li>
-        </ul>
-        <p>If you lease your solar system, the leasing company claims the credit — which is why lease payments are lower than loan payments for the same system.</p>
-
-        <h2>How to Claim It</h2>
-        <p>Claiming the credit is straightforward:</p>
-        <ol>
-          <li>Complete IRS Form 5695 (Residential Energy Credits) with your tax return</li>
-          <li>Enter your total solar system cost on line 1</li>
-          <li>Calculate 30% — that's your credit amount</li>
-          <li>The credit reduces your federal tax liability dollar-for-dollar</li>
-        </ol>
-        <p>If your credit exceeds your tax liability in year 1, the unused portion carries forward to the following year.</p>
-
-        <h2>Credit Schedule</h2>
-        <p>The 30% credit is available through 2032. After that:</p>
-        <ul>
-          <li>2033: 26%</li>
-          <li>2034: 22%</li>
-          <li>2035 and beyond: 0% (unless Congress extends it)</li>
-        </ul>
-
-        <h2>California State Incentives</h2>
-        <p>In addition to the federal credit, California offers:</p>
-        <ul>
-          <li><strong>Property tax exclusion</strong> — solar installations are excluded from property tax reassessment</li>
-          <li><strong>Sales tax exemption</strong> — solar equipment is exempt from California sales tax</li>
-          <li><strong>SGIP rebate</strong> — the Self-Generation Incentive Program offers rebates for battery storage in certain utility territories</li>
-        </ul>
-
-        <h2>The Bottom Line</h2>
-        <p>The 30% federal tax credit is a substantial incentive that significantly reduces the cost of going solar. Combined with California's property tax exclusion and NEM 3.0 savings, solar is one of the best financial decisions a California homeowner can make.</p>
-        <p>Consult a tax professional for advice specific to your situation. Pell Solar can provide the documentation you need to claim the credit.</p>
-        <p><Link href="/get-quote" className="text-[#2BABE2] font-semibold">Get a free quote and see your estimated tax credit →</Link></p>
+        <h2>Other incentives</h2>
+        <p>State and utility programs change often. When we quote your project, we'll tell you what's available for your address at that time.</p>
+        <p><Link href="/financing">See current financing and lease options →</Link></p>
       </div>
     ),
   },
@@ -399,7 +348,7 @@ const articles: Record<string, {
         <p>When you go solar, you have two main options: lease the system or buy it (either with cash or a loan). Each has real advantages and drawbacks. Here's a clear comparison to help you decide.</p>
 
         <h2>Solar Lease: How It Works</h2>
-        <p>With a solar lease, a financing company owns the system and installs it on your roof. You pay a fixed monthly fee for 25 years. The leasing company claims the 30% federal tax credit, which is why they can offer $0 down.</p>
+        <p>With a solar lease, a financing company owns the system and installs it on your roof. You pay a fixed monthly fee for 25 years. The leasing company owns the system, which is why it can offer $0 down.</p>
         <p><strong>Pell Solar's lease packages:</strong></p>
         <ul>
           <li>Solar Shield: $234/month (16 panels + Tesla Powerwall 3)</li>
@@ -408,11 +357,11 @@ const articles: Record<string, {
         <p>Both include full maintenance, monitoring, and a 90% production guarantee for the entire 25-year term.</p>
 
         <h2>Solar Loan: How It Works</h2>
-        <p>With a solar loan, you own the system from day one. You borrow money to pay for it, make monthly payments for 12–20 years, and claim the 30% federal tax credit yourself.</p>
+        <p>With a solar loan, you own the system from day one. You borrow money to pay for it and make monthly payments for 12–20 years.</p>
         <p>Typical loan payments for a comparable system: $180–$260/month for a 20-year loan at 6–8% APR. After the loan is paid off, you own the system free and clear — and your electricity is essentially free.</p>
 
         <h2>Cash Purchase: How It Works</h2>
-        <p>Pay the full system cost upfront. You own the system, claim the tax credit, and have no monthly payments. Best long-term return — typical payback period is 6–9 years, after which your electricity is free for the remaining 15+ years of the system's life.</p>
+        <p>Pay the full system cost upfront. You own the system and have no monthly payments. Best long-term return — typical payback period is 6–9 years, after which your electricity is free for the remaining 15+ years of the system's life.</p>
 
         <h2>Side-by-Side Comparison</h2>
         <div className="overflow-x-auto">
@@ -429,7 +378,6 @@ const articles: Record<string, {
               {[
                 ["Upfront cost", "$0", "$0", "Full cost"],
                 ["Monthly payment", "Fixed 25 yrs", "12–20 yr loan", "None"],
-                ["Tax credit", "Leasing company", "You (30%)", "You (30%)"],
                 ["System ownership", "Leasing company", "You", "You"],
                 ["Maintenance", "Included", "Your responsibility", "Your responsibility"],
                 ["Production guarantee", "90%", "No", "No"],
@@ -450,14 +398,12 @@ const articles: Record<string, {
         <h2>When a Lease Makes Sense</h2>
         <ul>
           <li>You want $0 down with no financial risk</li>
-          <li>You don't have enough federal tax liability to benefit from the 30% credit</li>
           <li>You want maintenance included — no surprise repair bills</li>
           <li>You want a production guarantee</li>
         </ul>
 
         <h2>When Buying Makes Sense</h2>
         <ul>
-          <li>You have federal tax liability to use the 30% credit</li>
           <li>You plan to stay in your home long-term</li>
           <li>You want to maximize long-term savings</li>
           <li>You want to own an asset that adds value to your home</li>
