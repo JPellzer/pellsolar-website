@@ -722,7 +722,7 @@ export default function QuotePage() {
                               height="140"
                               frameBorder="0"
                               style={{ border: 0, display: "block" }}
-                              src={`https://maps.google.com/maps?q=${geocodeQuery.data.lat},${geocodeQuery.data.lng}&z=12&output=embed`}
+                              src={`https://www.google.com/maps?q=${geocodeQuery.data.lat},${geocodeQuery.data.lng}&z=12&output=embed`}
                               allowFullScreen
                             />
                           ) : (

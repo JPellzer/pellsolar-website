@@ -27,11 +27,10 @@ import { storageGetSignedUrl, storagePut } from "./storage";
 import { notifyOwner, sendDiagnosisEmail } from "./_core/notification";
 import { sendSms } from "./_core/sms";
 import { ENV } from "./_core/env";
-import { makeRequest, type GeocodingResult } from "./_core/map";
 import { getLiveGoogleReviewSummary } from "./googleReviews";
 import type { Lead } from "../drizzle/schema";
 import { postToCrm, type CrmBillFile } from "./crmWebhook";
-import { fillCityStateFromZip } from "./zipCityState";
+import { fillCityStateFromZip, lookupZip } from "./zipCityState";
 import { getCrmAuthHeaders } from "./crmAuth";
 import { chatRouter } from "./routers/chat";
 import { invokeLLM } from "./_core/llm";
@@ -1271,19 +1270,10 @@ No further action needed - customer self-resolved.`,
     geocodeZip: publicProcedure
       .input(z.object({ zip: z.string().length(5) }))
       .query(async ({ input }) => {
-        try {
-          const result = await makeRequest<GeocodingResult>("/maps/api/geocode/json", {
-            address: `${input.zip}, USA`,
-          });
-          if (result.results && result.results.length > 0) {
-            const loc = result.results[0].geometry.location;
-            const formatted = result.results[0].formatted_address;
-            return { lat: loc.lat, lng: loc.lng, formatted, found: true };
-          }
-          return { lat: 0, lng: 0, formatted: "", found: false };
-        } catch {
-          return { lat: 0, lng: 0, formatted: "", found: false };
-        }
+        // Map preview only needs a moment more than the lead-forward fill allows.
+        const place = await lookupZip(input.zip, 4000);
+        if (place) return { lat: place.lat, lng: place.lng, formatted: place.formatted, found: true };
+        return { lat: 0, lng: 0, formatted: "", found: false };
       }),
   }),
 });
