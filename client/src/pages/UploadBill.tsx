@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { trpc } from "@/lib/trpc";
+import AddressAutocomplete from "@/components/AddressAutocomplete";
 import { ChevronDown, ChevronUp, Phone, Mail, CheckCircle2, AlertTriangle, X } from "lucide-react";
 
 // ─── Bill file limits (mirror server/uploadRoute.ts) ─────────────────────────
@@ -224,7 +225,8 @@ export default function UploadBill() {
   const [csvDragOver, setCsvDragOver] = useState(false);
   const [billDragOver, setBillDragOver] = useState(false);
   const [uploadType, setUploadType] = useState<"csv" | "bill" | "both">("both");
-  const [form, setForm] = useState({ firstName: "", lastName: "", email: "", phone: "", address: "", honeypot: "" });
+  // city / state / zip come from the address suggestion the visitor picks (same autocomplete as the quote form)
+  const [form, setForm] = useState({ firstName: "", lastName: "", email: "", phone: "", address: "", city: "", state: "", zip: "", honeypot: "" });
   const [formLoadedAt] = useState(Date.now());
   const formStartedAtRef = useRef(Date.now());
   const [submitting, setSubmitting] = useState(false);
@@ -307,6 +309,9 @@ export default function UploadBill() {
         email: form.email,
         phone: form.phone,
         address: form.address,
+        city: form.city || undefined,
+        state: form.state || undefined,
+        zip: form.zip || undefined,
         source: "upload-bill",
         ownershipType: "homeowner",
         interestType: "solar_battery",
@@ -608,11 +613,10 @@ export default function UploadBill() {
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Address (where solar will be installed) *</label>
-                <input
-                  type="text"
+                <AddressAutocomplete
                   required
                   value={form.address}
-                  onChange={e => setForm(f => ({ ...f, address: e.target.value }))}
+                  onChange={(full, parts) => setForm(f => ({ ...f, address: full, city: parts.city, state: parts.state, zip: parts.zip }))}
                   placeholder="123 Main St, Upland, CA 91786"
                   className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#2BABE2] focus:border-transparent"
                 />

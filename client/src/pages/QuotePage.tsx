@@ -343,6 +343,10 @@ export default function QuotePage() {
   const [uploading, setUploading] = useState(false);
   const [showRenterPopup, setShowRenterPopup] = useState(false);
   const [zipStatus, setZipStatus] = useState<"idle" | "valid" | "invalid">("idle");
+  // The ZIP the visitor typed at the ZIP step. A picked address suggestion replaces the form's
+  // ZIP with its own; when that pick is dropped (a different address typed without picking),
+  // the form goes back to this one so the old pick's ZIP does not ride along.
+  const zipStepRef = useRef(prefillZipCode);
   const formCardRef = useRef<HTMLDivElement>(null);
   const formStartedAtRef = useRef(Date.now());
   const [turnstileToken, setTurnstileToken] = useState("");
@@ -683,6 +687,7 @@ export default function QuotePage() {
                         value={form.zipCode}
                         onChange={e => {
                           const val = e.target.value.replace(/\D/g, "").slice(0, 5);
+                          zipStepRef.current = val;
                           update({ zipCode: val });
                           setZipStatus("idle");
                         }}
@@ -1019,7 +1024,7 @@ export default function QuotePage() {
                         <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "#444", marginBottom: "5px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Home Address</label>
                         <AddressAutocomplete
                           value={form.address}
-                          onChange={(full, parts) => update({ address: full, city: parts.city, state: parts.state, zipCode: parts.zip || form.zipCode })}
+                          onChange={(full, parts) => update({ address: full, city: parts.city, state: parts.state, zipCode: parts.zip || zipStepRef.current })}
                           placeholder="Start typing your address…"
                           id="quote-address"
                           style={{ width: "100%", padding: "11px 14px", border: "2px solid #e0e0e0", borderRadius: "10px", background: "#f9fafb", fontSize: "14px", outline: "none", boxSizing: "border-box" }}

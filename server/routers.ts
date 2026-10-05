@@ -31,6 +31,7 @@ import { makeRequest, type GeocodingResult } from "./_core/map";
 import { getLiveGoogleReviewSummary } from "./googleReviews";
 import type { Lead } from "../drizzle/schema";
 import { postToCrm, type CrmBillFile } from "./crmWebhook";
+import { fillCityStateFromZip } from "./zipCityState";
 import { getCrmAuthHeaders } from "./crmAuth";
 import { chatRouter } from "./routers/chat";
 import { invokeLLM } from "./_core/llm";
@@ -297,15 +298,24 @@ export const appRouter = router({
             ? parseInt(input.monthlyBillRange.replace(/[^0-9]/g, ""), 10) || undefined
             : undefined;
 
+          // City / state only arrive when the visitor picked an address suggestion. When one is
+          // missing and there is a ZIP, fill it from the ZIP lookup (short timeout; on any
+          // failure the lead goes out with what we have).
+          const crmZip = input.zipCode || input.zip || undefined;
+          const crmPlace = await fillCityStateFromZip(
+            { city: input.city || undefined, state: input.state || undefined },
+            crmZip,
+          );
+
           const crmRes = await postToCrm({
             first_name: input.firstName,
             last_name: input.lastName,
             email: input.email || undefined,
             phone: input.phone || undefined,
             address: input.address || undefined,
-            city: input.city || undefined,
-            state: input.state || undefined,
-            zip: input.zipCode || input.zip || undefined,
+            city: crmPlace.city,
+            state: crmPlace.state,
+            zip: crmZip,
             // Third-party CRM servers require a directly downloadable signed S3 URL.
             // Never send a browser-session-bound /manus-storage path.
             bill_file_url: crmBillFileUrl,
@@ -455,7 +465,12 @@ export const appRouter = router({
           console.warn("[Leads] Failed to store crm.submitLead lead locally:", e);
         }
 
-        const result = await postToCrm(input);
+        // Missing city / state + a ZIP: fill from the ZIP lookup before forwarding (never blocks).
+        const crmPlace = await fillCityStateFromZip(
+          { city: input.city || undefined, state: input.state || undefined },
+          input.zip,
+        );
+        const result = await postToCrm({ ...input, city: crmPlace.city, state: crmPlace.state });
         if (!result.success) {
           // Log but don't fail the user — CRM sync is best-effort
           console.warn("[CRM] Lead sync failed:", result.error);
