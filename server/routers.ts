@@ -237,61 +237,11 @@ export const appRouter = router({
         });
         const crmBillFileUrl = await getCrmBillFileUrl(input.billFileKey, input.billFileUrl);
         const crmBillFiles = await getCrmBillFiles(input.billFiles);
-        if (!isDuplicate) {
-
-        // Notify owner (in-app)
-        try {
-          await notifyOwner({
-            title: "🌞 New Solar Lead",
-            content: `New lead from ${input.firstName} ${input.lastName} (${input.email}) via ${source}. Monthly bill: ${input.monthlyBillRange ?? "not specified"}. Interest: ${input.interestType}.`,
-          });
-        } catch (e) {
-          console.warn("[Notification] Failed to notify owner:", e);
-        }
-
-        // SMS notification to Josh
-        if (ENV.twilioNotifyNumber) {
-          const interestLabel: Record<string, string> = {
-            solar: "Solar Only",
-            battery: "Battery Only",
-            solar_battery: "Solar + Battery",
-            ev_charger: "EV Charger",
-            other: "Other / Not Sure",
-          };
-          const interestDisplay = interestLabel[input.interestType] ?? input.interestType;
-
-          const cleanPhone = input.phone.replace(/\D/g, "");
-          const formattedPhone = cleanPhone.length === 10
-            ? `(${cleanPhone.slice(0,3)}) ${cleanPhone.slice(3,6)}-${cleanPhone.slice(6)}`
-            : input.phone;
-          const billLink = crmBillFileUrl || null;
-
-          const smsBody = [
-            `🌞 NEW PELL SOLAR LEAD`,
-            `Name: ${input.firstName} ${input.lastName}`,
-            `Phone: ${formattedPhone}`,
-            `Call: +1${cleanPhone}`,
-            `Email: ${input.email}`,
-            input.address ? `Address: ${input.address}` : "",
-            `Interest: ${interestDisplay}`,
-            input.ownershipType ? `Ownership: ${input.ownershipType}` : "",
-            input.monthlyBillRange ? `Monthly Bill: $${input.monthlyBillRange}` : "",
-            input.interestOtherText ? `Notes: ${input.interestOtherText}` : "",
-            input.ownershipType === "renter" ? `⚠️ Renter (not homeowner)` : "",
-            billLink ? `Bill file: ${billLink}` : "",
-            crmBillFiles && crmBillFiles.length > 1 ? `Files uploaded: ${crmBillFiles.length}` : "",
-            `CRM: https://pellsolar.com/admin/leads/${id}`,
-            `Source: ${source}`,
-          ].filter(Boolean).join("\n");
-
-          sendSms(ENV.twilioNotifyNumber, smsBody).catch((e) =>
-            console.warn("[SMS] Lead notification failed:", e)
-          );
-        }
-        }
         // Forward to Solar Pro CRM and capture deal_id
         let crmDealId: number | undefined;
         let crmSuspect = false;
+        let crmOk = false;
+        let crmFailReason = "no response";
         try {
           // Parse monthly_bill as a number (strip non-digits, take first number found)
           const monthlyBillNum = input.monthlyBillRange
@@ -343,6 +293,8 @@ export const appRouter = router({
           });
           if (crmRes.deal_id) crmDealId = crmRes.deal_id;
           crmSuspect = crmRes.suspect === true;
+          crmOk = crmRes.success !== false && !!crmRes.deal_id;
+          if (!crmOk) crmFailReason = String((crmRes as { error?: string }).error || "no deal id returned");
           if (crmRes.deal_id || crmRes.customer_id) {
             await setLeadCrmInfo(id, {
               crmDealId: crmRes.deal_id,
@@ -354,6 +306,62 @@ export const appRouter = router({
           }
         } catch (e) {
           console.warn("[CRM] postToCrm failed in leads.create:", e);
+          crmFailReason = e instanceof Error ? e.message : "post threw";
+        }
+        // The CRM sends the staff email + text for every lead it accepts. This site's own alert is
+        // the FALLBACK: it fires only when the CRM did not confirm the lead (error, timeout, no
+        // deal id), so a lead is never silent and never alerted twice.
+        if (!crmOk) {
+
+        // Notify owner (in-app)
+        try {
+          await notifyOwner({
+            title: "🚨 New Solar Lead — CRM did not confirm it",
+            content: `The CRM did not confirm this lead (${crmFailReason}) — it may NOT be in the CRM. New lead from ${input.firstName} ${input.lastName} (${input.email}) via ${source}. Monthly bill: ${input.monthlyBillRange ?? "not specified"}. Interest: ${input.interestType}.`,
+          });
+        } catch (e) {
+          console.warn("[Notification] Failed to notify owner:", e);
+        }
+
+        // SMS notification to Josh
+        if (ENV.twilioNotifyNumber) {
+          const interestLabel: Record<string, string> = {
+            solar: "Solar Only",
+            battery: "Battery Only",
+            solar_battery: "Solar + Battery",
+            ev_charger: "EV Charger",
+            other: "Other / Not Sure",
+          };
+          const interestDisplay = interestLabel[input.interestType] ?? input.interestType;
+
+          const cleanPhone = input.phone.replace(/\D/g, "");
+          const formattedPhone = cleanPhone.length === 10
+            ? `(${cleanPhone.slice(0,3)}) ${cleanPhone.slice(3,6)}-${cleanPhone.slice(6)}`
+            : input.phone;
+          const billLink = crmBillFileUrl || null;
+
+          const smsBody = [
+            `🚨 NEW PELL SOLAR LEAD — CRM did not confirm (${crmFailReason}), check the CRM`,
+            `Name: ${input.firstName} ${input.lastName}`,
+            `Phone: ${formattedPhone}`,
+            `Call: +1${cleanPhone}`,
+            `Email: ${input.email}`,
+            input.address ? `Address: ${input.address}` : "",
+            `Interest: ${interestDisplay}`,
+            input.ownershipType ? `Ownership: ${input.ownershipType}` : "",
+            input.monthlyBillRange ? `Monthly Bill: $${input.monthlyBillRange}` : "",
+            input.interestOtherText ? `Notes: ${input.interestOtherText}` : "",
+            input.ownershipType === "renter" ? `⚠️ Renter (not homeowner)` : "",
+            billLink ? `Bill file: ${billLink}` : "",
+            crmBillFiles && crmBillFiles.length > 1 ? `Files uploaded: ${crmBillFiles.length}` : "",
+            `CRM: https://pellsolar.com/admin/leads/${id}`,
+            `Source: ${source}`,
+          ].filter(Boolean).join("\n");
+
+          sendSms(ENV.twilioNotifyNumber, smsBody).catch((e) =>
+            console.warn("[SMS] Lead notification failed:", e)
+          );
+        }
         }
         return { success: true, id, isDuplicate, dealId: crmDealId, suspect: crmSuspect || undefined };
       }),
@@ -482,15 +490,17 @@ export const appRouter = router({
           });
         }
 
-        // SMS notification to Josh for financing/direct CRM leads
-        if (ENV.twilioNotifyNumber && input.type === "new_lead") {
+        // FALLBACK text only: the CRM alerts staff for every lead it accepts, so this site texts
+        // Josh only when the CRM did not confirm the lead (error, timeout, no deal id).
+        const crmConfirmed = result.success !== false && !!result.deal_id;
+        if (ENV.twilioNotifyNumber && input.type === "new_lead" && !crmConfirmed) {
           const phone = input.phone ?? "";
           const cleanPhone2 = phone.replace(/\D/g, "");
           const formattedPhone2 = cleanPhone2.length === 10
             ? `(${cleanPhone2.slice(0,3)}) ${cleanPhone2.slice(3,6)}-${cleanPhone2.slice(6)}`
             : phone;
           const smsBody = [
-            `🌞 NEW PELL SOLAR LEAD`,
+            `🚨 NEW PELL SOLAR LEAD — CRM did not confirm (${result.error || "no deal id"}), check the CRM`,
             `Name: ${input.first_name} ${input.last_name}`,
             phone ? `Phone: ${formattedPhone2}` : "",
             phone ? `Call: +1${cleanPhone2}` : "",

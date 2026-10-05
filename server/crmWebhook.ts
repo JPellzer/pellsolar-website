@@ -103,6 +103,8 @@ export async function postToCrm(payload: CrmLeadPayload): Promise<CrmLeadResult>
     }, null, 2));
     const res = await fetch(CRM_WEBHOOK_URL, {
       method: "POST",
+      // 25s cap: the catch below turns a timeout into network_error, which fires the site's fallback alert
+      signal: AbortSignal.timeout(25000),
       headers: { "Content-Type": "application/json", ...getCrmAuthHeaders() },
       body: JSON.stringify(payload),
     });
