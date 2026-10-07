@@ -77,7 +77,7 @@ pnpm test         # Run Vitest tests
 | Field | Value |
 |---|---|
 | Account SID | `ACc7958dad4921d32aa226f21267c12f66` |
-| Auth Token | `d23575e50ff8fce033559daaf34db3fd` |
+| Auth Token | `[redacted - see Render env TWILIO_AUTH_TOKEN]` |
 | From Number (CA Local) | `+17144553401` |
 | Notify Number (Josh's phone) | Stored as `TWILIO_NOTIFY_NUMBER` env secret |
 | Login Email | josh@pellsolar.com |
