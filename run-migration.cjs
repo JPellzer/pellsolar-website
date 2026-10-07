@@ -4,7 +4,8 @@ const fs = require("fs");
 const path = require("path");
 
 // Use production DATABASE_URL (from Render PostgreSQL)
-const DATABASE_URL = 'postgresql://pellsolar:yKkGMWVIfZeGvndQMeZ2ZCJZ3cvQEH0k@dpg-d747j3ogjchc73b35gag-a.oregon-postgres.render.com/pellsolar';
+const DATABASE_URL = process.env.DATABASE_URL; // from the env only (Bug 451) -- never hard-code a credential
+if (!DATABASE_URL) { console.error('DATABASE_URL is not set'); process.exit(1); }
 
 async function main() {
   const pool = new Pool({
