@@ -7,6 +7,7 @@ export type AttributionData = {
   utm_content?: string;
   utm_term?: string;
   gclid?: string;
+  fbclid?: string; fbc?: string; fbp?: string; gbraid?: string; wbraid?: string; click_id?: string;
 };
 
 type SessionStorageLike = {
@@ -14,11 +15,11 @@ type SessionStorageLike = {
   setItem(key: string, value: string): void;
 };
 
-const ATTRIBUTION_KEYS = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "gclid"] as const;
+const ATTRIBUTION_KEYS = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "gclid", "fbclid", "fbc", "fbp", "gbraid", "wbraid", "click_id"] as const;
 
 function clean(value: string | null | undefined) {
-  const trimmed = value?.trim();
-  return trimmed || undefined;
+  const trimmed = typeof value === "string" ? value.trim() : undefined;
+  return typeof trimmed === "string" ? trimmed.slice(0,512) || undefined : undefined;
 }
 
 function getSessionStorage(): SessionStorageLike | undefined {
@@ -55,6 +56,13 @@ export function readSessionAttribution(storage = getSessionStorage()): Attributi
 
 export function captureAttribution(search: string | URLSearchParams, storage = getSessionStorage()): AttributionData {
   const captured = extractAttribution(search);
+  if (typeof document !== 'undefined') {
+    for (const key of ['fbp','fbc'] as const) {
+      const cookie = document.cookie.split('; ').find(c => c.startsWith('_'+key+'='));
+      if (cookie) captured[key] = cookie.slice(key.length+2, key.length+514);
+    }
+  }
+  if (captured.fbclid && !captured.fbc) captured.fbc = 'fb.1.' + Date.now() + '.' + captured.fbclid;
   const existing = readSessionAttribution(storage);
   const combined = { ...existing, ...captured };
 
@@ -84,6 +92,6 @@ export function hasAttribution(data: AttributionData) {
 export function deriveLeadSource(defaultSource: string, attribution?: AttributionData): string {
   const gclid = clean(attribution?.gclid);
   const utmSource = clean(attribution?.utm_source);
-  if (gclid || utmSource?.toLowerCase() === "google") return "google-ads";
-  return utmSource || defaultSource;
+  if (gclid || attribution?.gbraid || attribution?.wbraid || utmSource?.toLowerCase() === "google") return "google-ads";
+  return utmSource || (attribution?.fbclid ? "facebook" : attribution?.click_id ? "nextdoor" : defaultSource);
 }

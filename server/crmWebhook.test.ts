@@ -1,14 +1,15 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { postToCrm } from "./crmWebhook";
+import { sendToCrm } from "./crmWebhook";
 
 describe("website lead CRM webhook", () => {
-  afterEach(() => vi.unstubAllGlobals());
+  afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
 
   it("sends visitor metadata and the server-only shared-secret header", async () => {
+    vi.stubEnv('CRM_WEBHOOK_URL','https://crm.example.test/api/webhooks/website-lead');
     const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ success: true, deal_id: 77 }), { status: 201 }));
     vi.stubGlobal("fetch", fetchMock);
 
-    const result = await postToCrm({
+    const result = await sendToCrm({
       first_name: "Taylor",
       last_name: "Customer",
       type: "new_lead",
@@ -23,7 +24,7 @@ describe("website lead CRM webhook", () => {
 
     expect(result).toMatchObject({ success: true, deal_id: 77 });
     expect(fetchMock).toHaveBeenCalledWith(
-      "https://pellsolar-crm-prod.onrender.com/api/webhooks/website-lead",
+      "https://crm.example.test/api/webhooks/website-lead",
       expect.objectContaining({
         method: "POST",
         headers: expect.objectContaining({

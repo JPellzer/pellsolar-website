@@ -13,6 +13,7 @@ import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import redirectsRouter from "../redirects";
 import staticPagesRouter from "../staticPages";
+import { startCrmRecovery } from '../crmOutbox';
 import { ensureSchema } from "./ensureSchema";
 
 function isPortAvailable(port: number): Promise<boolean> {
@@ -37,6 +38,7 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 async function startServer() {
   // Bootstrap schema before starting server
   await ensureSchema();
+  startCrmRecovery();
 
   const app = express();
   const server = createServer(app);

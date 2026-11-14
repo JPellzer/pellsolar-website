@@ -18,6 +18,12 @@ import { ENV } from './_core/env';
 let _db: ReturnType<typeof drizzle> | null = null;
 let _pool: Pool | null = null;
 
+export async function getPool(): Promise<Pool> {
+  await getDb();
+  if (!_pool) throw new Error('Database not available');
+  return _pool;
+}
+
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {

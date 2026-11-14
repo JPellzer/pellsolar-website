@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import Navbar from "@/components/Navbar";
+import FinancingOptions from "@/components/FinancingOptions";
 import Footer from "@/components/Footer";
 import { ArrowRight, CheckCircle } from "lucide-react";
 import { LiveReviewLinks } from "@/components/LiveReviewLinks";
@@ -108,10 +109,10 @@ function InlineQuoteWidget() {
 /* ── FAQ ──────────────────────────────────────────────────────────────────── */
 const faqs = [
   { q: "How long does installation take?", a: "Most residential systems are installed in 1–2 days. The complete process — from approval and site survey through permitting, installation, and SCE activation — typically takes 6–10 weeks total. We handle every step so you don't have to.", link: { text: "Get your free quote and we'll walk you through the timeline →", href: "/get-quote" } },
-  { q: "Will solar panels void my roof warranty?", a: "No — a properly installed solar system will not void your roof warranty. We use industry-standard IronRidge racking and flashing systems that are engineered specifically to maintain your roof's weatherproofing.", link: { text: "Learn more about our solar panel systems →", href: "/solar-panel-systems" } },
-  { q: "What happens if I sell my house?", a: "Solar increases your home's value. Homes with solar sell for an average of 3–4% more than comparable homes without solar. If you have a solar lease, the lease can be transferred to the new homeowner.", link: { text: "Explore your ownership and financing options →", href: "/financing" } },
+  { q: "Will solar panels void my roof warranty?", a: "We review roof condition and installation requirements with you. Roof warranty terms vary by manufacturer and installer; we help identify what needs to be confirmed before work starts.", link: { text: "Learn more about our solar panel systems →", href: "/solar-panel-systems" } },
+  { q: "What happens if I sell my house?", a: "Ownership, financing and lease agreements have different transfer requirements. We explain your agreement and the steps to review before selling.", link: { text: "Explore your ownership and financing options →", href: "/financing" } },
   { q: "Is solar still worth it under NEM 3.0?", a: "Absolutely yes — when the system is designed correctly. The solution is pairing solar with a Tesla Powerwall battery. Store your energy and use it during peak hours (4–9 PM) when Edison charges the highest rates.", link: { text: "Read our full NEM 3.0 guide →", href: "/nem-3" } },
-  { q: "How much does solar cost?", a: "Solar Lease ($0 down): Monthly payments start at $234/month for a 16-panel system with Tesla Powerwall. Financing: Purchase your system with a solar loan. Cash Purchase: The lowest total cost with a typical payback period of 5–8 years.", link: { text: "View our lease packages and pricing →", href: "/financing" } },
+  { q: "How much does solar cost?", a: "Your price depends on equipment, roof and electrical work, utility requirements and payment choice. We provide a written proposal and explain cash, financing and lease options.", link: { text: "View our lease packages and pricing →", href: "/financing" } },
   { q: "Do I need a battery?", a: "Under NEM 3.0, a battery is essential for maximizing your savings. With a Tesla Powerwall 3, your excess solar energy is stored and used from 4–9 PM when Edison charges the highest rates.", link: { text: "Learn more about Tesla Powerwall 3 →", href: "/tesla-powerwall" } },
 ];
 
@@ -120,7 +121,7 @@ const steps = [
   { num: 1, title: "Quote & Approval", desc: "It all starts with a free consultation. We review your electricity bill, assess your roof using satellite imagery, and design a system sized specifically for your home. Once you decide to move forward, we get you approved for your preferred payment option — $0 down solar lease, financing, or cash.", timeline: "Same day to a few days for approval" },
   { num: 2, title: "Site Survey", desc: "Once approved, we schedule a professional site survey at your home. Our team verifies all roof measurements, identifies the best locations for your Tesla Powerwall battery, and evaluates your electrical panel.", timeline: "Scheduled within 1–2 weeks of approval" },
   { num: 3, title: "Engineering & Permits", desc: "After the site survey, we send you a contract to review and sign. Engineering usually takes 3–4 business days. We handle all city permitting — timelines vary from a few days to 2–6 weeks.", timeline: "2–6 weeks depending on city" },
-  { num: 4, title: "Installation", desc: "Most residential systems are installed in 1–2 days. Our own licensed electricians and installers do every job — we never outsource. We pull permits and handle HOA.", timeline: "1–2 days on-site" },
+  { num: 4, title: "Installation", desc: "Most residential systems are installed in 1–2 days. We coordinate installation, permits and required inspections, and explain who will perform each part of your project.", timeline: "1–2 days on-site" },
   { num: 5, title: "Activation", desc: "After installation, we schedule a final building inspection. SCE typically takes 2–30 days to install the smart meter. Once installed and PTO is granted, your system is fully activated.", timeline: "2–30 days for SCE smart meter" },
 ];
 
@@ -151,13 +152,19 @@ export default function Home() {
               We are not a national chain. We are a family business focused on helping homeowners evaluate solar and battery options for their properties.
             </p>
             <div className="inline-flex items-center gap-2 bg-[#FED44D] text-[#0B1D51] font-extrabold text-sm uppercase tracking-wide px-6 py-3 rounded-full mb-2">
-              $0 Down — Tax Credit Built Into Your Lease ▼
+              Solar · Battery Backup · Service & Repair
             </div>
           </div>
 
           {/* Widget — centered below headline, matching pellsolar.com */}
           <div className="w-full flex justify-center">
-            <InlineQuoteWidget />
+            <div className="grid md:grid-cols-3 gap-4 w-full max-w-4xl text-left">
+              {[
+                {title:'Add battery backup',body:'Plan for outages and evening energy use.',url:'/get-quote?interest=battery'},
+                {title:'New solar or a lease',body:'Compare a system and payment options for your home.',url:'/get-quote?interest=solar_battery'},
+                {title:'Fix my solar system',body:'Get help with an existing system or inverter.',url:'/solar-repair'},
+              ].map(item=><Link key={item.title} href={item.url} className="block bg-white text-[#0B1D51] rounded-xl p-6 border-2 border-transparent hover:border-[#FED44D]"><strong className="text-xl block mb-2">{item.title}</strong><span className="block text-slate-600 mb-4">{item.body}</span><span className="font-bold text-sky-700">Get started →</span></Link>)}
+            </div>
           </div>
         </div>
       </section>
@@ -199,8 +206,8 @@ export default function Home() {
           <div className="grid md:grid-cols-3 gap-8">
             {[
               { img: SOLAR_PANELS_IMG, title: "Solar Panel Systems", desc: "Every system is custom-designed for your roof, your energy usage, and NEM 3.0. Premium panels with 25-year warranties.", href: "/solar-panel-systems" },
-              { img: POWERWALL_IMG, fallback: POWERWALL_FALLBACK_IMG, title: "Tesla Powerwall Battery", desc: "Store your solar energy and power your home during peak hours. Whole-home backup when the grid goes down.", href: "/tesla-powerwall" },
-              { img: EV_IMG, title: "EV Charger Installation", desc: "Level 2 Tesla Wall Connector and universal charger installs. Charge your car with free solar energy from your roof.", href: "/ev-charging" },
+              { img: POWERWALL_IMG, fallback: POWERWALL_FALLBACK_IMG, title: "Tesla Powerwall Battery", desc: "Store your solar energy and power your home during peak hours. Backup designed around the appliances and circuits you need.", href: "/tesla-powerwall" },
+              { img: EV_IMG, title: "EV Charger Installation", desc: "Level 2 Tesla Wall Connector and universal charger installs. Use energy from your solar system to help charge your car.", href: "/ev-charging" },
             ].map(card => (
               <div key={card.title} className="bg-white rounded-2xl border border-gray-200 overflow-hidden card-hover">
                 <div className="h-56 overflow-hidden">
@@ -227,43 +234,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ═══════════ TAX CREDIT ═══════════ */}
-      <section className="py-20 bg-gray-50">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="flex flex-col lg:flex-row items-start gap-12">
-            {/* Left: text */}
-            <div className="flex-1">
-              <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-6">
-                The Tax Credit Didn't Disappear — It Moved Into Your Lease
-              </h2>
-              <div className="text-gray-700 text-base leading-relaxed space-y-4">
-                <p>Even in 2026, the Federal Solar Tax Credit is still available — it just works differently depending on how you go solar. With a solar lease, the system is owned by the leasing provider, which allows them to claim the federal incentive on the hardware and installation.</p>
-                <p>That savings is then built directly into your lease structure, helping reduce your overall cost without requiring you to purchase the system upfront.</p>
-                <p>The result? You can go solar with <strong>$0 down</strong>, predictable monthly payments, and battery options available — while still benefiting from the federal incentive through the lease program.</p>
-              </div>
-              <div className="border-l-4 border-[#2BABE2] bg-[#2BABE2]/10 rounded-r-xl p-4 mt-6 mb-6">
-                <p className="font-bold text-[#0B1D51] text-sm uppercase tracking-wide">YOUR TAX CREDIT SAVINGS DIDN'T DISAPPEAR, THEY JUST MOVED!</p>
-              </div>
-              <Link href="/solar-lease" className="btn-green inline-block">SEE OUR $0 DOWN LEASE OPTIONS →</Link>
-            </div>
-            {/* Right: YouTube embed */}
-            <div className="flex-1 max-w-lg w-full">
-              <div className="rounded-2xl overflow-hidden shadow-lg aspect-video">
-                <iframe
-                  src="https://www.youtube.com/embed/lhsDln_0Lzc"
-                  title="The Solar Tax Credit Is Gone — But There's a Loophole (2026)"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  className="w-full h-full"
-                  style={{ border: "none" }}
-                />
-              </div>
-              <p className="text-gray-500 text-xs mt-2 text-center">▶ Watch & Learn How It Works</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* ═══════════ NEM 3.0 ═══════════ */}
       <section className="py-20 bg-white">
         <div className="max-w-6xl mx-auto px-6">
@@ -284,11 +254,11 @@ export default function Home() {
                 NEM 3.0 Changed the Game — But Solar Still Works
               </h2>
               <div className="text-gray-700 text-base leading-relaxed space-y-4">
-                <p>Under California's new NEM 3.0 rules, the credits you get for sending solar energy back to the grid are much lower than before. That means <strong>solar panels alone are no longer enough</strong> to eliminate your bill.</p>
-                <p>The solution? Pair your panels with a <strong>Tesla Powerwall battery</strong>. Store your energy during the day and use it from 4–9 PM when Edison charges the most.</p>
+                <p>California’s net billing plan makes <strong>when you use your solar energy</strong> especially important. We compare your utility plan and usage before recommending equipment.</p>
+                <p>A <strong>home battery</strong> can store daytime solar for evening use and provide backup for the loads your system is designed to support.</p>
               </div>
               <div className="border-l-4 border-[#2BABE2] bg-[#2BABE2]/10 rounded-r-xl p-4 mt-4 mb-6">
-                <p className="text-gray-800 text-sm"><strong>Our approach:</strong> We build every system 25% bigger than your usage and pair it with a Powerwall. The goal is <strong>zero grid power during peak hours, every single day</strong>.</p>
+                <p className="text-gray-800 text-sm"><strong>Our approach:</strong> We size the panels and battery around your electricity use, roof and backup priorities. Your proposal explains the expected savings, remaining utility charges and backup limits.</p>
               </div>
               <Link href="/nem-3" className="btn-green inline-block">LEARN HOW NEM 3.0 WORKS →</Link>
             </div>
@@ -307,7 +277,7 @@ export default function Home() {
             {[
               { img: "/manus-storage/how-it-works-1-panels_9b6c6456.jpg", step: "1", time: "7am – 4pm", title: "Panels Generate Power", desc: "Your solar panels produce clean electricity all day. Excess energy charges your Powerwall battery automatically.", color: "#facc15" },
               { img: "/manus-storage/how-it-works-2-battery_fcab8965.jpg", step: "2", time: "All Day", title: "Battery Charges Up", desc: "Your Tesla Powerwall 3 stores the solar energy your home doesn't use immediately — ready for when you need it most.", color: "#22c55e" },
-              { img: "/manus-storage/how-it-works-3-peak_8b018b6c.jpg", step: "3", time: "4pm – 9pm", title: "Battery Beats Peak Rates", desc: "Edison charges up to 47¢/kWh during peak hours. Your Powerwall kicks in automatically so you pay $0 to the grid.", color: "#f97316" },
+              { img: "/manus-storage/how-it-works-3-peak_8b018b6c.jpg", step: "3", time: "4pm – 9pm", title: "Battery Beats Peak Rates", desc: "A battery can supply stored energy during expensive hours. We configure it around your utility rate plan and backup reserve.", color: "#f97316" },
               { img: "/manus-storage/how-it-works-4-backup_586e5b35.jpg", step: "4", time: "Any Time", title: "Whole-Home Backup", desc: "If the grid goes down, your Powerwall keeps your entire home running — lights, AC, refrigerator — without interruption.", color: "#60a5fa" },
             ].map(card => (
               <div key={card.step} className="bg-white rounded-2xl border border-gray-200 overflow-hidden card-hover">
@@ -382,60 +352,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ═══════════ PRICING ═══════════ */}
-      <section className="py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-14">
-            <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-4">
-              Solar + Battery Packages — $0 Down
-            </h2>
-            <p className="text-gray-600 text-lg max-w-2xl mx-auto">Two plans designed to fit your home and your energy bill. All include Tesla Powerwall 3, Smart Meter, full installation, and a 25-year warranty.</p>
-          </div>
-          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            {/* Solar Shield */}
-            <div className="bg-white rounded-2xl border border-gray-200 p-8 card-hover">
-              <h3 className="text-2xl font-extrabold text-gray-900 mb-1">Solar Shield</h3>
-              <p className="text-gray-500 text-sm mb-4">For homes with SCE bills around $320/mo</p>
-              <div className="mb-6">
-                <span className="text-4xl font-black text-gray-900">$234</span>
-                <span className="text-gray-500 text-lg">/mo</span>
-              </div>
-              <ul className="space-y-2.5 mb-8">
-                {["16 Solar Panels", "1 Tesla Powerwall 3 (13.5 kWh)", "1 Tesla Smart Meter", "Peak-hour grid protection (4–9pm)", "25-Year Full System Warranty", "25-Year Battery Warranty", "Professional Installation", "Permitting and Inspections", "24/7 Monitoring via Tesla App"].map((item, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
-                    <CheckCircle size={16} style={{ color: "#2BABE2", marginTop: "2px", flexShrink: 0 }} />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <Link href="/get-quote" className="btn-navy w-full block text-center">Get This Package</Link>
-            </div>
-            {/* Solar Shield+ */}
-            <div className="bg-white rounded-2xl p-8 card-hover relative" style={{ border: "2px solid #2BABE2" }}>
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 text-white text-xs font-bold uppercase tracking-wider px-4 py-1 rounded-full" style={{ background: "#2BABE2" }}>Most Popular</div>
-              <h3 className="text-2xl font-extrabold text-gray-900 mb-1">Solar Shield+</h3>
-              <p className="text-gray-500 text-sm mb-4">For homes with SCE bills around $580/mo</p>
-              <div className="mb-6">
-                <span className="text-4xl font-black text-gray-900">$307</span>
-                <span className="text-gray-500 text-lg">/mo</span>
-              </div>
-              <ul className="space-y-2.5 mb-8">
-                {["32 Solar Panels", "1 Tesla Powerwall 3 (13.5 kWh)", "1 Tesla Smart Meter", "Peak-hour grid protection (4–9pm)", "25-Year Full System Warranty", "25-Year Battery Warranty", "Professional Installation", "Permitting and Inspections", "24/7 Monitoring via Tesla App"].map((item, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
-                    <CheckCircle size={16} style={{ color: "#2BABE2", marginTop: "2px", flexShrink: 0 }} />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <Link href="/get-quote" className="btn-green w-full block text-center">Get This Package</Link>
-            </div>
-          </div>
-          <p className="text-center text-gray-500 text-sm mt-6">*Final system size and pricing based on site evaluation.</p>
-          <div className="text-center mt-4">
-            <Link href="/financing" className="font-bold hover:underline transition-colors" style={{ color: "#2BABE2" }}>VIEW FULL PACKAGE DETAILS →</Link>
-          </div>
-        </div>
-      </section>
+      <FinancingOptions />
 
       {/* ═══════════ POWERWALL ═══════════ */}
       <section className="py-20 bg-white">

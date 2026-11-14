@@ -18,7 +18,7 @@ describe("verified Google measurement configuration", () => {
   });
 
   it("keeps the verified quote-completion conversion and allows its required Ads resource", () => {
-    const thankYou = projectFile("client/src/pages/ThankYou.tsx");
+    const thankYou = projectFile("client/src/lib/leadConversion.ts");
     const server = projectFile("server/_core/index.ts");
 
     expect(thankYou).toContain("AW-17865947343/TI2CCLSThPQbEM_xksdC");

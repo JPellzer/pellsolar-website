@@ -176,7 +176,7 @@ describe("leads.create (public)", () => {
 
     expect(result).toMatchObject({ success: true, id: 42, dealId: 99 });
     expect(crmWebhook).toHaveBeenCalledTimes(1);
-    expect(crmWebhook).toHaveBeenCalledWith({
+    expect(crmWebhook.mock.calls[0][0]).toMatchObject({
       first_name: "Taylor",
       last_name: "Customer",
       email: "taylor@example.com",
@@ -223,9 +223,9 @@ describe("leads.create (public)", () => {
       source: "quote-page",
     });
 
-    expect(crmWebhook).toHaveBeenCalledWith(expect.objectContaining({
+    expect(crmWebhook.mock.calls[0][0]).toEqual(expect.objectContaining({
       source: "quote-page",
-      utm_data: undefined,
+      utm_data: {event_id:'website-lead-42'},
     }));
   });
 

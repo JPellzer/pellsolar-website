@@ -69,7 +69,10 @@ const UtmDataSchema = z.object({
   utm_campaign: z.string().optional(),
   utm_content: z.string().optional(),
   utm_term: z.string().optional(),
-  gclid: z.string().optional(),
+  gclid: z.string().max(512).optional(),
+  fbclid: z.string().max(512).optional(), fbc: z.string().max(512).optional(),
+  fbp: z.string().max(512).optional(), gbraid: z.string().max(512).optional(),
+  wbraid: z.string().max(512).optional(), click_id: z.string().max(512).optional(),
 }).optional();
 
 // ─── Zod schemas ─────────────────────────────────────────────────────────────
@@ -129,6 +132,10 @@ async function getCrmBillFiles(
 }
 
 const CreateLeadSchema = z.object({
+  smsConsent: z.boolean().optional(),
+  automatedCallConsent: z.boolean().optional(),
+  projectGoal: z.string().max(200).optional(),
+  projectTimeframe: z.string().max(100).optional(),
   firstName: z.string().min(1),
   lastName: z.string().min(1),
   email: z.string().email(),
@@ -268,6 +275,7 @@ export const appRouter = router({
             // Third-party CRM servers require a directly downloadable signed S3 URL.
             // Never send a browser-session-bound /manus-storage path.
             bill_file_url: crmBillFileUrl,
+            bill_file_key: input.billFileKey,
             bill_file_name: input.billFileName || undefined,
             bill_files: crmBillFiles,
             type: "new_lead",
@@ -279,7 +287,10 @@ export const appRouter = router({
             payment_preference: input.paymentPreference || undefined,
             monthly_bill: monthlyBillNum,
             interest: input.interestType || undefined,
-            utm_data: input.utmData,
+            utm_data: { ...input.utmData, event_id: 'website-lead-' + id },
+            lead_details: { goal: input.projectGoal, timeframe: input.projectTimeframe, contact_consent: { sms: input.smsConsent ?? null, automated_calls: input.automatedCallConsent ?? null,
+              recorded_at: new Date().toISOString(), text_version: 'quote-sms-2026-11',
+              source: 'website_quote' } },
             visitor_ip: visitorIp,
             user_agent: getRequestHeader(ctx.req, "user-agent"),
             referrer: getRequestHeader(ctx.req, "referer"),
@@ -289,7 +300,7 @@ export const appRouter = router({
             turnstile_ok: turnstileOk,
             // notes carries free-text when interest is 'other'
             notes: input.interestType === "other" && input.interestOtherText ? input.interestOtherText : undefined,
-          });
+          }, id);
           if (crmRes.deal_id) crmDealId = crmRes.deal_id;
           crmSuspect = crmRes.suspect === true;
           crmOk = crmRes.success !== false && !!crmRes.deal_id;
@@ -305,7 +316,7 @@ export const appRouter = router({
           }
         } catch (e) {
           console.warn("[CRM] postToCrm failed in leads.create:", e);
-          crmFailReason = e instanceof Error ? e.message : "post threw";
+          throw new TRPCError({code:"INTERNAL_SERVER_ERROR",message:"Unable to queue your request. Please try again."});
         }
         // The CRM sends the staff email + text for every lead it accepts. This site's own alert is
         // the FALLBACK: it fires only when the CRM did not confirm the lead (error, timeout, no
@@ -477,7 +488,7 @@ export const appRouter = router({
           { city: input.city || undefined, state: input.state || undefined },
           input.zip,
         );
-        const result = await postToCrm({ ...input, city: crmPlace.city, state: crmPlace.state });
+        const result = await postToCrm({ ...input, city: crmPlace.city, state: crmPlace.state }, localLeadId);
         if (!result.success) {
           // Log but don't fail the user — CRM sync is best-effort
           console.warn("[CRM] Lead sync failed:", result.error);
@@ -879,14 +890,10 @@ Keep the response under 250 words and use plain language.`;
             // Photo URLs for CRM file attachment
             photoFiles: photoUrls.length > 0 ? photoUrls : undefined,
           };
-          const res = await fetch("https://pellsolar-crm-prod.onrender.com/api/webhooks/service-intake", {
-            method: "POST",
-            headers: { "Content-Type": "application/json", ...getCrmAuthHeaders() },
-            body: JSON.stringify(servicePayload),
-          });
-          crmResult = await res.json().catch(() => ({ success: res.ok }));
+          crmResult = await postToCrm({first_name:input.firstName,last_name:input.lastName || '',type:'service_call',service_intake:servicePayload});
         } catch (e) {
-          console.error("[CRM] Service intake webhook failed:", e);
+          console.error("[CRM] Service intake could not be saved");
+          throw new TRPCError({code:"INTERNAL_SERVER_ERROR",message:"We could not save your request. Please try again or call us."});
         }
 
         // Store locally with all diagnosis fields
@@ -1055,12 +1062,7 @@ No further action needed - customer self-resolved.`,
           let crmDealId: number | undefined;
           let crmPendingId: number | undefined;
           try {
-            const res = await fetch("https://pellsolar-crm-prod.onrender.com/api/webhooks/service-intake", {
-              method: "POST",
-              headers: { "Content-Type": "application/json", ...getCrmAuthHeaders() },
-              body: JSON.stringify(servicePayload),
-            });
-            const crmResult = await res.json().catch(() => ({ success: res.ok }));
+            const crmResult = await postToCrm({first_name:lead.firstName,last_name:lead.lastName || '',type:'service_call',service_intake:servicePayload},input.leadId);
             if (crmResult && "deal_id" in crmResult) {
               crmDealId = crmResult.deal_id;
             }
@@ -1068,7 +1070,8 @@ No further action needed - customer self-resolved.`,
               crmPendingId = crmResult.pending_id;
             }
           } catch (e) {
-            console.error("[Followup] CRM service intake webhook failed:", e);
+            console.error("[Followup] Service request could not be saved");
+            throw new TRPCError({code:"INTERNAL_SERVER_ERROR",message:"We could not save your request. Please try again or call us."});
           }
 
           // Update DB with outcome + CRM info

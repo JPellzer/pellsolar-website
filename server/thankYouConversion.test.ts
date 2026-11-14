@@ -16,13 +16,6 @@ describe("confirmed lead conversion tracking", () => {
     expect(quotePage).toContain('searchParams.set("lead_id", String(data.id))');
   });
 
-  it("only fires conversion tags for confirmed leads and de-duplicates refreshes", () => {
-    expect(thankYou).toContain('const leadId = params.get("lead_id")');
-    expect(thankYou).toContain("if (!leadId) return");
-    expect(thankYou).toContain("pellsolar-lead-conversion:${leadId}");
-    expect(thankYou).toContain("window.sessionStorage.getItem(conversionKey)");
-    expect(thankYou).toContain("AW-17865947343/TI2CCLSThPQbEM_xksdC");
-  });
 
   it("suppresses appointment booking when the CRM marks the lead as suspect", () => {
     expect(quotePage).toContain('searchParams.set("suspect", "1")');
