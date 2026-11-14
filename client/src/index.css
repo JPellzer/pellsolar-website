@@ -45,7 +45,8 @@
 .project-card-heading strong { flex: 1; min-width: 0; }
 .project-card-photo { width: 100px; height: 112px; flex-shrink: 0; object-fit: cover; border-radius: 12px; background: #fff; box-shadow: 0 3px 12px rgb(0 0 0 / 15%); }
 .project-card-battery .project-card-photo { object-position: 70% 65%; }
-.project-card-solar .project-card-photo { object-fit: contain; }
+.project-card-solar .project-card-photo { object-fit: contain; background: transparent; box-shadow: none; border-radius: 0; }
+.project-card-service .project-card-photo { object-position: 58% center; }
 .project-card-description { color: var(--project-description); }
 .project-card-action {
   display: flex;

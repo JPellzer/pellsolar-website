@@ -161,8 +161,8 @@ export default function Home() {
             <div className="grid md:grid-cols-3 gap-4 w-full max-w-5xl text-left">
               {[
                 {title:'Battery backup',body:'Store energy for outages and evening use.',url:'/get-quote?interest=battery',image:'/manus-storage/powerwall-exterior-finished_5ef809f3.webp',alt:'Tesla home backup battery mounted beside a house',theme:'project-card-battery',action:'Plan my backup'},
-                {title:'Install solar panels',body:'Explore solar for your home, with or without battery storage.',url:'/get-quote?interest=solar',image:'/manus-storage/qcells-panel-real_2bd09da8.png',alt:'Black residential solar panel',theme:'project-card-solar',action:'Plan my solar'},
-                {title:'Service & repair',body:'Get help with your solar panels, inverter or battery.',url:'/solar-repair',image:'/manus-storage/crew-photo-2_81822e68.png',alt:'An existing rooftop solar panel system',theme:'project-card-service',action:'Request service'},
+                {title:'Install solar panels',body:'Explore solar for your home, with or without battery storage.',url:'/get-quote?interest=solar',image:'/manus-storage/solar-panel-transparent.png',alt:'Black residential solar panel',theme:'project-card-solar',action:'Plan my solar'},
+                {title:'Service & repair',body:'Get help with your solar panels, inverter or battery.',url:'/solar-repair',image:'/manus-storage/service-technician.jpg',alt:'Technician checking electrical equipment for a solar system',theme:'project-card-service',action:'Request service'},
               ].map(item=><Link key={item.title} href={item.url} className={`project-card ${item.theme}`}>
                 <span className="project-card-heading"><strong className="text-xl leading-snug">{item.title}</strong><img className="project-card-photo" src={item.image} alt={item.alt} width={100} height={112} decoding="async" /></span>
                 <span className="project-card-description block mb-5">{item.body}</span>
