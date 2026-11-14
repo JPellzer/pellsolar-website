@@ -1,3 +1,4 @@
+import { trackLeadConversion } from "@/lib/leadConversion";
 import { useEffect } from "react";
 import { Link, useSearch } from "wouter";
 import { CheckCircle, Phone, Mail, ArrowRight, Calendar } from "lucide-react";
@@ -23,28 +24,19 @@ export default function ThankYou() {
     // A thank-you URL can be refreshed, restored from browser history, or opened
     // directly. Only a confirmed lead submission receives a lead_id; store the
     // completed conversion in session storage so each lead counts once.
-    if (!leadId) return;
-
-    const conversionKey = `pellsolar-lead-conversion:${leadId}`;
-    try {
-      if (window.sessionStorage.getItem(conversionKey)) return;
-      window.sessionStorage.setItem(conversionKey, "1");
-    } catch {
-      // Continue tracking if storage is unavailable; the server-confirmed lead_id
-      // still keeps the event tied to a real quote completion.
-    }
-
-    // Fire Facebook Lead conversion event
-    if (typeof window.fbq === "function") {
-      window.fbq("track", "Lead");
-    }
-    // Fire Google Ads conversion event
-    if (typeof window.gtag === "function") {
-      window.gtag("event", "conversion", {
-        send_to: "AW-17865947343/TI2CCLSThPQbEM_xksdC",
-      });
-    }
-  }, [leadId]);
+    if (!leadId || isReturning || isSuspect) return;
+    let tries = 0;
+    const track = () => {
+      tries++;
+      let store:Storage|undefined;
+      try { store=window.sessionStorage; } catch {}
+      const complete=trackLeadConversion(leadId,window,store);
+      if (complete || tries>=15) clearInterval(timer);
+    };
+    const timer = setInterval(track,1000);
+    track();
+    return () => clearInterval(timer);
+  }, [leadId, isReturning, isSuspect]);
 
   return (
     <div className="min-h-screen bg-white flex flex-col">

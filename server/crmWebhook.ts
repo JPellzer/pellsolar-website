@@ -6,7 +6,11 @@
 
 import { getCrmAuthHeaders } from "./crmAuth";
 
-const CRM_WEBHOOK_URL = "https://pellsolar-crm-prod.onrender.com/api/webhooks/website-lead";
+export function crmWebhookUrl() {
+  const configured = process.env.CRM_WEBHOOK_URL;
+  if (!configured && process.env.NODE_ENV !== 'production') throw new Error('CRM_WEBHOOK_URL is required outside production');
+  return configured || 'https://pellsolar-crm-prod.onrender.com/api/webhooks/website-lead';
+}
 
 export interface CrmBillFile {
   /** Seven-day signed URL the CRM can download directly */
@@ -17,6 +21,7 @@ export interface CrmBillFile {
 }
 
 export interface CrmLeadPayload {
+  service_intake?: Record<string, any>;
   // Contact info
   first_name: string;
   last_name: string;
@@ -29,6 +34,7 @@ export interface CrmLeadPayload {
 
   // Bill upload — first utility bill (legacy single-file fields)
   bill_file_url?: string;
+  bill_file_key?: string;
   bill_file_name?: string;
   // Every uploaded file: utility bills + Green Button CSV
   bill_files?: CrmBillFile[];
@@ -49,6 +55,7 @@ export interface CrmLeadPayload {
 
   // Catch-all for anything that doesn't fit a dedicated field
   notes?: string;
+  lead_details?: Record<string, unknown>;
 
   // Visit security metadata
   visitor_ip?: string;
@@ -66,11 +73,14 @@ export interface CrmLeadPayload {
     utm_content?: string;
     utm_term?: string;
     gclid?: string;
+    fbclid?: string; fbc?: string; fbp?: string; gbraid?: string; wbraid?: string; click_id?: string; event_id?: string;
   };
 }
 
 export interface CrmLeadResult {
   success: boolean;
+  queued?: boolean;
+  pending_id?: number;
   customer_id?: number;
   deal_id?: number;
   duplicate_customer?: boolean;
@@ -78,50 +88,39 @@ export interface CrmLeadResult {
   error?: string;
 }
 
-export async function postToCrm(payload: CrmLeadPayload): Promise<CrmLeadResult> {
+export async function postToCrm(payload: CrmLeadPayload, leadId?: number): Promise<CrmLeadResult> {
+  const { enqueueCrmLead, deliverCrmLead } = await import('./crmOutbox');
+  const id = await enqueueCrmLead(payload, leadId);
+  try { return await deliverCrmLead(id); }
+  catch { return { success:false, queued:true, error:'delivery_pending' }; }
+}
+
+export async function sendToCrm(payload: CrmLeadPayload): Promise<CrmLeadResult> {
   try {
-    // Log the exact payload being sent so we can debug CRM field mapping issues
-    console.log("[CRM] Sending payload:", JSON.stringify({
-      first_name: payload.first_name,
-      last_name: payload.last_name,
-      email: payload.email,
-      phone: payload.phone,
-      address: payload.address,
-      city: payload.city,
-      state: payload.state,
-      zip: payload.zip,
-      type: payload.type,
-      source: payload.source,
-      monthly_bill: payload.monthly_bill,
-      interest: payload.interest,
-      bill_file_url: payload.bill_file_url ? "[present]" : undefined,
-      bill_files: payload.bill_files ? payload.bill_files.map(f => `${f.type}:${f.name}`) : undefined,
-      visitor_ip: payload.visitor_ip,
-      form_seconds: payload.form_seconds,
-      honeypot: payload.honeypot ? "[present]" : "",
-      turnstile_ok: payload.turnstile_ok,
-    }, null, 2));
-    const res = await fetch(CRM_WEBHOOK_URL, {
+    const endpoint = payload.service_intake ? crmWebhookUrl().replace(/\/website-lead$/, '/service-intake') : crmWebhookUrl();
+    const res = await fetch(endpoint, {
       method: "POST",
       // 25s cap: the catch below turns a timeout into network_error, which fires the site's fallback alert
       signal: AbortSignal.timeout(25000),
       headers: { "Content-Type": "application/json", ...getCrmAuthHeaders() },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(payload.service_intake || payload),
     });
 
     if (res.status === 429) {
-      console.warn("[CRM] Rate limited — will not retry");
+      console.warn("[CRM] Rate limited — retained for retry");
       return { success: false, error: "rate_limited" };
     }
 
     const data = await res.json().catch(() => ({}));
-    console.log("[CRM] Response status:", res.status, "body:", JSON.stringify(data));
+    console.log("[CRM] Response status:", res.status);
 
     if (!res.ok) {
       console.error("[CRM] Webhook error:", res.status, data);
       return { success: false, error: `http_${res.status}` };
     }
 
+    if (payload.service_intake && ((data.status === 'deal_created' && data.deal_id) || (data.status === 'inquiry_logged' && data.pending_id))) return {...data,success:true};
+    if (data.success !== true || !data.deal_id) return { success: false, error: 'unconfirmed_delivery' };
     return data as CrmLeadResult;
   } catch (err) {
     console.error("[CRM] Network error posting to CRM:", err);

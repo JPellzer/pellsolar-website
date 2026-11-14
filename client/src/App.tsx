@@ -25,6 +25,7 @@ function ScrollToTop() {
 import { Toaster } from "sonner";
 // Core pages
 import Home from "@/pages/Home";
+import ProjectStart from "@/pages/ProjectStart";
 import QuotePage from "@/pages/QuotePage";
 import AboutUs from "@/pages/AboutUs";
 import Reviews from "@/pages/Reviews";
@@ -100,6 +101,7 @@ import VenturaPage from "@/pages/cities/Ventura";
 import ActiveTerritoryCity from "@/pages/cities/ActiveTerritoryCity";
 
 export default function App() {
+  const [currentPath] = useLocation();
   return (
     <>
       <Head />
@@ -108,7 +110,8 @@ export default function App() {
       <Switch>
         {/* Core */}
         <Route path="/" component={Home} />
-        <Route path="/get-quote" component={QuotePage} />
+        <Route path="/get-quote" component={ProjectStart} />
+        <Route path="/get-quote/details" component={QuotePage} />
         <Route path="/referral-program" component={ReferralProgram} />
         <Route path="/refer" component={ReferralProgram} />
         <Route path="/about" component={AboutUs} />
@@ -206,7 +209,7 @@ export default function App() {
           </div>
         </Route>
       </Switch>
-      <LiveChatWidget />
+      {!currentPath.startsWith('/get-quote') && <LiveChatWidget />}
     </>
   );
 }

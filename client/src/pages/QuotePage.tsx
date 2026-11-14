@@ -1,3 +1,4 @@
+import { recordLeadSubmission } from "@/lib/leadConversion";
 import { useState, useCallback, useEffect, useRef } from "react";
 import { Link, useLocation, useSearch } from "wouter";
 import { trpc } from "@/lib/trpc";
@@ -37,6 +38,7 @@ interface FormData {
   billFileUrl: string;
   billFileName: string;
   smsConsent: boolean;
+  automatedCallConsent: boolean;
   companyWebsite: string;
   honeypot: string;
 }
@@ -52,7 +54,7 @@ declare global {
   }
 }
 
-function InvisibleTurnstile({ siteKey, onToken }: { siteKey?: string; onToken: (token: string) => void }) {
+export function InvisibleTurnstile({ siteKey, onToken }: { siteKey?: string; onToken: (token: string) => void }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | null>(null);
 
@@ -363,6 +365,7 @@ export default function QuotePage() {
     firstName: "", lastName: "", email: "", phone: "", address: "", city: "", state: "",
     billFile: null, billFileKey: "", billFileUrl: "", billFileName: "",
     smsConsent: false,
+    automatedCallConsent: false,
     companyWebsite: "",
     honeypot: "",
   });
@@ -370,6 +373,7 @@ export default function QuotePage() {
 
   const createLead = trpc.leads.create.useMutation({
     onSuccess: (data, variables) => {
+      try { recordLeadSubmission(data, window.sessionStorage); } catch { recordLeadSubmission(data); }
       const searchParams = new URLSearchParams();
       if (data.isDuplicate) searchParams.set("returning", "1");
       if (data.dealId) searchParams.set("deal_id", String(data.dealId));
@@ -453,6 +457,8 @@ export default function QuotePage() {
       if (result) { billKey = result.key; billUrl = result.publicUrl || result.url; billName = form.billFile.name; }
     }
     createLead.mutate({
+      smsConsent: form.smsConsent,
+      automatedCallConsent: form.automatedCallConsent,
       firstName: form.firstName, lastName: form.lastName, email: form.email, phone: form.phone,
       address: form.address, city: form.city || undefined, state: form.state || undefined, zip: form.zipCode || undefined,
       ownershipType: form.ownership === "own" ? "homeowner" : "renter",
@@ -1037,6 +1043,7 @@ export default function QuotePage() {
                         <BillUpload file={form.billFile} onFile={f => update({ billFile: f, billFileName: f.name })} onClear={() => update({ billFile: null, billFileKey: "", billFileUrl: "", billFileName: "" })} />
                       </div>
                       {/* SMS Opt-in Consent — required for Twilio A2P 10DLC compliance */}
+                      <label style={{display:'flex',gap:10,marginTop:12,fontSize:12}}><input type="checkbox" checked={form.automatedCallConsent} onChange={e=>update({automatedCallConsent:e.target.checked})}/>I agree to receive automated or AI-assisted calls from Pell Solar about this request. Optional; not required for a quote or purchase.</label>
                       <div style={{ margin: "12px 0 8px", padding: "12px 14px", background: "#f0f9ff", border: "1.5px solid #2BABE2", borderRadius: "10px", display: "flex", alignItems: "flex-start", gap: "10px" }}>
                         <input
                           type="checkbox"
