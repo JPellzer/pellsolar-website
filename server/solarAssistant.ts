@@ -302,10 +302,19 @@ export async function respond(sessionId: number) {
     await c.query("BEGIN");
     const current = (
       await c.query(
-        "SELECT staff_takeover FROM website_assistant_sessions WHERE session_id=$1 FOR UPDATE",
+        "SELECT staff_takeover,profile,handoff_requested FROM website_assistant_sessions WHERE session_id=$1 FOR UPDATE",
         [sessionId]
       )
     ).rows[0];
+    // A callback form may have been confirmed while the model was answering.
+    // Keep those user-confirmed details over an older model profile.
+    if (current.handoff_requested) {
+      for (const key of fields) {
+        if (current.profile[key] !== state.profile[key]) {
+          profile[key] = current.profile[key];
+        }
+      }
+    }
     if (!current.staff_takeover && (await assistantStatus()).isOnline) {
       const m = await c.query(
         'INSERT INTO website_chat_messages("sessionId",sender,message,"isAi") VALUES($1,\'admin\',$2,true) RETURNING id',

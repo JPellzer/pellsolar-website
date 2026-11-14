@@ -132,4 +132,30 @@ suite("website solar assistant persistence", () => {
     await api.respond(2);
     expect(modelCalls).toBe(1);
   });
+  it("keeps callback details confirmed while a model response is in flight", async () => {
+    await db.query('INSERT INTO website_chat_sessions(id) VALUES(3)');
+    await api.initializeSession(3, "race-fixture");
+    await api.queueTurn(3, "race-one", "I want a battery");
+    let release!: () => void;
+    let started!: () => void;
+    const waiting = new Promise<void>(resolve => { release = resolve; });
+    const entered = new Promise<void>(resolve => { started = resolve; });
+    vi.mocked(fetch).mockImplementationOnce(async () => {
+      started();
+      await waiting;
+      return new Response(JSON.stringify({ content: [{ type: "text", text: JSON.stringify({
+        answer: "A battery can help with backup.", profile: { interest: "battery" },
+        summary: "Interested in a battery.", offerCallback: true,
+      }) }] }));
+    });
+    const response = api.respond(3);
+    await entered;
+    await api.requestHandoff(3, { name: "Confirmed Visitor", phone: "9515550102", zip: "91786" });
+    release();
+    await response;
+    const state = await api.stateFor(3);
+    expect(state.profile.name).toBe("Confirmed Visitor");
+    expect(state.profile.phone).toBe("9515550102");
+    expect(state.crm_deal_id).toBe(99);
+  });
 });
