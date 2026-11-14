@@ -22,8 +22,6 @@
   --project-ink: #fff;
   --project-description: #dbeafe;
   --project-edge: #579ace;
-  --project-icon-background: #ffffff1a;
-  --project-icon-ink: #8fddff;
   --project-action-background: #82d7fb;
   --project-action-ink: #0b1d51;
 }
@@ -32,8 +30,6 @@
   --project-ink: #0b1d51;
   --project-description: #334155;
   --project-edge: #ffe799;
-  --project-icon-background: #0b1d5110;
-  --project-icon-ink: #0b1d51;
   --project-action-background: #0b1d51;
   --project-action-ink: #fff;
 }
@@ -42,22 +38,14 @@
   --project-ink: #0b1d51;
   --project-description: #334155;
   --project-edge: #a7def3;
-  --project-icon-background: #0c6b97;
-  --project-icon-ink: #fff;
   --project-action-background: #0c6b97;
   --project-action-ink: #fff;
 }
-.project-card-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 42px;
-  height: 42px;
-  flex-shrink: 0;
-  border-radius: 13px;
-  background: var(--project-icon-background);
-  color: var(--project-icon-ink);
-}
+.project-card-heading { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 16px; }
+.project-card-heading strong { flex: 1; min-width: 0; }
+.project-card-photo { width: 100px; height: 112px; flex-shrink: 0; object-fit: cover; border-radius: 12px; background: #fff; box-shadow: 0 3px 12px rgb(0 0 0 / 15%); }
+.project-card-battery .project-card-photo { object-position: 70% 65%; }
+.project-card-solar .project-card-photo { object-fit: contain; }
 .project-card-description { color: var(--project-description); }
 .project-card-action {
   display: flex;
