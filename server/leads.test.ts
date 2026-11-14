@@ -104,6 +104,51 @@ function makeUserCtx(): TrpcContext {
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
+describe('leads.createProject required project details', () => {
+  const completeProject = {
+    firstName: ' Jamie ', lastName: ' Example ', email: 'jamie@example.com', phone: '(714) 555-0199',
+    address: '123 Example Street', city: 'Upland', state: 'ca', zip: '91786', zipCode: '91786',
+    ownershipType: 'homeowner' as const, existingSolar: false, interestType: 'battery' as const,
+    projectTimeframe: 'now', smsConsent: false, automatedCallConsent: false,
+  };
+
+  it('rejects missing or unusable required fields before saving or delivering any lead', async () => {
+    const db = await import('./db');
+    vi.mocked(db.createLead).mockClear();
+    vi.mocked(postToCrm).mockClear();
+    const caller = appRouter.createCaller(makePublicCtx());
+    const missing = ['interestType','firstName','lastName','email','phone','address','city','state','zip','ownershipType','existingSolar'];
+    const invalid: Record<string, unknown>[] = missing.map(key => {
+      const input: Record<string, unknown> = { ...completeProject }; delete input[key]; return input;
+    });
+    for (const fields of [{firstName:'   '}, {lastName:'   '}, {address:'   '}, {city:'   '},
+      {phone:'abcdefghij'}, {phone:'555-0199'}, {zip:'ABCDE'}, {zipCode:'83642'}, {email:'not-an-email'}]) {
+      invalid.push({...completeProject,...fields});
+    }
+    for (const input of invalid) {
+      await expect(caller.leads.createProject(input as never)).rejects.toMatchObject({code:'BAD_REQUEST'});
+    }
+    expect(db.createLead).not.toHaveBeenCalled();
+    expect(postToCrm).not.toHaveBeenCalled();
+  });
+
+  it('saves the complete property and urgent timing with optional consents declined', async () => {
+    const db = await import('./db');
+    vi.mocked(db.createLead).mockClear();
+    vi.mocked(postToCrm).mockClear();
+    const result = await appRouter.createCaller(makePublicCtx()).leads.createProject(completeProject);
+    expect(result).toMatchObject({success:true,id:42,dealId:99});
+    expect(db.createLead).toHaveBeenCalledWith(expect.objectContaining({
+      firstName:'Jamie',lastName:'Example',address:'123 Example Street',zipCode:'91786',existingSolar:0,
+    }));
+    expect(postToCrm).toHaveBeenCalledWith(expect.objectContaining({
+      first_name:'Jamie',last_name:'Example',phone:'(714) 555-0199',email:'jamie@example.com',
+      address:'123 Example Street',city:'Upland',state:'CA',zip:'91786',
+      lead_details:expect.objectContaining({timeframe:'now',contact_consent:expect.objectContaining({sms:false,automated_calls:false})}),
+    }), 42);
+  });
+});
+
 describe("leads.create (public)", () => {
   it("creates a lead and returns success with id", async () => {
     const caller = appRouter.createCaller(makePublicCtx());

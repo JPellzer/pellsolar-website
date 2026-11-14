@@ -42,6 +42,7 @@ interface Props {
   style?: React.CSSProperties;
   id?: string;
   required?: boolean;
+  minLength?: number;
 }
 
 const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim();
@@ -88,6 +89,7 @@ export default function AddressAutocomplete({
   style,
   id,
   required,
+  minLength,
 }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
@@ -169,6 +171,7 @@ export default function AddressAutocomplete({
       className={className}
       style={style}
       required={required}
+      minLength={minLength}
       data-addr-fill="sticky-pick-v1"
       autoComplete="off"
     />

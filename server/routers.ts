@@ -39,6 +39,8 @@ import { getClientIp } from "./spamProtection";
 import { deriveLeadSource } from "@shared/attribution";
 import crypto from "crypto";
 import { verifyTurnstile } from "./turnstile";
+import type { TrpcContext } from "./_core/context";
+import { isUsPhone, PHONE_REQUIRED_MESSAGE } from "@shared/contactValidation";
 import { checkCustomerInCrm } from "./crmCustomerCheck";
 
 // ─── In-memory rate limit map for unsubscribe endpoint ──────────────────────
@@ -176,6 +178,194 @@ const CreateLeadSchema = z.object({
   turnstileToken: z.string().max(2_048).optional(),
 });
 
+// The short project form requires a usable property address as well as contact details.
+// Keep the older bill-upload contract compatible; both use the same saved-lead delivery path.
+const ProjectLeadSchema = CreateLeadSchema.extend({
+  interestType: z.enum(["solar", "battery", "solar_battery"]),
+  firstName: z.string().trim().min(1, "First name is required"),
+  lastName: z.string().trim().min(1, "Last name is required"),
+  email: z.string().trim().email(),
+  phone: z.string().trim().refine(isUsPhone, PHONE_REQUIRED_MESSAGE),
+  address: z.string().trim().min(5, "Property street address is required"),
+  city: z.string().trim().min(2, "City is required"),
+  state: z.string().trim().toUpperCase().regex(/^[A-Z]{2}$/, "Use the two-letter state code"),
+  zip: z.string().trim().regex(/^\d{5}$/, "Use a five-digit ZIP code"),
+  existingSolar: z.boolean().transform(value => value ? 1 : 0),
+}).refine(input => !input.zipCode || input.zipCode === input.zip, {
+  message: "Confirm the property ZIP code", path: ["zipCode"],
+});
+
+async function saveQuoteLead({ input, ctx }: { input: z.output<typeof CreateLeadSchema>; ctx: TrpcContext }) {
+  // ── Bot / spam protection ──────────────────────────────────────────
+  runSpamChecks(ctx.req, {
+    honeypot: input.honeypot || input.companyWebsite,
+    address: input.address,
+    phone: input.phone,
+  });
+  const visitorIp = getClientIp(ctx.req);
+  const turnstileOk = await verifyTurnstile(input.turnstileToken, visitorIp);
+  if (turnstileOk === false) {
+    throw new TRPCError({ code: "BAD_REQUEST", message: "Something went wrong, please try again." });
+  }
+  const source = deriveLeadSource(input.source, input.utmData);
+  // ─────────────────────────────────────────────────────────────────
+  const { id, isDuplicate } = await createLead({
+    firstName: input.firstName,
+    lastName: input.lastName,
+    email: input.email,
+    phone: input.phone,
+    address: input.address,
+    ownershipType: input.ownershipType,
+    propertyType: input.propertyType,
+    zipCode: input.zipCode || input.zip,
+    existingSolar: input.existingSolar,
+    solarMotivation: input.solarMotivation,
+    paymentPreference: input.paymentPreference,
+    monthlyBillRange: input.monthlyBillRange,
+    interestType: input.interestType,
+    interestOtherText: input.interestOtherText,
+    billFileKey: input.billFileKey,
+    billFileUrl: input.billFileUrl,
+    billFileName: input.billFileName,
+    billFiles: input.billFiles && input.billFiles.length > 0 ? input.billFiles : undefined,
+    source,
+    notes: input.interestType === "other" && input.interestOtherText ? input.interestOtherText : undefined,
+  });
+  const crmBillFileUrl = await getCrmBillFileUrl(input.billFileKey, input.billFileUrl);
+  const crmBillFiles = await getCrmBillFiles(input.billFiles);
+  // Forward to Solar Pro CRM and capture deal_id
+  let crmDealId: number | undefined;
+  let crmSuspect = false;
+  let crmOk = false;
+  let crmFailReason = "no response";
+  try {
+    // Parse monthly_bill as a number (strip non-digits, take first number found)
+    const monthlyBillNum = input.monthlyBillRange
+      ? parseInt(input.monthlyBillRange.replace(/[^0-9]/g, ""), 10) || undefined
+      : undefined;
+
+    // City / state only arrive when the visitor picked an address suggestion. When one is
+    // missing and there is a ZIP, fill it from the ZIP lookup (short timeout; on any
+    // failure the lead goes out with what we have).
+    const crmZip = input.zipCode || input.zip || undefined;
+    const crmPlace = await fillCityStateFromZip(
+      { city: input.city || undefined, state: input.state || undefined },
+      crmZip,
+    );
+
+    const crmRes = await postToCrm({
+      first_name: input.firstName,
+      last_name: input.lastName,
+      email: input.email || undefined,
+      phone: input.phone || undefined,
+      address: input.address || undefined,
+      city: crmPlace.city,
+      state: crmPlace.state,
+      zip: crmZip,
+      // Third-party CRM servers require a directly downloadable signed S3 URL.
+      // Never send a browser-session-bound /manus-storage path.
+      bill_file_url: crmBillFileUrl,
+      bill_file_key: input.billFileKey,
+      bill_file_name: input.billFileName || undefined,
+      bill_files: crmBillFiles,
+      type: "new_lead",
+      source,
+      // Individual qualification fields
+      property_type: (input.propertyType as "family_home" | "apartment" | "commercial" | undefined) || undefined,
+      existing_solar: input.existingSolar !== undefined ? input.existingSolar === 1 : undefined,
+      solar_motivation: input.solarMotivation || undefined,
+      payment_preference: input.paymentPreference || undefined,
+      monthly_bill: monthlyBillNum,
+      interest: input.interestType || undefined,
+      utm_data: { ...input.utmData, event_id: 'website-lead-' + id },
+      lead_details: { goal: input.projectGoal, timeframe: input.projectTimeframe, contact_consent: { sms: input.smsConsent ?? null, automated_calls: input.automatedCallConsent ?? null,
+        recorded_at: new Date().toISOString(), text_version: 'quote-sms-2026-11',
+        source: 'website_quote' } },
+      visitor_ip: visitorIp,
+      user_agent: getRequestHeader(ctx.req, "user-agent"),
+      referrer: getRequestHeader(ctx.req, "referer"),
+      page_url: input.pageUrl,
+      form_seconds: input.formSeconds,
+      honeypot: input.companyWebsite,
+      turnstile_ok: turnstileOk,
+      // notes carries free-text when interest is 'other'
+      notes: input.interestType === "other" && input.interestOtherText ? input.interestOtherText : undefined,
+    }, id);
+    if (crmRes.deal_id) crmDealId = crmRes.deal_id;
+    crmSuspect = crmRes.suspect === true;
+    crmOk = crmRes.success !== false && !!crmRes.deal_id;
+    if (!crmOk) crmFailReason = String((crmRes as { error?: string }).error || "no deal id returned");
+    if (crmRes.deal_id || crmRes.customer_id) {
+      await setLeadCrmInfo(id, {
+        crmDealId: crmRes.deal_id,
+        crmCustomerId: crmRes.customer_id,
+        crmStatus: crmRes.success ? "accepted" : undefined,
+      });
+    } else if (crmRes.success === false) {
+      await setLeadCrmInfo(id, { crmStatus: "failed" });
+    }
+  } catch (e) {
+    console.warn("[CRM] postToCrm failed in leads.create:", e);
+    throw new TRPCError({code:"INTERNAL_SERVER_ERROR",message:"Unable to queue your request. Please try again."});
+  }
+  // The CRM sends the staff email + text for every lead it accepts. This site's own alert is
+  // the FALLBACK: it fires only when the CRM did not confirm the lead (error, timeout, no
+  // deal id), so a lead is never silent and never alerted twice.
+  if (!crmOk) {
+
+  // Notify owner (in-app)
+  try {
+    await notifyOwner({
+      title: "🚨 New Solar Lead — CRM did not confirm it",
+      content: `The CRM did not confirm this lead (${crmFailReason}) — it may NOT be in the CRM. New lead from ${input.firstName} ${input.lastName} (${input.email}) via ${source}. Monthly bill: ${input.monthlyBillRange ?? "not specified"}. Interest: ${input.interestType}.`,
+    });
+  } catch (e) {
+    console.warn("[Notification] Failed to notify owner:", e);
+  }
+
+  // SMS notification to Josh
+  if (ENV.twilioNotifyNumber) {
+    const interestLabel: Record<string, string> = {
+      solar: "Solar Only",
+      battery: "Battery Only",
+      solar_battery: "Solar + Battery",
+      ev_charger: "EV Charger",
+      other: "Other / Not Sure",
+    };
+    const interestDisplay = interestLabel[input.interestType] ?? input.interestType;
+
+    const cleanPhone = input.phone.replace(/\D/g, "");
+    const formattedPhone = cleanPhone.length === 10
+      ? `(${cleanPhone.slice(0,3)}) ${cleanPhone.slice(3,6)}-${cleanPhone.slice(6)}`
+      : input.phone;
+    const billLink = crmBillFileUrl || null;
+
+    const smsBody = [
+      `🚨 NEW PELL SOLAR LEAD — CRM did not confirm (${crmFailReason}), check the CRM`,
+      `Name: ${input.firstName} ${input.lastName}`,
+      `Phone: ${formattedPhone}`,
+      `Call: +1${cleanPhone}`,
+      `Email: ${input.email}`,
+      input.address ? `Address: ${input.address}` : "",
+      `Interest: ${interestDisplay}`,
+      input.ownershipType ? `Ownership: ${input.ownershipType}` : "",
+      input.monthlyBillRange ? `Monthly Bill: $${input.monthlyBillRange}` : "",
+      input.interestOtherText ? `Notes: ${input.interestOtherText}` : "",
+      input.ownershipType === "renter" ? `⚠️ Renter (not homeowner)` : "",
+      billLink ? `Bill file: ${billLink}` : "",
+      crmBillFiles && crmBillFiles.length > 1 ? `Files uploaded: ${crmBillFiles.length}` : "",
+      `CRM: https://pellsolar.com/admin/leads/${id}`,
+      `Source: ${source}`,
+    ].filter(Boolean).join("\n");
+
+    sendSms(ENV.twilioNotifyNumber, smsBody).catch((e) =>
+      console.warn("[SMS] Lead notification failed:", e)
+    );
+  }
+  }
+  return { success: true, id, isDuplicate, dealId: crmDealId, suspect: crmSuspect || undefined };
+}
+
 // ─── Routers ─────────────────────────────────────────────────────────────────
 export const appRouter = router({
   system: systemRouter,
@@ -203,178 +393,8 @@ export const appRouter = router({
   // ─── Lead procedures ───────────────────────────────────────────────────────
   leads: router({
     // Public: submit a new lead
-    create: publicProcedure
-      .input(CreateLeadSchema)
-      .mutation(async ({ input, ctx }) => {
-        // ── Bot / spam protection ──────────────────────────────────────────
-        runSpamChecks(ctx.req, {
-          honeypot: input.honeypot || input.companyWebsite,
-          address: input.address,
-          phone: input.phone,
-        });
-        const visitorIp = getClientIp(ctx.req);
-        const turnstileOk = await verifyTurnstile(input.turnstileToken, visitorIp);
-        if (turnstileOk === false) {
-          throw new TRPCError({ code: "BAD_REQUEST", message: "Something went wrong, please try again." });
-        }
-        const source = deriveLeadSource(input.source, input.utmData);
-        // ─────────────────────────────────────────────────────────────────
-        const { id, isDuplicate } = await createLead({
-          firstName: input.firstName,
-          lastName: input.lastName,
-          email: input.email,
-          phone: input.phone,
-          address: input.address,
-          ownershipType: input.ownershipType,
-          propertyType: input.propertyType,
-          zipCode: input.zipCode || input.zip,
-          existingSolar: input.existingSolar,
-          solarMotivation: input.solarMotivation,
-          paymentPreference: input.paymentPreference,
-          monthlyBillRange: input.monthlyBillRange,
-          interestType: input.interestType,
-          interestOtherText: input.interestOtherText,
-          billFileKey: input.billFileKey,
-          billFileUrl: input.billFileUrl,
-          billFileName: input.billFileName,
-          billFiles: input.billFiles && input.billFiles.length > 0 ? input.billFiles : undefined,
-          source,
-          notes: input.interestType === "other" && input.interestOtherText ? input.interestOtherText : undefined,
-        });
-        const crmBillFileUrl = await getCrmBillFileUrl(input.billFileKey, input.billFileUrl);
-        const crmBillFiles = await getCrmBillFiles(input.billFiles);
-        // Forward to Solar Pro CRM and capture deal_id
-        let crmDealId: number | undefined;
-        let crmSuspect = false;
-        let crmOk = false;
-        let crmFailReason = "no response";
-        try {
-          // Parse monthly_bill as a number (strip non-digits, take first number found)
-          const monthlyBillNum = input.monthlyBillRange
-            ? parseInt(input.monthlyBillRange.replace(/[^0-9]/g, ""), 10) || undefined
-            : undefined;
-
-          // City / state only arrive when the visitor picked an address suggestion. When one is
-          // missing and there is a ZIP, fill it from the ZIP lookup (short timeout; on any
-          // failure the lead goes out with what we have).
-          const crmZip = input.zipCode || input.zip || undefined;
-          const crmPlace = await fillCityStateFromZip(
-            { city: input.city || undefined, state: input.state || undefined },
-            crmZip,
-          );
-
-          const crmRes = await postToCrm({
-            first_name: input.firstName,
-            last_name: input.lastName,
-            email: input.email || undefined,
-            phone: input.phone || undefined,
-            address: input.address || undefined,
-            city: crmPlace.city,
-            state: crmPlace.state,
-            zip: crmZip,
-            // Third-party CRM servers require a directly downloadable signed S3 URL.
-            // Never send a browser-session-bound /manus-storage path.
-            bill_file_url: crmBillFileUrl,
-            bill_file_key: input.billFileKey,
-            bill_file_name: input.billFileName || undefined,
-            bill_files: crmBillFiles,
-            type: "new_lead",
-            source,
-            // Individual qualification fields
-            property_type: (input.propertyType as "family_home" | "apartment" | "commercial" | undefined) || undefined,
-            existing_solar: input.existingSolar !== undefined ? input.existingSolar === 1 : undefined,
-            solar_motivation: input.solarMotivation || undefined,
-            payment_preference: input.paymentPreference || undefined,
-            monthly_bill: monthlyBillNum,
-            interest: input.interestType || undefined,
-            utm_data: { ...input.utmData, event_id: 'website-lead-' + id },
-            lead_details: { goal: input.projectGoal, timeframe: input.projectTimeframe, contact_consent: { sms: input.smsConsent ?? null, automated_calls: input.automatedCallConsent ?? null,
-              recorded_at: new Date().toISOString(), text_version: 'quote-sms-2026-11',
-              source: 'website_quote' } },
-            visitor_ip: visitorIp,
-            user_agent: getRequestHeader(ctx.req, "user-agent"),
-            referrer: getRequestHeader(ctx.req, "referer"),
-            page_url: input.pageUrl,
-            form_seconds: input.formSeconds,
-            honeypot: input.companyWebsite,
-            turnstile_ok: turnstileOk,
-            // notes carries free-text when interest is 'other'
-            notes: input.interestType === "other" && input.interestOtherText ? input.interestOtherText : undefined,
-          }, id);
-          if (crmRes.deal_id) crmDealId = crmRes.deal_id;
-          crmSuspect = crmRes.suspect === true;
-          crmOk = crmRes.success !== false && !!crmRes.deal_id;
-          if (!crmOk) crmFailReason = String((crmRes as { error?: string }).error || "no deal id returned");
-          if (crmRes.deal_id || crmRes.customer_id) {
-            await setLeadCrmInfo(id, {
-              crmDealId: crmRes.deal_id,
-              crmCustomerId: crmRes.customer_id,
-              crmStatus: crmRes.success ? "accepted" : undefined,
-            });
-          } else if (crmRes.success === false) {
-            await setLeadCrmInfo(id, { crmStatus: "failed" });
-          }
-        } catch (e) {
-          console.warn("[CRM] postToCrm failed in leads.create:", e);
-          throw new TRPCError({code:"INTERNAL_SERVER_ERROR",message:"Unable to queue your request. Please try again."});
-        }
-        // The CRM sends the staff email + text for every lead it accepts. This site's own alert is
-        // the FALLBACK: it fires only when the CRM did not confirm the lead (error, timeout, no
-        // deal id), so a lead is never silent and never alerted twice.
-        if (!crmOk) {
-
-        // Notify owner (in-app)
-        try {
-          await notifyOwner({
-            title: "🚨 New Solar Lead — CRM did not confirm it",
-            content: `The CRM did not confirm this lead (${crmFailReason}) — it may NOT be in the CRM. New lead from ${input.firstName} ${input.lastName} (${input.email}) via ${source}. Monthly bill: ${input.monthlyBillRange ?? "not specified"}. Interest: ${input.interestType}.`,
-          });
-        } catch (e) {
-          console.warn("[Notification] Failed to notify owner:", e);
-        }
-
-        // SMS notification to Josh
-        if (ENV.twilioNotifyNumber) {
-          const interestLabel: Record<string, string> = {
-            solar: "Solar Only",
-            battery: "Battery Only",
-            solar_battery: "Solar + Battery",
-            ev_charger: "EV Charger",
-            other: "Other / Not Sure",
-          };
-          const interestDisplay = interestLabel[input.interestType] ?? input.interestType;
-
-          const cleanPhone = input.phone.replace(/\D/g, "");
-          const formattedPhone = cleanPhone.length === 10
-            ? `(${cleanPhone.slice(0,3)}) ${cleanPhone.slice(3,6)}-${cleanPhone.slice(6)}`
-            : input.phone;
-          const billLink = crmBillFileUrl || null;
-
-          const smsBody = [
-            `🚨 NEW PELL SOLAR LEAD — CRM did not confirm (${crmFailReason}), check the CRM`,
-            `Name: ${input.firstName} ${input.lastName}`,
-            `Phone: ${formattedPhone}`,
-            `Call: +1${cleanPhone}`,
-            `Email: ${input.email}`,
-            input.address ? `Address: ${input.address}` : "",
-            `Interest: ${interestDisplay}`,
-            input.ownershipType ? `Ownership: ${input.ownershipType}` : "",
-            input.monthlyBillRange ? `Monthly Bill: $${input.monthlyBillRange}` : "",
-            input.interestOtherText ? `Notes: ${input.interestOtherText}` : "",
-            input.ownershipType === "renter" ? `⚠️ Renter (not homeowner)` : "",
-            billLink ? `Bill file: ${billLink}` : "",
-            crmBillFiles && crmBillFiles.length > 1 ? `Files uploaded: ${crmBillFiles.length}` : "",
-            `CRM: https://pellsolar.com/admin/leads/${id}`,
-            `Source: ${source}`,
-          ].filter(Boolean).join("\n");
-
-          sendSms(ENV.twilioNotifyNumber, smsBody).catch((e) =>
-            console.warn("[SMS] Lead notification failed:", e)
-          );
-        }
-        }
-        return { success: true, id, isDuplicate, dealId: crmDealId, suspect: crmSuspect || undefined };
-      }),
+    create: publicProcedure.input(CreateLeadSchema).mutation(saveQuoteLead),
+    createProject: publicProcedure.input(ProjectLeadSchema).mutation(saveQuoteLead),
 
     // Public: get a signed upload URL for bill files
     getBillUploadUrl: publicProcedure

@@ -6,7 +6,7 @@ export default function SolarLease() {
   return <><Navbar/><main>
     <section className="bg-[#0B1D51] text-white pt-36 pb-20 px-6"><div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-10 items-center"><div>
       <p className="text-[#FED44D] font-bold mb-4">SOLAR & BATTERY LEASE OPTIONS</p><h1 className="text-4xl md:text-5xl font-extrabold mb-6">A clear proposal. A payment you understand.</h1>
-      <p className="text-lg text-slate-200 mb-8">Compare a solar lease with owning your system. Pell Solar will review your home, utility bill and backup needs, then explain the available provider terms.</p>
+      <p className="text-lg text-slate-200 mb-8">Looking for solar panels, solar with a battery, or battery storage on its own? Choose your equipment first. Pell Solar will then explain the lease and purchase options available for that project.</p>
       <Link href="/get-quote?payment=leasing" className="inline-block bg-[#FED44D] text-[#0B1D51] font-extrabold rounded-xl px-6 py-4">Get my lease estimate</Link>
     </div><img src="/manus-storage/solar-home-main-v2_0ad97127.jpg" alt="A home with rooftop solar panels" className="rounded-2xl w-full"/></div></section>
     <section className="max-w-5xl mx-auto py-16 px-6"><h2 className="text-3xl font-bold mb-6">What we’ll put in writing</h2><div className="grid sm:grid-cols-2 gap-6">
