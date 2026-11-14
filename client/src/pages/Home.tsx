@@ -3,7 +3,7 @@ import { Link } from "wouter";
 import Navbar from "@/components/Navbar";
 import FinancingOptions from "@/components/FinancingOptions";
 import Footer from "@/components/Footer";
-import { ArrowRight, BatteryCharging, CheckCircle, Sun, Wrench } from "lucide-react";
+import { ArrowRight, CheckCircle } from "lucide-react";
 import { LiveReviewLinks } from "@/components/LiveReviewLinks";
 
 const REFERRAL_QR_IMG = "/manus-storage/pell-solar-referral-qr_b0d91c44.png";
@@ -160,11 +160,11 @@ export default function Home() {
           <div className="w-full flex justify-center">
             <div className="grid md:grid-cols-3 gap-4 w-full max-w-5xl text-left">
               {[
-                {title:'Battery backup',body:'Store energy for outages and evening use.',url:'/get-quote?interest=battery',icon:BatteryCharging,theme:'project-card-battery',action:'Plan my backup'},
-                {title:'Install solar panels',body:'Explore solar for your home, with or without battery storage.',url:'/get-quote?interest=solar',icon:Sun,theme:'project-card-solar',action:'Plan my solar'},
-                {title:'Service & repair',body:'Get help with your solar panels, inverter or battery.',url:'/solar-repair',icon:Wrench,theme:'project-card-service',action:'Request service'},
+                {title:'Battery backup',body:'Store energy for outages and evening use.',url:'/get-quote?interest=battery',image:'/manus-storage/powerwall-exterior-finished_5ef809f3.webp',alt:'Tesla home backup battery mounted beside a house',theme:'project-card-battery',action:'Plan my backup'},
+                {title:'Install solar panels',body:'Explore solar for your home, with or without battery storage.',url:'/get-quote?interest=solar',image:'/manus-storage/qcells-panel-real_2bd09da8.png',alt:'Black residential solar panel',theme:'project-card-solar',action:'Plan my solar'},
+                {title:'Service & repair',body:'Get help with your solar panels, inverter or battery.',url:'/solar-repair',image:'/manus-storage/crew-photo-2_81822e68.png',alt:'An existing rooftop solar panel system',theme:'project-card-service',action:'Request service'},
               ].map(item=><Link key={item.title} href={item.url} className={`project-card ${item.theme}`}>
-                <span className="flex items-center gap-3 mb-4"><span className="project-card-icon"><item.icon size={25} strokeWidth={1.8} aria-hidden="true"/></span><strong className="text-xl leading-snug">{item.title}</strong></span>
+                <span className="project-card-heading"><strong className="text-xl leading-snug">{item.title}</strong><img className="project-card-photo" src={item.image} alt={item.alt} width={100} height={112} decoding="async" /></span>
                 <span className="project-card-description block mb-5">{item.body}</span>
                 <span className="project-card-action">{item.action}<ArrowRight size={18} aria-hidden="true"/></span>
               </Link>)}
