@@ -1,4 +1,4 @@
-import { integer, jsonb, pgEnum, pgTable, text, timestamp, varchar, serial } from "drizzle-orm/pg-core";
+import { boolean, integer, jsonb, pgEnum, pgTable, text, timestamp, varchar, serial } from "drizzle-orm/pg-core";
 
 /** One uploaded file attached to a website lead (utility bill or Green Button CSV). */
 export type LeadBillFile = {
@@ -150,6 +150,7 @@ export const website_chatMessages = pgTable("website_chat_messages", {
   id: serial("id").primaryKey(),
   sessionId: integer("sessionId").notNull(),
   sender: website_chatSenderEnum("sender").notNull(),
+  isAi: boolean("isAi").default(false).notNull(),
   message: text("message").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });

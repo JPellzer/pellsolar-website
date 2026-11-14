@@ -1,300 +1,324 @@
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { trpc } from "@/lib/trpc";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { MessageCircle, X, Send, Loader2 } from "lucide-react";
+import { captureAttribution } from "@shared/attribution";
+import { MessageCircle, X, Send, Loader2, Phone } from "lucide-react";
 
-type Message = {
-  id: number;
-  sender: "visitor" | "admin";
-  message: string;
-  createdAt: Date | string;
+type Profile = {
+  name?: string;
+  phone?: string;
+  email?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
+  interest?: string;
+  timeframe?: string;
+  callbackTime?: string;
+  payment?: string;
+  existingSolar?: string;
+  homeowner?: string;
 };
-
-type ChatState = "closed" | "intro" | "chatting" | "offline";
-
+const key = "pell-solar-assistant-session";
 export function LiveChatWidget() {
-  const [chatState, setChatState] = useState<ChatState>("closed");
-  const [sessionToken, setSessionToken] = useState<string | null>(null);
-  const [sessionId, setSessionId] = useState<number | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [inputText, setInputText] = useState("");
-  const [lastMessageId, setLastMessageId] = useState(0);
-  const [visitorName, setVisitorName] = useState("");
-  const [visitorEmail, setVisitorEmail] = useState("");
-  const [visitorPhone, setVisitorPhone] = useState("");
-  const [firstMessage, setFirstMessage] = useState("");
-  const [unreadCount, setUnreadCount] = useState(0);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const { data: statusData } = trpc.chat.getStatus.useQuery(undefined, {
+  const [open, setOpen] = useState(false),
+    [token, setToken] = useState<string | null>(null),
+    [text, setText] = useState(""),
+    [error, setError] = useState(""),
+    [callback, setCallback] = useState(false),
+    [profile, setProfile] = useState<Profile>({}),
+    [consent, setConsent] = useState(false);
+  const end = useRef<HTMLDivElement>(null),
+    messageId = useRef(crypto.randomUUID());
+  useEffect(() => {
+    try {
+      setToken(localStorage.getItem(key));
+    } catch {}
+  }, []);
+  const status = trpc.chat.getStatus.useQuery(undefined, {
     refetchInterval: 30000,
   });
-
-  const startSessionMutation = trpc.chat.startSession.useMutation({
-    onSuccess: (data) => {
-      setSessionToken(data.sessionToken);
-      setSessionId(data.sessionId);
-      setChatState("chatting");
-    },
-  });
-
-  const sendMessageMutation = trpc.chat.sendMessage.useMutation({
-    onSuccess: () => {
-      setInputText("");
-    },
-  });
-
-  // Poll for new messages when chatting
-  const { data: messagesData } = trpc.chat.getMessages.useQuery(
-    { sessionToken: sessionToken!, afterId: lastMessageId || undefined },
-    {
-      enabled: !!sessionToken && chatState === "chatting",
-      refetchInterval: 2000,
-    }
+  const history = trpc.chat.getMessages.useQuery(
+    { sessionToken: token || "" },
+    { enabled: !!token && open, refetchInterval: 2000, retry: false }
   );
-
+  const a = history.data?.assistant;
+  const start = trpc.chat.startSession.useMutation({
+    onSuccess: r => {
+      setToken(r.sessionToken);
+      try {
+        localStorage.setItem(key, r.sessionToken);
+      } catch {}
+      setText("");
+      setError("");
+      messageId.current = crypto.randomUUID();
+    },
+    onError: e => setError(e.message),
+  });
+  const send = trpc.chat.sendMessage.useMutation({
+    onSuccess: () => {
+      setText("");
+      setError("");
+      messageId.current = crypto.randomUUID();
+      void history.refetch();
+    },
+    onError: e => setError(e.message),
+  });
+  const handoff = trpc.chat.requestCallback.useMutation({
+    onSuccess: () => {
+      setCallback(false);
+      setError("");
+      void history.refetch();
+    },
+    onError: e => setError(e.message),
+  });
   useEffect(() => {
-    if (messagesData?.messages && messagesData.messages.length > 0) {
-      setMessages(prev => {
-        const existingIds = new Set(prev.map(m => m.id));
-        const newMsgs = messagesData.messages.filter(m => !existingIds.has(m.id));
-        if (newMsgs.length > 0) {
-          const adminNewMsgs = newMsgs.filter(m => m.sender === "admin");
-          if (adminNewMsgs.length > 0) {
-            setUnreadCount(c => c + adminNewMsgs.length);
-          }
-          const allMsgs = [...prev, ...newMsgs];
-          const maxId = Math.max(...allMsgs.map(m => m.id));
-          setLastMessageId(maxId);
-          return allMsgs;
-        }
-        return prev;
+    end.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }, [history.data?.messages.length, open]);
+  const busy = start.isPending || send.isPending || a?.pending;
+  const paused = status.data?.isOnline === false;
+  const submit = () => {
+    if (!text.trim() || busy || paused) return;
+    if (token)
+      send.mutate({
+        sessionToken: token,
+        message: text.trim(),
+        clientId: messageId.current,
+      });
+    else {
+      const utm = Object.fromEntries(Object.entries(captureAttribution(location.search)).filter(([,v])=>typeof v==='string').map(([k,v])=>[k,String(v).slice(0,500)]));
+      start.mutate({
+        firstMessage: text.trim(),
+        clientId: messageId.current,
+        utm,
       });
     }
-    if (messagesData?.status === "closed") {
-      setChatState("closed");
-    }
-  }, [messagesData]);
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
-  const handleOpen = () => {
-    if (!statusData?.isOnline) {
-      setChatState("offline");
-    } else if (sessionToken) {
-      setChatState("chatting");
-      setUnreadCount(0);
-    } else {
-      setChatState("intro");
-    }
   };
-
-  const handleStartChat = () => {
-    if (!firstMessage.trim()) return;
-    startSessionMutation.mutate({
-      visitorName: visitorName || undefined,
-      visitorEmail: visitorEmail || undefined,
-      visitorPhone: visitorPhone || undefined,
-      firstMessage: firstMessage.trim(),
-    });
-    setMessages([{
-      id: -1,
-      sender: "visitor",
-      message: firstMessage.trim(),
-      createdAt: new Date(),
-    }]);
+  const newChat = () => {
+    setToken(null);
+    setText("");
+    setCallback(false);
+    setError("");
+    try {
+      localStorage.removeItem(key);
+    } catch {}
   };
-
-  const handleSendMessage = () => {
-    if (!inputText.trim() || !sessionToken) return;
-    const msg = inputText.trim();
-    setMessages(prev => [...prev, {
-      id: Date.now(),
-      sender: "visitor",
-      message: msg,
-      createdAt: new Date(),
-    }]);
-    sendMessageMutation.mutate({ sessionToken, message: msg });
-    setInputText("");
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      if (chatState === "intro") handleStartChat();
-      else handleSendMessage();
-    }
-  };
-
-  // Don't render widget on admin pages
-  if (typeof window !== "undefined" && window.location.pathname.startsWith("/admin")) {
+  if (
+    typeof window !== "undefined" &&
+    window.location.pathname.startsWith("/admin")
+  )
     return null;
-  }
-
   return (
     <div className="fixed bottom-24 right-4 z-50 flex flex-col items-end gap-3">
-      {/* Chat window */}
-      {chatState !== "closed" && (
-        <div
-          className="w-[340px] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden"
-          style={{ height: "460px" }}
+      {open && (
+        <section
+          role="dialog"
+          aria-label="Pell Solar Assistant"
+          className="w-[380px] max-w-[calc(100vw-2rem)] bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden"
+          style={{ height: "min(640px,calc(100dvh - 150px))" }}
         >
-          {/* Header */}
-          <div className="bg-[#1a56db] px-4 py-3 flex items-center justify-between shrink-0">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">
-                <span className="text-white text-xs font-bold">PS</span>
-              </div>
-              <div>
-                <p className="text-white font-semibold text-sm">Pell Solar Support</p>
-                <p className="text-blue-200 text-xs flex items-center gap-1">
-                  <span className={`w-1.5 h-1.5 rounded-full inline-block ${statusData?.isOnline ? "bg-green-400" : "bg-gray-400"}`} />
-                  {statusData?.isOnline ? "Online now — we reply fast" : "Currently offline"}
-                </p>
-              </div>
-            </div>
-            <button onClick={() => setChatState("closed")}
-              className="text-white/70 hover:text-white transition-colors p-1">
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-
-          {/* Offline state */}
-          {chatState === "offline" && (
-            <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-              <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mb-3">
-                <MessageCircle className="w-6 h-6 text-gray-400" />
-              </div>
-              <p className="text-gray-700 font-medium mb-2">We're currently offline</p>
-              <p className="text-gray-500 text-sm mb-4">
-                {statusData?.offlineMessage || "Leave us a message and we'll get back to you shortly!"}
+          <header className="bg-[#0B1D51] text-white p-4 flex items-start justify-between">
+            <div>
+              <h2 className="font-bold">Pell Solar Assistant</h2>
+              <p className="text-xs text-blue-100 mt-1">
+                {paused
+                  ? "Chat is paused"
+                  : a?.staff_takeover
+                    ? "Pell Solar team"
+                    : "Solar, batteries & service questions"}
               </p>
-              <a href="tel:9092405294"
-                className="bg-[#1a56db] text-white px-5 py-2.5 rounded-full text-sm font-semibold hover:bg-blue-700 transition-colors">
-                Call (909) 240-5294
-              </a>
             </div>
-          )}
-
-          {/* Intro / start chat form */}
-          {chatState === "intro" && (
-            <div className="flex-1 flex flex-col p-4 gap-3 overflow-y-auto">
-              <div className="bg-blue-50 rounded-xl p-3 text-sm text-gray-700 leading-relaxed">
-                👋 Hi! We're here to help with any solar questions. Leave your info below and we'll reply right away.
+            <button aria-label="Close chat" onClick={() => setOpen(false)}>
+              <X size={20} />
+            </button>
+          </header>
+          <div
+            className="flex-1 overflow-y-auto p-4 space-y-3"
+            aria-live="polite"
+          >
+            <p className="rounded-xl bg-blue-50 p-3 text-sm text-slate-700">
+              Hi! What can I help you with—solar, battery backup, or an existing
+              system?
+            </p>
+            {history.data?.messages.map(m => (
+              <div
+                key={m.id}
+                className={`rounded-xl p-3 text-sm whitespace-pre-wrap ${m.sender === "visitor" ? "bg-[#1a56db] text-white ml-6" : "bg-slate-100 text-slate-800 mr-4"}`}
+              >
+                <span className="block text-xs font-semibold mb-1">
+                  {m.sender === "visitor"
+                    ? "You"
+                    : m.isAi
+                      ? "Pell Solar Assistant"
+                      : "Pell Solar team"}
+                </span>
+                {m.message}
               </div>
-              <Input
-                placeholder="Your name (optional)"
-                value={visitorName}
-                onChange={e => setVisitorName(e.target.value)}
-                className="text-sm"
-                style={{ fontSize: "16px" }}
-              />
-              <Input
-                placeholder="Email (optional)"
-                type="email"
-                value={visitorEmail}
-                onChange={e => setVisitorEmail(e.target.value)}
-                className="text-sm"
-                style={{ fontSize: "16px" }}
-              />
-              <Input
-                placeholder="Phone (optional)"
-                type="tel"
-                value={visitorPhone}
-                onChange={e => setVisitorPhone(e.target.value)}
-                className="text-sm"
-                style={{ fontSize: "16px" }}
-              />
-              <textarea
-                placeholder="What's on your mind? *"
-                value={firstMessage}
-                onChange={e => setFirstMessage(e.target.value)}
-                onKeyDown={handleKeyDown}
-                style={{ fontSize: "16px" }}
-                className="flex-1 min-h-[80px] resize-none rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              />
-              <Button
-                onClick={handleStartChat}
-                disabled={!firstMessage.trim() || startSessionMutation.isPending}
-                className="bg-[#1a56db] hover:bg-blue-700 text-white w-full rounded-full">
-                {startSessionMutation.isPending ? (
-                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                ) : (
-                  <Send className="w-4 h-4 mr-2" />
-                )}
-                Send Message
-              </Button>
-            </div>
-          )}
-
-          {/* Active chat */}
-          {chatState === "chatting" && (
-            <>
-              <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-2">
-                <div className="bg-blue-50 rounded-xl p-3 text-sm text-gray-600 text-center">
-                  You're connected! We'll reply shortly.
-                </div>
-                {messages.map((msg, i) => (
-                  <div key={msg.id || i}
-                    className={`flex ${msg.sender === "visitor" ? "justify-end" : "justify-start"}`}>
-                    <div className={`max-w-[75%] rounded-2xl px-3 py-2 text-sm ${
-                      msg.sender === "visitor"
-                        ? "bg-[#1a56db] text-white rounded-br-sm"
-                        : "bg-gray-100 text-gray-800 rounded-bl-sm"
-                    }`}>
-                      {msg.message}
-                    </div>
-                  </div>
-                ))}
-                <div ref={messagesEndRef} />
-              </div>
-              <div className="p-3 border-t border-gray-100 flex gap-2 shrink-0">
-                <Input
-                  placeholder="Type a message..."
-                  value={inputText}
-                  onChange={e => setInputText(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  className="flex-1"
-                  style={{ fontSize: "16px" }}
-                />
-                <Button
-                  onClick={handleSendMessage}
-                  disabled={!inputText.trim() || sendMessageMutation.isPending}
-                  size="icon"
-                  className="bg-[#1a56db] hover:bg-blue-700 text-white shrink-0 rounded-full">
-                  <Send className="w-4 h-4" />
-                </Button>
-              </div>
-            </>
-          )}
-        </div>
-      )}
-
-      {/* ── Floating CTA button ── */}
-      <button
-        onClick={chatState === "closed" ? handleOpen : () => setChatState("closed")}
-        className="flex items-center gap-2.5 bg-[#1a56db] hover:bg-blue-700 text-white shadow-xl rounded-full pl-4 pr-5 py-3 transition-all hover:scale-105 active:scale-95 relative"
-        aria-label="Open chat"
-      >
-        {chatState === "closed" ? (
-          <>
-            <MessageCircle className="w-5 h-5 shrink-0" />
-            <span className="text-sm font-semibold whitespace-nowrap">Ask a Solar Expert</span>
-            {unreadCount > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 rounded-full text-xs text-white flex items-center justify-center font-bold">
-                {unreadCount}
-              </span>
+            ))}
+            {busy && (
+              <p className="flex items-center gap-2 text-sm text-slate-600">
+                <Loader2 size={14} className="animate-spin" />
+                Working on your answer…
+              </p>
             )}
-          </>
-        ) : (
-          <>
-            <X className="w-5 h-5" />
-            <span className="text-sm font-semibold">Close</span>
-          </>
-        )}
+            {(error || history.error) && (
+              <p role="alert" className="text-sm text-red-700">
+                {error ||
+                  "This conversation could not be loaded. Please retry or start a new chat."}
+              </p>
+            )}
+            {paused && (
+              <p className="text-sm">
+                Chat is paused.{" "}
+                <a className="underline text-blue-700" href="/get-quote">
+                  Request a quote
+                </a>{" "}
+                or call the team below.
+              </p>
+            )}
+            {a?.handoff_requested && (
+              <p className="bg-green-50 border border-green-200 rounded-xl p-3 text-sm text-green-900">
+                {a.crm_deal_id
+                  ? "Your callback request is with the Pell Solar team."
+                  : "Your callback request is saved and is being routed to the Pell Solar team."}{" "}
+                We’ll use the contact details you provided. You can keep
+                chatting here.
+              </p>
+            )}
+            {token && !a?.handoff_requested && !callback && (
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => {
+                  setProfile(a?.profile || {});
+                  setCallback(true);
+                }}
+                className="text-sm font-semibold text-blue-700 border border-blue-200 rounded-lg px-3 py-2"
+              >
+                {a?.offer_callback
+                  ? "Review details & request a callback"
+                  : "Talk to a person"}
+              </button>
+            )}
+            {callback && (
+              <form
+                className="rounded-xl border border-blue-200 p-3 space-y-2 text-sm"
+                onSubmit={e => {
+                  e.preventDefault();
+                  if (token && consent)
+                    handoff.mutate({
+                      sessionToken: token,
+                      profile,
+                      consent: true,
+                    });
+                }}
+              >
+                <h3 className="font-bold text-slate-900">
+                  Have the team contact you
+                </h3>
+                <p className="text-xs text-slate-600">
+                  Check your details. We’ll include this conversation so you
+                  don’t have to repeat yourself.
+                </p>
+                {(
+                  [
+                    ["name", "Name", "text", true],
+                    ["phone", "Phone", "tel", true],
+                    ["zip", "ZIP code", "text", true],
+                    ["email", "Email (optional)", "email", false],
+                    ["address", "Project address (optional)", "text", false],
+                    [
+                      "callbackTime",
+                      "Best time to call (optional)",
+                      "text",
+                      false,
+                    ],
+                  ] as const
+                ).map(([k, label, type, required]) => (
+                  <label key={k} className="block">
+                    {label}
+                    {required ? " *" : ""}
+                    <input
+                      className="block w-full border rounded-md p-2 mt-1 text-base"
+                      type={type}
+                      required={required}
+                      value={profile[k] || ""}
+                      maxLength={250}
+                      onChange={e =>
+                        setProfile({ ...profile, [k]: e.target.value })
+                      }
+                    />
+                  </label>
+                ))}
+                <label className="flex gap-2 items-start text-xs">
+                  <input
+                    type="checkbox"
+                    required
+                    checked={consent}
+                    onChange={e => setConsent(e.target.checked)}
+                  />
+                  Please have Pell Solar contact me about this request and save
+                  my conversation with the team.
+                </label>
+                <button
+                  disabled={!consent || handoff.isPending}
+                  className="bg-[#0B1D51] text-white rounded-lg px-3 py-2 disabled:opacity-50"
+                >
+                  {handoff.isPending ? "Saving request…" : "Request a callback"}
+                </button>
+                <button
+                  type="button"
+                  className="ml-3 text-slate-600"
+                  onClick={() => setCallback(false)}
+                >
+                  Keep chatting
+                </button>
+              </form>
+            )}
+            <div ref={end} />
+          </div>
+          <form
+            onSubmit={e => {
+              e.preventDefault();
+              submit();
+            }}
+            className="border-t p-3 flex gap-2"
+          >
+            <input
+              aria-label="Your question"
+              placeholder="Ask your question…"
+              value={text}
+              maxLength={2000}
+              onChange={e => setText(e.target.value)}
+              disabled={paused || history.data?.status === "closed"}
+              className="min-w-0 flex-1 rounded-lg border p-2 text-base"
+            />
+            <button
+              aria-label="Send question"
+              disabled={!text.trim() || busy || paused}
+              className="rounded-lg bg-[#1a56db] text-white p-2 disabled:opacity-40"
+            >
+              <Send size={20} />
+            </button>
+          </form>
+          <footer className="px-4 pb-3 text-xs text-slate-500 flex flex-wrap gap-x-3 gap-y-1">
+            <a href="tel:9092405294" className="text-blue-700 flex gap-1">
+              <Phone size={12} />
+              Josh: (909) 240-5294
+            </a>
+            <button onClick={newChat}>New chat</button>
+            <a href="/privacy-policy">Privacy</a>
+          </footer>
+        </section>
+      )}
+      <button
+        aria-label={open ? "Close chat" : "Open chat"}
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-2 bg-[#1a56db] text-white shadow-xl rounded-full px-4 py-3"
+      >
+        {open ? <X size={20} /> : <MessageCircle size={20} />}
+        <span className="text-sm font-semibold">
+          {open ? "Close" : "Ask a Solar Question"}
+        </span>
       </button>
     </div>
   );

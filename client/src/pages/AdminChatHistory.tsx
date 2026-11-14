@@ -222,7 +222,7 @@ export default function AdminChatHistory() {
                           }`}>
                             <p className="text-sm leading-relaxed break-words">{msg.message}</p>
                             <p className={`text-xs mt-1 ${msg.sender === "admin" ? "text-blue-200" : "text-gray-400"}`}>
-                              {msg.sender === "admin" ? "You" : (session.visitorName || "Visitor")} · {new Date(msg.createdAt).toLocaleString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })}
+                              {msg.isAi ? "Assistant" : msg.sender === "admin" ? "Team" : (session.visitorName || "Visitor")} · {new Date(msg.createdAt).toLocaleString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })}
                             </p>
                           </div>
                         </div>
