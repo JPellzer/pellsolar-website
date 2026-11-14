@@ -1,0 +1,4 @@
+Solar panel: existing project product artwork edited with the built-in image generation tool on 2026-11-14. Prompt: Remove the white background, floor, cast shadow and reflection; preserve the black panel and realistic perspective; actual transparent alpha, no halo, no text. Output: client/public/manus-storage/solar-panel-transparent.png
+
+Service technician: Raze Solar, Unsplash, published August 12, 2022. https://unsplash.com/photos/person-working-on-electrical-meter-_aSFmmvS62I
+License checked 2026-11-14: https://unsplash.com/license (commercial use permitted). Illustrative stock photo, not represented as a Pell Solar employee.
