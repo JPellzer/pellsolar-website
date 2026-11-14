@@ -101,6 +101,7 @@ import VenturaPage from "@/pages/cities/Ventura";
 import ActiveTerritoryCity from "@/pages/cities/ActiveTerritoryCity";
 
 export default function App() {
+  const [currentPath] = useLocation();
   return (
     <>
       <Head />
@@ -208,7 +209,7 @@ export default function App() {
           </div>
         </Route>
       </Switch>
-      <LiveChatWidget />
+      {!currentPath.startsWith('/get-quote') && <LiveChatWidget />}
     </>
   );
 }
