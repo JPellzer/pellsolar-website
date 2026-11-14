@@ -3,7 +3,7 @@ import { Link } from "wouter";
 import Navbar from "@/components/Navbar";
 import FinancingOptions from "@/components/FinancingOptions";
 import Footer from "@/components/Footer";
-import { ArrowRight, CheckCircle } from "lucide-react";
+import { ArrowRight, BatteryCharging, CheckCircle, Sun, Wrench } from "lucide-react";
 import { LiveReviewLinks } from "@/components/LiveReviewLinks";
 
 const REFERRAL_QR_IMG = "/manus-storage/pell-solar-referral-qr_b0d91c44.png";
@@ -158,12 +158,16 @@ export default function Home() {
 
           {/* Widget — centered below headline, matching pellsolar.com */}
           <div className="w-full flex justify-center">
-            <div className="grid md:grid-cols-3 gap-4 w-full max-w-4xl text-left">
+            <div className="grid md:grid-cols-3 gap-4 w-full max-w-5xl text-left">
               {[
-                {title:'Add battery backup',body:'Plan for outages and evening energy use.',url:'/get-quote?interest=battery'},
-                {title:'New solar or a lease',body:'Compare a system and payment options for your home.',url:'/get-quote?interest=solar_battery'},
-                {title:'Fix my solar system',body:'Get help with an existing system or inverter.',url:'/solar-repair'},
-              ].map(item=><Link key={item.title} href={item.url} className="block bg-white text-[#0B1D51] rounded-xl p-6 border-2 border-transparent hover:border-[#FED44D]"><strong className="text-xl block mb-2">{item.title}</strong><span className="block text-slate-600 mb-4">{item.body}</span><span className="font-bold text-sky-700">Get started →</span></Link>)}
+                {title:'Battery backup',body:'Store energy for outages and evening use.',url:'/get-quote?interest=battery',icon:BatteryCharging,theme:'project-card-battery',action:'Plan my backup'},
+                {title:'Install solar panels',body:'Explore solar for your home, with or without battery storage.',url:'/get-quote?interest=solar',icon:Sun,theme:'project-card-solar',action:'Plan my solar'},
+                {title:'Service & repair',body:'Get help with your solar panels, inverter or battery.',url:'/solar-repair',icon:Wrench,theme:'project-card-service',action:'Request service'},
+              ].map(item=><Link key={item.title} href={item.url} className={`project-card ${item.theme}`}>
+                <span className="flex items-center gap-3 mb-4"><span className="project-card-icon"><item.icon size={25} strokeWidth={1.8} aria-hidden="true"/></span><strong className="text-xl leading-snug">{item.title}</strong></span>
+                <span className="project-card-description block mb-5">{item.body}</span>
+                <span className="project-card-action">{item.action}<ArrowRight size={18} aria-hidden="true"/></span>
+              </Link>)}
             </div>
           </div>
         </div>

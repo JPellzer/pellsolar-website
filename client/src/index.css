@@ -4,6 +4,83 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Three clear starting points in the Pell Solar palette. */
+.project-card {
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  border: 1px solid var(--project-edge);
+  border-radius: 18px;
+  background: var(--project-background);
+  color: var(--project-ink);
+  text-decoration: none;
+  box-shadow: 0 12px 30px rgb(7 18 56 / 20%);
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+.project-card-battery {
+  --project-background: linear-gradient(145deg, #164b88, #0b1d51);
+  --project-ink: #fff;
+  --project-description: #dbeafe;
+  --project-edge: #579ace;
+  --project-icon-background: #ffffff1a;
+  --project-icon-ink: #8fddff;
+  --project-action-background: #82d7fb;
+  --project-action-ink: #0b1d51;
+}
+.project-card-solar {
+  --project-background: linear-gradient(145deg, #ffe99b, #fed44d);
+  --project-ink: #0b1d51;
+  --project-description: #334155;
+  --project-edge: #ffe799;
+  --project-icon-background: #0b1d5110;
+  --project-icon-ink: #0b1d51;
+  --project-action-background: #0b1d51;
+  --project-action-ink: #fff;
+}
+.project-card-service {
+  --project-background: linear-gradient(145deg, #f2fbff, #cfeefa);
+  --project-ink: #0b1d51;
+  --project-description: #334155;
+  --project-edge: #a7def3;
+  --project-icon-background: #0c6b97;
+  --project-icon-ink: #fff;
+  --project-action-background: #0c6b97;
+  --project-action-ink: #fff;
+}
+.project-card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  border-radius: 13px;
+  background: var(--project-icon-background);
+  color: var(--project-icon-ink);
+}
+.project-card-description { color: var(--project-description); }
+.project-card-action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: auto;
+  padding: 12px 15px;
+  border-radius: 10px;
+  background: var(--project-action-background);
+  color: var(--project-action-ink);
+  font-size: 14px;
+  font-weight: 750;
+}
+.project-card:focus-visible { outline: 3px solid #fff; outline-offset: 4px; }
+@media (hover: hover) {
+  .project-card:hover { transform: translateY(-4px); box-shadow: 0 18px 36px rgb(7 18 56 / 30%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .project-card { transition: none; }
+  .project-card:hover { transform: none; }
+}
+
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
