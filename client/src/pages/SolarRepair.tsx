@@ -61,7 +61,7 @@ export default function SolarRepair() {
       setDiagnosis(typeof data.diagnosis === "string" ? data.diagnosis : String(data.diagnosis ?? ""));
       setStep("diagnosis");
     },
-    onError: () => toast.error("Could not generate diagnostic. Please describe your issue and submit the form."),
+    onError: () => toast.error("Could not prepare service guidance. Please describe your issue and submit the form."),
   });
 
   const submitCall = trpc.service.submitCall.useMutation({
@@ -352,7 +352,7 @@ export default function SolarRepair() {
             {[
               { step: "1", title: "Call Us", desc: "Tell us what's happening — low production, error codes, physical damage, or anything else." },
               { step: "2", title: "Diagnostics", desc: "We run a full system diagnostic — checking inverters, panels, wiring, monitoring, and roof penetrations." },
-              { step: "3", title: "Quote & Repair", desc: "We provide a clear, upfront quote. Once approved, we order parts and schedule the repair — usually within 1–2 weeks." },
+              { step: "3", title: "Quote & Repair", desc: "We provide a clear, upfront quote. Once approved, we confirm parts availability and arrange a repair date with you." },
               { step: "4", title: "Verification", desc: "After the repair, we verify the system is producing at full capacity and all monitoring is reporting correctly." },
             ].map(s => (
               <div key={s.step} className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 text-center border border-white/10">
@@ -430,7 +430,7 @@ export default function SolarRepair() {
             <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-4" style={{ fontFamily: "'Montserrat', sans-serif" }}>
               Schedule a <span className="text-[#FED44D]">Service Call</span>
             </h2>
-            <p className="text-white/70 text-lg">Tell us about your system and we'll help diagnose the issue — or connect you with our team.</p>
+            <p className="text-white/70 text-lg">Tell us what is happening. We’ll explain the next step and connect you with our service team.</p>
             <a href="tel:8666468499" className="text-[#2BABE2] font-bold text-xl mt-2 inline-block no-underline hover:text-[#FED44D] transition-colors">
               <Phone size={18} className="inline mr-2" />(866) 646-8499
             </a>
@@ -442,8 +442,8 @@ export default function SolarRepair() {
               <div className="w-16 h-16 rounded-full bg-green-500 flex items-center justify-center mx-auto mb-4">
                 <CheckCircle size={32} className="text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-white mb-2" style={{ fontFamily: "'Montserrat', sans-serif" }}>Service Request Received!</h3>
-              <p className="text-white/70">Our team will contact you within 1 business day to schedule your diagnostic visit.</p>
+              <h3 className="text-2xl font-bold text-white mb-2" style={{ fontFamily: "'Montserrat', sans-serif" }}>{resolvedWithAI ? "Your choice is saved" : "Service Request Received!"}</h3>
+              <p className="text-white/70">{resolvedWithAI ? "You chose no follow-up. If you need help later, call our team. This does not confirm the equipment is repaired." : "Our team will review your request and contact you about service availability. Your appointment is confirmed separately."}</p>
             </div>
           )}
 
@@ -670,7 +670,7 @@ export default function SolarRepair() {
                       </div>
 
                       <div className="border-t border-gray-200 pt-6">
-                        <p className="text-sm font-semibold text-gray-700 mb-4">Before we generate your diagnosis, we need your contact info to email you the results:</p>
+                        <p className="text-sm font-semibold text-gray-700 mb-4">Where should we email your service guidance?</p>
                         <div className="grid sm:grid-cols-2 gap-4">
                           <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-1">First Name <span className="text-red-500">*</span></label>
@@ -693,7 +693,7 @@ export default function SolarRepair() {
                             />
                           </div>
                         </div>
-                        <p className="text-xs text-gray-500 mt-2">We'll email you the diagnostic results so you have a record of the troubleshooting steps</p>
+                        <p className="text-xs text-gray-500 mt-2">We’ll email the next steps. A qualified technician must confirm the fault and any repair.</p>
                       </div>
 
                       <div className="flex flex-col gap-3">
@@ -703,9 +703,9 @@ export default function SolarRepair() {
                           disabled={diagnose.isPending}
                           className="w-full btn-green py-4 text-base flex items-center justify-center gap-2 disabled:opacity-60"
                         >
-                          {diagnose.isPending ? <><Loader2 size={18} className="animate-spin" /> Analyzing your system…</> : <><Bot size={18} /> Get My AI Diagnostic</>}
+                          {diagnose.isPending ? <><Loader2 size={18} className="animate-spin" /> Preparing next steps…</> : <><Bot size={18} /> Get service guidance</>}
                         </button>
-                        <p className="text-center text-gray-500 text-xs">Our AI will analyze your system and issues — then you can schedule a service call if needed.</p>
+                        <p className="text-center text-gray-500 text-xs">We’ll explain what information to collect safely. Request a technician when you need a diagnosis or repair.</p>
                       </div>
                     </div>
                   )}
@@ -717,15 +717,15 @@ export default function SolarRepair() {
                 <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
                   <div className="px-8 py-5 bg-gradient-to-r from-[#2BABE2] to-[#0B1D51] flex items-center gap-3">
                     <Bot size={24} className="text-white" />
-                    <h3 className="text-white font-bold text-lg" style={{ fontFamily: "'Montserrat', sans-serif" }}>AI Diagnostic Results</h3>
-                    <span className="ml-auto text-xs bg-white/20 text-white px-2 py-1 rounded-full">Based on your system info</span>
+                    <h3 className="text-white font-bold text-lg" style={{ fontFamily: "'Montserrat', sans-serif" }}>Your service next steps</h3>
+                    <span className="ml-auto text-xs bg-white/20 text-white px-2 py-1 rounded-full">Technical review required</span>
                   </div>
                   <div className="p-8">
                     <div className="prose prose-sm max-w-none text-gray-700 leading-relaxed whitespace-pre-wrap mb-8">
                       {diagnosis}
                     </div>
                     <div className="border-t border-gray-200 pt-6">
-                      <p className="text-sm font-semibold text-gray-700 mb-4">Did this help resolve your issue?</p>
+                      <p className="text-sm font-semibold text-gray-700 mb-4">Would you like our team to review the issue?</p>
                       <div className="flex flex-col sm:flex-row gap-3">
                         <button
                           type="button"
@@ -733,7 +733,7 @@ export default function SolarRepair() {
                           disabled={isSubmitting}
                           className="flex-1 py-3 rounded-xl border-2 border-green-500 text-green-700 font-bold hover:bg-green-50 transition-all flex items-center justify-center gap-2 disabled:opacity-60"
                         >
-                          {isSubmitting && resolvedWithAI ? <><Loader2 size={18} className="animate-spin" /> Submitting…</> : <><CheckCircle size={18} /> Yes, that helped — thanks!</>}
+                          {isSubmitting && resolvedWithAI ? <><Loader2 size={18} className="animate-spin" /> Submitting…</> : <><CheckCircle size={18} /> No follow-up needed</>}
                         </button>
                         <button
                           type="button"
@@ -741,7 +741,7 @@ export default function SolarRepair() {
                           disabled={isSubmitting}
                           className="flex-1 btn-green py-3 flex items-center justify-center gap-2 disabled:opacity-60"
                         >
-                          I still need help — contact my team <ArrowRight size={18} />
+                          Request a service call <ArrowRight size={18} />
                         </button>
                       </div>
                     </div>
@@ -773,7 +773,7 @@ export default function SolarRepair() {
                     </div>
                     <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
                       <p className="text-sm text-gray-700"><strong>Name:</strong> {firstName} (email: {email})</p>
-                      <p className="text-xs text-gray-500 mt-1">Contact info already collected for diagnosis</p>
+                      <p className="text-xs text-gray-500 mt-1">Contact info already collected for service guidance</p>
                     </div>
                     <div className="grid sm:grid-cols-2 gap-4">
                       <div>
@@ -825,7 +825,7 @@ export default function SolarRepair() {
                     <button type="submit" disabled={isSubmitting} className="w-full btn-green text-lg py-4 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2">
                       {isSubmitting ? <><Loader2 size={18} className="animate-spin" /> Submitting…</> : "SUBMIT SERVICE REQUEST"}
                     </button>
-                    <p className="text-center text-gray-500 text-sm">We'll respond within 1 business day • No obligation</p>
+                    <p className="text-center text-gray-500 text-sm">Our team will confirm service availability • No obligation</p>
                   </form>
                 </div>
               )}

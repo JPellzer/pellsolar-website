@@ -72,28 +72,28 @@ export async function sendDiagnosisEmail(params: {
     return false;
   }
 
-  const subject = "Your Solar System Diagnostic from Pell Solar";
+  const subject = "Your Solar Service Next Steps from Pell Solar";
 
   // Build followup links if we have a lead ID
   const followupLinks = params.websiteLeadId
     ? `
 
-Did this help?
-→ Yes, this resolved my issue: https://pellsolar.com/solar-repair?followup=${params.websiteLeadId}&outcome=helped
-→ No, I still need help: https://pellsolar.com/solar-repair?followup=${params.websiteLeadId}&outcome=need_help
+Would you like our team to follow up?
+→ No follow-up needed: https://pellsolar.com/solar-repair?followup=${params.websiteLeadId}&outcome=helped
+→ Request a service call: https://pellsolar.com/solar-repair?followup=${params.websiteLeadId}&outcome=need_help
 
 Just click one of the links above so we know how to follow up.
 `
     : `
 
-Did this help?
-If this resolved your issue, great! If not, you can schedule a service call here:
+Would you like our team to follow up?
+You can request a service call here:
 https://pellsolar.com/solar-repair#service-form
 `;
 
   const body = `Hi ${params.firstName || "there"},
 
-Thanks for using our instant solar diagnostic tool. Based on your ${params.inverterBrand || "solar"} system, here's what we found:
+Thanks for describing your solar service issue. Here are the next steps; a qualified technician must confirm the cause and any repair:
 
 ─────────────────────────────────
 ${params.diagnosis}
@@ -101,7 +101,7 @@ ${params.diagnosis}
 ${followupLinks}
 Or call us directly: (909) 240-5294
 
-Safety note: If you smell burning, see arcing/sparks, have repeatedly tripping breakers, or notice roof leaks, turn off the AC disconnect labeled "SOLAR" immediately and call us. Do not attempt DIY repairs in those cases.
+If there is smoke, fire, sparking or an immediate danger, move away from the equipment and call 911. Do not open or try to repair the equipment. A service request is not emergency assistance.
 
 Pell Solar Team
 Licensed C-46 Solar Contractor • License #949122`;

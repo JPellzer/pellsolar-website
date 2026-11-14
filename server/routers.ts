@@ -33,7 +33,7 @@ import { postToCrm, type CrmBillFile } from "./crmWebhook";
 import { fillCityStateFromZip, lookupZip } from "./zipCityState";
 import { getCrmAuthHeaders } from "./crmAuth";
 import { chatRouter } from "./routers/chat";
-import { invokeLLM } from "./_core/llm";
+import { serviceGuidance } from "./solarAssistantKnowledge";
 import { runSpamChecks } from "./spamProtection";
 import { getClientIp } from "./spamProtection";
 import { deriveLeadSource } from "@shared/attribution";
@@ -587,109 +587,9 @@ export const appRouter = router({
           return { diagnosis: "We were unable to generate a diagnostic at this time. Please submit your service request and our team will contact you shortly." };
         }
 
-        const issueList = input.selectedIssues.join(", ") || "unspecified issue";
-
-        // Expanded brand-specific guidance
-        const brandGuidance: Record<string, string> = {
-          "SolarEdge": "SolarEdge system: Use power optimizers (P-series/S-series), HD-Wave inverter, mySolarEdge app/portal. Error codes on inverter LED or portal. Safe power-cycle: AC disconnect OFF → wait 30s → DC disconnect OFF → wait 30s → DC ON → AC ON. Warranty: inverter 12yr (25yr if registered), optimizers 25yr. Check optimizer pairing, DC disconnect, error code lookup in app.",
-          "Enphase": "Enphase microinverter system: IQ microinverters (IQ7/IQ8), IQ Gateway (Envoy), Enlighten app, IQ Battery (Encharge). Each panel has its own microinverter. Safe power-cycle: IQ Gateway only (unplug 30s, replug). Warranty: microinverters 25yr, IQ Gateway 5yr, IQ Battery 10yr. Check Enlighten for individual panel status, Gateway WiFi, IQ error indicators.",
-          "Tesla / SolarCity": "Tesla system: Tesla Solar Inverter (separate from Powerwall), Tesla app. Safe power-cycle: breaker panel → Tesla Solar Inverter breaker OFF → wait 30s → ON. Warranty: Tesla Solar Inverter 12.5yr, Powerwall 10yr. Check Tesla app alerts, gateway online, breaker panel.",
-          "Tesla Powerwall": "Tesla Powerwall battery: Tesla app, Gateway. Safe power-cycle: Powerwall breaker OFF → wait 30s → ON. Do NOT power-cycle during outage/backup mode. Warranty: 10yr. Check app for Backup Reserve settings (100% = max backup), Storm Watch, Gateway online, backup circuit test via Go Off-Grid.",
-          "SMA": "SMA inverter: Sunny Boy/Tripower, SMA Sunny Portal, SMA Energy app. Safe power-cycle: AC disconnect OFF → DC disconnect OFF → wait 5min → DC ON → AC ON. Warranty: 10yr. Check Sunny Portal event log, AC/DC disconnects, LED status (red/yellow = error).",
-          "Fronius": "Fronius inverter: Primo/Symo, Solar.web portal, Smart Meter. Safe power-cycle: AC disconnect OFF → wait 30s → ON. Warranty: 10yr. Check Solar.web state codes, AC disconnect, inverter display error numbers.",
-          "SunPower": "SunPower Equinox: SunPower monitoring app, AC modules or inverter. Warranty: 25yr complete system (panels, inverter, labor). Check SunPower app alerts, system communication. Contact SunPower support for warranty claims.",
-          "LG": "LG RESU battery: LG ThinQ app (monitoring), battery management system. Warranty: 10yr. Check ThinQ app for battery status, state of charge, errors. LG batteries pair with various inverters (SolarEdge StorEdge, SMA, Fronius) — troubleshoot inverter separately.",
-          "Panasonic": "Panasonic EverVolt battery: EverVolt monitoring (varies by installer). Warranty: 10yr. Check monitoring for battery status, charge/discharge cycles. Panasonic panels have separate 25yr warranty.",
-          "Generac PWRcell": "Generac PWRcell battery: PWRview app, SnapRS system. Safe power-cycle: PWRcell breaker OFF → wait 30s → ON. Warranty: 10yr. Check PWRview app for battery health, ECO/Clean Backup/Priority Backup modes, inverter status.",
-          "Franklin WH": "Franklin WH battery: aGate+ (controller), aPower (battery), Franklin app. Safe power-cycle: system breaker OFF → wait 30s → ON. Warranty: 12yr. Check Franklin app for battery status, grid/solar/battery flow diagram, alerts.",
-        };
-        const brandNote = brandGuidance[input.inverterBrand] || (input.inverterBrand && input.inverterBrand !== "Don't Know" ? `This system uses a ${input.inverterBrand} inverter/battery. Use terminology and troubleshooting steps specific to that brand.` : "");
-
-        let prompt = `You are a solar system diagnostic expert for Pell Solar, a Tesla Certified Installer based in Southern California. A customer has submitted the following service request:
-
-System Type: ${input.systemType || "Unknown"}
-Inverter/System Brand: ${input.inverterBrand || "Unknown"}
-Battery Brand: ${input.batteryBrand || "None"}
-System Age: ${input.systemAge || "Unknown"}
-Issues Selected: ${issueList}
-Duration: ${input.duration || "Unknown"}
-${input.errorCode ? `Error Code Shown: ${input.errorCode}` : ""}
-Customer Description: ${input.description || "None provided"}
-${brandNote ? `\nBrand-Specific Context: ${brandNote}` : ""}
-
-Provide a helpful, accurate diagnostic response. Use the exact brand-specific app names, component names, and error code terminology for their system. Never use generic terms like "phase" or "string" if the brand has specific names for those components.
-
-If the issue can be resolved by the customer (checking the monitoring app, resetting a breaker, cleaning panels, power-cycling equipment), explain the exact steps for their brand INCLUDING the safe power-cycle order.
-
-If it requires a technician visit (roof leak, physical damage, inverter failure, battery not backing up during outage, burnt smell, arcing, repeatedly tripping breakers), clearly state that and reassure them Pell Solar will follow up.
-
-Your response MUST end with these two sections:
-
-**Warranty:**
-State the warranty term for their specific brand and note that Pell Solar can file warranty claims for them.
-
-**Call us if:**
-Call us immediately at (909) 240-5294 if you smell burning, see arcing/sparks, have repeatedly tripping breakers, or notice roof leaks — turn off the AC disconnect labeled SOLAR and do not attempt DIY repairs.
-
-Keep the response under 250 words and use plain language.`;
-
-        const llmMessages: Array<{ role: "system" | "user" | "assistant"; content: string | Array<any> }> = [
-          { role: "system", content: "You are a helpful solar system diagnostic assistant for Pell Solar." },
-        ];
-
-        // If photos were uploaded, include them in the prompt
-        if (input.photoKeys && input.photoKeys.length > 0) {
-          const photoUrls = await Promise.all(
-            input.photoKeys.map(async (key) => {
-              try {
-                return await storageGetSignedUrl(key);
-              } catch (e) {
-                console.warn("[Diagnose] Failed to get signed URL for photo:", key, e);
-                return null;
-              }
-            })
-          );
-          const validPhotoUrls = photoUrls.filter(Boolean) as string[];
-
-          if (validPhotoUrls.length > 0) {
-            prompt += `\n\nThe customer has uploaded ${validPhotoUrls.length} photo(s). Describe what you see in each photo and incorporate that into your diagnostic.`;
-            const content: Array<{ type: "text"; text: string } | { type: "image_url"; image_url: { url: string } }> = [
-              { type: "text", text: prompt },
-              ...validPhotoUrls.map(url => ({ type: "image_url" as const, image_url: { url } })),
-            ];
-            llmMessages.push({ role: "user", content });
-          } else {
-            llmMessages.push({ role: "user", content: prompt });
-          }
-        } else {
-          llmMessages.push({ role: "user", content: prompt });
-        }
-
-        const result = await invokeLLM({
-          messages: llmMessages,
-        });
-        const rawContent = result.choices?.[0]?.message?.content ?? "";
-        let diagnosis = typeof rawContent === "string" ? rawContent : (Array.isArray(rawContent) ? rawContent.map(c => typeof c === "string" ? c : "text" in c ? c.text : "").join("\n") : "We were unable to generate a diagnostic at this time. Please submit your service request and our team will contact you shortly.");
-        const modelUsed = result.model || process.env.DIAG_MODEL || "claude-sonnet-4-6";
-
-        // Post-check: ensure warranty section exists
-        if (!diagnosis.includes("Warranty:")) {
-          const warrantyTerms: Record<string, string> = {
-            "Enphase": "Enphase microinverters have a 25-year warranty, and the IQ Gateway has a 5-year warranty",
-            "Tesla Powerwall": "Tesla Powerwall has a 10-year warranty",
-            "Tesla / SolarCity": "Tesla Solar Inverter has a 12.5-year warranty",
-            "SolarEdge": "SolarEdge inverters have a 12-year warranty (25-year if registered), optimizers have a 25-year warranty",
-            "SMA": "SMA inverters have a 10-year warranty",
-            "Fronius": "Fronius inverters have a 10-year warranty",
-            "SunPower": "SunPower Equinox systems have a 25-year complete system warranty (panels, inverter, labor)",
-            "LG": "LG RESU batteries have a 10-year warranty",
-            "Panasonic": "Panasonic EverVolt batteries have a 10-year warranty",
-            "Generac PWRcell": "Generac PWRcell batteries have a 10-year warranty",
-            "Franklin WH": "Franklin WH batteries have a 12-year warranty",
-          };
-          const warrantyInfo = warrantyTerms[input.inverterBrand] || warrantyTerms[input.batteryBrand] || "check your installer paperwork for warranty details or call us";
-          diagnosis += `\n\n**Warranty:**\n${warrantyInfo}. Pell Solar can file warranty claims on your behalf.\n\n**Call us if:**\nCall us immediately at (909) 240-5294 if you smell burning, see arcing/sparks, have repeatedly tripping breakers, or notice roof leaks — turn off the AC disconnect labeled SOLAR and do not attempt DIY repairs.`;
-        }
+        // Service symptoms need an equipment-specific human review, not generated repair steps.
+        const diagnosis = serviceGuidance(input);
+        const modelUsed = "verified-service-guidance-v1";
 
         // Store diagnosis in database first (create lead record with diagnosis fields)
         let websiteLeadId: number | undefined;
@@ -713,7 +613,7 @@ Keep the response under 250 words and use plain language.`;
             diagnosisOutcome: "unknown", // Will be updated by submitCall
             diagnosisEmailSentAt: undefined, // Will be set after email sends
             photoKeys: input.photoKeys || undefined,
-            notes: `AI Diagnosis generated on ${new Date().toISOString()}`,
+            notes: `Service guidance provided on ${new Date().toISOString()}; technical diagnosis requires a qualified person`,
           });
           websiteLeadId = result.id;
         } catch (e) {
@@ -793,8 +693,8 @@ Keep the response under 250 words and use plain language.`;
         if (isDeflected) {
           // Send deflection notification to Josh
           await notifyOwner({
-            title: "AI Deflected Service Request",
-            content: `${input.firstName} ${input.lastName || ""} (${input.email || input.phone})\n${input.inverterBrand || "Unknown brand"} system\nIssues: ${issuesSummary}\n\nAI diagnosis resolved the issue - no CRM ticket created.`,
+            title: "Customer Declined Service Follow-up",
+            content: `${input.firstName} ${input.lastName || ""} (${input.email || input.phone})\n${input.inverterBrand || "Unknown brand"} system\nIssues: ${issuesSummary}\n\nCustomer chose no follow-up. This does not confirm the equipment issue is resolved; no CRM ticket created.`,
           });
 
           // Store locally with outcome=helped
@@ -818,7 +718,7 @@ Keep the response under 250 words and use plain language.`;
               aiDiagnosis: input.aiDiagnosis || undefined,
               diagnosisOutcome: "helped",
               photoKeys: input.photoKeys || undefined,
-              notes: `Deflected by AI diagnosis - no service call created\n${notes}`,
+              notes: `Customer chose no follow-up - resolution not verified; no service call created\n${notes}`,
             });
           } catch (e) {
             console.warn("[Leads] Failed to store deflected diagnosis:", e);
@@ -1022,13 +922,13 @@ Keep the response under 250 words and use plain language.`;
           // Send deflection email to Josh
           if (ENV.ownerNotifyEmail) {
             await notifyOwner({
-              title: "✅ Customer self-resolved (deflection)",
-              content: `${lead.firstName} ${lead.lastName || ""} (${lead.email || lead.phone || "no contact"}) clicked "this helped" after AI diagnosis for their ${lead.inverterBrand || "solar"} system.
+              title: "Customer Declined Service Follow-up",
+              content: `${lead.firstName} ${lead.lastName || ""} (${lead.email || lead.phone || "no contact"}) chose no follow-up after service guidance for their ${lead.inverterBrand || "solar"} system.
 
-AI Diagnosis was:
+Service guidance was:
 ${lead.aiDiagnosis || "(none)"}
 
-No further action needed - customer self-resolved.`,
+Customer declined follow-up. Equipment condition and resolution were not verified.`,
             }).catch((e) => console.warn("[Followup] Failed to send deflection email:", e));
           }
 

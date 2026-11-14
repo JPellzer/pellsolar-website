@@ -304,10 +304,10 @@ export default function TeslaPowerwall() {
           </div>
           <div className="space-y-4">
             {[
-              { q: "Can I add a Powerwall to my existing solar system?", a: "Yes. We install Powerwalls on both new and existing solar systems. If your system uses string inverters, the Powerwall 3's built-in inverter can replace it." },
-              { q: "How long can a Powerwall power my home?", a: "A single Powerwall 3 (13.5 kWh) can power most homes for 8–12 hours depending on usage. Two Powerwalls can last 24+ hours. With solar recharging during the day, you can potentially stay off-grid indefinitely." },
-              { q: "Does the Powerwall work during a power outage?", a: "Yes — that's one of its primary functions. When the grid goes down, Powerwall automatically disconnects from the grid and powers your home within milliseconds." },
-              { q: "What's the warranty?", a: "Tesla offers a 10-year warranty on the Powerwall 3, covering both the battery and the integrated inverter." },
+              { q: "Can I add a Powerwall to my existing solar system?", a: "We install Powerwalls with new solar and can review adding storage to an existing system. A specialist must confirm compatibility, the electrical design and any inverter changes for your equipment." },
+              { q: "How long can a Powerwall power my home?", a: "Backup time depends on your appliances, stored charge, battery configuration and available solar production. We review the loads you want to keep running and estimate duration for your proposed design; a fixed number of hours cannot be promised for every home." },
+              { q: "Does the Powerwall work during a power outage?", a: "Powerwall can provide outage backup when installed in a supported backup configuration. Your proposal will identify which loads are backed up and any equipment or operating limits." },
+              { q: "What's the warranty?", a: "Ask us for the current manufacturer warranty and any separate workmanship coverage for your proposed equipment. Coverage, exclusions and claim eligibility must be confirmed from the applicable written terms." },
               { q: "Can I monitor my Powerwall remotely?", a: "Yes. The Tesla app shows real-time energy flow — solar production, battery charge level, home consumption, and grid import/export. You can also control backup reserve levels and Storm Watch settings." },
             ].map((faq, i) => (
               <details key={i} className="group bg-gray-50 rounded-xl border border-gray-200">
@@ -329,7 +329,7 @@ export default function TeslaPowerwall() {
             Ready to Add a Tesla Powerwall?
           </h2>
           <p className="text-white/70 text-lg mb-8 max-w-2xl mx-auto">
-            Free consultation. We'll assess your home, design the right battery setup, and show you exactly how much you'll save.
+            Free consultation. We'll assess your home, design the right battery setup, and explain the costs and assumptions behind your estimate.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link href="/get-quote" className="btn-gold text-lg px-10 py-4">Get Your Free Quote</Link>
