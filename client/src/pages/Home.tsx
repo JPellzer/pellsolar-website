@@ -205,7 +205,7 @@ export default function Home() {
           </div>
           <div className="grid md:grid-cols-3 gap-8">
             {[
-              { img: SOLAR_PANELS_IMG, title: "Solar Panel Systems", desc: "Every system is custom-designed for your roof, your energy usage, and NEM 3.0. Premium panels with 25-year warranties.", href: "/solar-panel-systems" },
+              { img: SOLAR_PANELS_IMG, title: "Solar Panel Systems", desc: "A system designed for your roof, electricity use and utility plan. Your proposal explains the equipment and manufacturer warranties.", href: "/solar-panel-systems" },
               { img: POWERWALL_IMG, fallback: POWERWALL_FALLBACK_IMG, title: "Tesla Powerwall Battery", desc: "Store your solar energy and power your home during peak hours. Backup designed around the appliances and circuits you need.", href: "/tesla-powerwall" },
               { img: EV_IMG, title: "EV Charger Installation", desc: "Level 2 Tesla Wall Connector and universal charger installs. Use energy from your solar system to help charge your car.", href: "/ev-charging" },
             ].map(card => (
@@ -278,7 +278,7 @@ export default function Home() {
               { img: "/manus-storage/how-it-works-1-panels_9b6c6456.jpg", step: "1", time: "7am – 4pm", title: "Panels Generate Power", desc: "Your solar panels produce clean electricity all day. Excess energy charges your Powerwall battery automatically.", color: "#facc15" },
               { img: "/manus-storage/how-it-works-2-battery_fcab8965.jpg", step: "2", time: "All Day", title: "Battery Charges Up", desc: "Your Tesla Powerwall 3 stores the solar energy your home doesn't use immediately — ready for when you need it most.", color: "#22c55e" },
               { img: "/manus-storage/how-it-works-3-peak_8b018b6c.jpg", step: "3", time: "4pm – 9pm", title: "Battery Beats Peak Rates", desc: "A battery can supply stored energy during expensive hours. We configure it around your utility rate plan and backup reserve.", color: "#f97316" },
-              { img: "/manus-storage/how-it-works-4-backup_586e5b35.jpg", step: "4", time: "Any Time", title: "Whole-Home Backup", desc: "If the grid goes down, your Powerwall keeps your entire home running — lights, AC, refrigerator — without interruption.", color: "#60a5fa" },
+              { img: "/manus-storage/how-it-works-4-backup_586e5b35.jpg", step: "4", time: "During an Outage", title: "Backup for Your Priorities", desc: "Powerwall can supply the circuits your system is designed to support. Backup duration depends on stored energy, sunlight and the appliances you use.", color: "#60a5fa" },
             ].map(card => (
               <div key={card.step} className="bg-white rounded-2xl border border-gray-200 overflow-hidden card-hover">
                 <div className="h-44 overflow-hidden relative">
@@ -364,7 +364,7 @@ export default function Home() {
               </h2>
               <div className="text-gray-700 text-base leading-relaxed space-y-4">
                 <p>Keep your home powered during outages with the <strong>Tesla Powerwall 3</strong> — a compact battery with an integrated solar inverter that delivers seamless backup protection and increased energy savings.</p>
-                <p>A single unit can power your entire home during a grid outage, automatically switching on without delay. It stores excess solar energy, lowers your electricity bills, and is built to withstand extreme weather.</p>
+                <p>Powerwall stores energy for evening use and backup during outages. We assess your appliances, solar production and backup priorities to recommend the number of batteries and explain which loads the system can support.</p>
                 <p>As a <strong>Tesla Certified Installer</strong>, Pell Solar handles every step — from design and permitting to professional installation.</p>
               </div>
               <Link href="/tesla-powerwall" className="btn-green mt-8 inline-block">LEARN ABOUT POWERWALL →</Link>
@@ -451,7 +451,7 @@ export default function Home() {
               {/* Stats row */}
               <div className="flex flex-wrap gap-8 mt-10 pt-8" style={{ borderTop: "1px solid rgba(255,255,255,0.10)" }}>
                 {[
-                  { num: "90%", label: "of our business\ncomes from referrals" },
+                  { num: "Local", label: "family-owned\nsolar company" },
                   { num: "$0", label: "cost to join\nthe program" },
                   { num: "$2K", label: "max reward\nper referral" },
                 ].map(s => (
