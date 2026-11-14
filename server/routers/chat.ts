@@ -53,7 +53,14 @@ export const chatRouter = router({
       const [s] = await db
         .insert(chatSessions)
         .values({ sessionToken, status: "active", smsSent: 0 })
-        .returning();
+        .returning()
+        .catch(() => {
+          console.error("[SolarAssistant] Could not create a chat session");
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "I couldn't start the chat. Please try again, or call Josh at (909) 240-5294.",
+          });
+        });
       try {
         await initializeSession(s.id, ctx.req.ip || "unknown", input.utm);
         await queueTurn(s.id, input.clientId, input.firstMessage);

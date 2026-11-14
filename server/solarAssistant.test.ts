@@ -22,7 +22,7 @@ suite("website solar assistant persistence", () => {
     await setup.end();
     db = new Pool({ ...config, options: "-c search_path=" + schema });
     await db.query(
-      `CREATE TABLE website_chat_sessions(id INT PRIMARY KEY,"visitorName" TEXT,"visitorPhone" TEXT,"visitorEmail" TEXT);CREATE TABLE website_chat_messages(id SERIAL PRIMARY KEY,"sessionId" INT,sender TEXT,message TEXT,"createdAt" TIMESTAMPTZ DEFAULT NOW());INSERT INTO website_chat_sessions(id) VALUES(1),(2);`
+      `CREATE TABLE website_chat_sessions(id SERIAL PRIMARY KEY,"visitorName" TEXT,"visitorPhone" TEXT,"visitorEmail" TEXT);CREATE TABLE website_chat_messages(id SERIAL PRIMARY KEY,"sessionId" INT,sender TEXT,message TEXT,"createdAt" TIMESTAMPTZ DEFAULT NOW());INSERT INTO website_chat_sessions(id) VALUES(1),(2),(90001);`
     );
     vi.stubEnv("CRM_WEBHOOK_URL", "https://crm.test/api/webhooks/website-lead");
     vi.stubEnv("CRM_DELIVERY_ENABLED", "true");
@@ -47,6 +47,8 @@ suite("website solar assistant persistence", () => {
                       name: "Fabricated Person",
                       phone: "9995550109",
                       interest: "battery",
+                      existingSolar: true,
+                      homeowner: null,
                     },
                     summary: "Asked about battery backup. Location unknown.",
                     offerCallback: true,
@@ -84,9 +86,11 @@ suite("website solar assistant persistence", () => {
     }
   });
   it("defaults ON, deduplicates a retried visitor question and remembers the response without sending a lead", async () => {
+    const inserted = await db.query('INSERT INTO website_chat_sessions DEFAULT VALUES RETURNING id');
+    expect(inserted.rows[0].id).toBeGreaterThan(90001);
     expect((await api.assistantStatus()).isOnline).toBe(true);
-    await api.queueTurn(1, "message-one", "I want a battery");
-    await api.queueTurn(1, "message-one", "I want a battery");
+    await api.queueTurn(1, "message-one", "I already have solar and want a battery");
+    await api.queueTurn(1, "message-one", "I already have solar and want a battery");
     await Promise.all([api.respond(1), api.respond(1)]);
     expect(modelCalls).toBe(1);
     expect(crmCalls).toBe(0);
@@ -99,6 +103,8 @@ suite("website solar assistant persistence", () => {
     expect(state.profile.phone).toBeUndefined();
     expect(state.profile.name).toBeUndefined();
     expect(state.profile.interest).toBe("battery");
+    expect(state.profile.existingSolar).toBe("Yes");
+    expect(state.profile.homeowner).toBeUndefined();
   });
   it("requires usable contact and retains a callback request until the CRM acknowledges it", async () => {
     await expect(
