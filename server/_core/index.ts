@@ -14,6 +14,7 @@ import { serveStatic, setupVite } from "./vite";
 import redirectsRouter from "../redirects";
 import staticPagesRouter from "../staticPages";
 import { startCrmRecovery } from '../crmOutbox';
+import { ensureAssistant, startAssistantRecovery } from '../solarAssistant';
 import { ensureSchema } from "./ensureSchema";
 
 function isPortAvailable(port: number): Promise<boolean> {
@@ -39,6 +40,8 @@ async function startServer() {
   // Bootstrap schema before starting server
   await ensureSchema();
   startCrmRecovery();
+  await ensureAssistant();
+  startAssistantRecovery();
 
   const app = express();
   const server = createServer(app);

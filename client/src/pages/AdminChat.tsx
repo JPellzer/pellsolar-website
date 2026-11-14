@@ -45,9 +45,9 @@ export default function AdminChat() {
     onSuccess: (data) => {
       refetchStatus();
       if (data.isOnline) {
-        toast.success("Chat is now ONLINE — visitors can start chatting");
+        toast.success("Assistant is ON — available day and night");
       } else {
-        toast("Chat is now OFFLINE");
+        toast("Assistant is OFF — visitors can still call or request a quote");
       }
     },
   });
@@ -219,7 +219,7 @@ export default function AdminChat() {
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <MessageCircle className="w-5 h-5 text-[#1a56db]" />
-              <h1 className="text-lg font-bold text-gray-900">Live Chat</h1>
+              <h1 className="text-lg font-bold text-gray-900">Website Assistant</h1>
             </div>
             <button
               onClick={() => setOnlineStatus.mutate({ isOnline: !isOnline })}
@@ -242,7 +242,7 @@ export default function AdminChat() {
             isOnline ? "bg-green-50 text-green-700" : "bg-gray-50 text-gray-500"
           }`}>
             <span className={`w-2 h-2 rounded-full shrink-0 ${isOnline ? "bg-green-500 animate-pulse" : "bg-gray-400"}`} />
-            {isOnline ? "Visitors can start a chat" : "Chat is offline — showing offline message"}
+            {isOnline ? "Assistant answers day and night — replying here takes over the conversation" : "Assistant is off — phone and quote links remain available"}
           </div>
         </div>
 
@@ -370,7 +370,7 @@ export default function AdminChat() {
                   }`}>
                     <p className="text-sm leading-relaxed break-words">{msg.message}</p>
                     <p className={`text-xs mt-1 ${msg.sender === "admin" ? "text-blue-200" : "text-gray-400"}`}>
-                      {formatShortTime(msg.createdAt)}
+                      {msg.isAi ? "Assistant · " : msg.sender === "admin" ? "Team · " : "Visitor · "}{formatShortTime(msg.createdAt)}
                     </p>
                   </div>
                 </div>
@@ -412,7 +412,7 @@ export default function AdminChat() {
         ) : (
           <div className="hidden md:flex flex-1 flex-col items-center justify-center text-center p-8">
             <MessageCircle className="w-16 h-16 text-gray-200 mb-4" />
-            <h2 className="text-xl font-semibold text-gray-700 mb-2">Live Chat Dashboard</h2>
+            <h2 className="text-xl font-semibold text-gray-700 mb-2">Website Assistant Dashboard</h2>
             <p className="text-gray-500 max-w-sm">
               Select a conversation from the left to view and reply, or toggle chat ON to start receiving messages.
             </p>
