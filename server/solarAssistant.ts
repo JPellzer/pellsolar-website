@@ -46,6 +46,23 @@ export async function ensureAssistant() {
       .query(
         `
  ALTER TABLE website_chat_messages ADD COLUMN IF NOT EXISTS "isAi" BOOLEAN NOT NULL DEFAULT false;
+ -- Imported chat records may have explicit IDs beyond the serial sequence.
+ -- Move sequences forward under a table lock; never change existing records.
+ DO $repair_chat_ids$
+ DECLARE t TEXT; s TEXT; highest BIGINT; allocated BIGINT;
+ BEGIN
+  LOCK TABLE website_chat_sessions,website_chat_messages IN SHARE ROW EXCLUSIVE MODE;
+  FOREACH t IN ARRAY ARRAY['website_chat_sessions','website_chat_messages'] LOOP
+   s := pg_get_serial_sequence(t,'id');
+   IF s IS NOT NULL THEN
+    EXECUTE format('SELECT max(id) FROM %I',t) INTO highest;
+    EXECUTE 'SELECT last_value FROM '||s INTO allocated;
+    IF highest IS NOT NULL AND highest >= allocated THEN
+     PERFORM setval(s::regclass,highest,true);
+    END IF;
+   END IF;
+  END LOOP;
+ END $repair_chat_ids$;
  CREATE TABLE IF NOT EXISTS website_assistant_settings(id INTEGER PRIMARY KEY,enabled BOOLEAN NOT NULL DEFAULT true);
  INSERT INTO website_assistant_settings(id,enabled) VALUES(1,true) ON CONFLICT DO NOTHING;
  CREATE TABLE IF NOT EXISTS website_assistant_sessions(session_id INTEGER PRIMARY KEY,external_id TEXT UNIQUE NOT NULL,
