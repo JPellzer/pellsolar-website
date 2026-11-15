@@ -108,13 +108,13 @@ export function LiveChatWidget() {
   )
     return null;
   return (
-    <div className="fixed bottom-24 right-4 z-50 flex flex-col items-end gap-3">
+    <div className="fixed bottom-24 right-4 z-[1000] flex flex-col items-end gap-3">
       {open && (
         <section
           role="dialog"
           aria-label="Pell Solar Assistant"
           className="w-[380px] max-w-[calc(100vw-2rem)] bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden"
-          style={{ height: "min(640px,calc(100dvh - 150px))" }}
+          style={{ height: "min(640px,calc(100dvh - 176px))" }}
         >
           <header className="bg-[#0B1D51] text-white p-4 flex items-start justify-between">
             <div>
