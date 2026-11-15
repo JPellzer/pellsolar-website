@@ -52,6 +52,8 @@ suite("website solar assistant persistence", () => {
                     },
                     summary: "Asked about battery backup. Location unknown.",
                     offerCallback: true,
+                    answerBasis: "website",
+                    sourceIds: ["battery"],
                   }),
                 },
               ],
